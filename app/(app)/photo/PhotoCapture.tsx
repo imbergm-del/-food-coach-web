@@ -3,6 +3,7 @@
 import { useRef, useState } from "react";
 import Link from "next/link";
 import { logPhotoMeal } from "./actions";
+import { resizeToJpegBase64 } from "@/lib/imageResize";
 
 type Result = {
   title: string;
@@ -12,31 +13,6 @@ type Result = {
   fat: number;
   carbs: number;
 };
-
-const MAX_DIMENSION = 1024;
-
-function resizeToJpegBase64(file: File): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onerror = () => reject(new Error("read failed"));
-    reader.onload = () => {
-      const img = new Image();
-      img.onerror = () => reject(new Error("decode failed"));
-      img.onload = () => {
-        const scale = Math.min(1, MAX_DIMENSION / Math.max(img.width, img.height));
-        const canvas = document.createElement("canvas");
-        canvas.width = Math.round(img.width * scale);
-        canvas.height = Math.round(img.height * scale);
-        const ctx = canvas.getContext("2d");
-        if (!ctx) return reject(new Error("no canvas context"));
-        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-        resolve(canvas.toDataURL("image/jpeg", 0.75));
-      };
-      img.src = reader.result as string;
-    };
-    reader.readAsDataURL(file);
-  });
-}
 
 export function PhotoCapture() {
   const [status, setStatus] = useState<"idle" | "analyzing" | "result" | "error">("idle");

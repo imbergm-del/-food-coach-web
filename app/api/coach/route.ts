@@ -2,6 +2,9 @@ import { NextResponse } from "next/server";
 import Anthropic from "@anthropic-ai/sdk";
 import { createClient } from "@/lib/supabaseServer";
 
+const ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif"] as const;
+type AllowedImageType = (typeof ALLOWED_IMAGE_TYPES)[number];
+
 export async function POST(req: Request) {
   if (!process.env.ANTHROPIC_API_KEY) {
     return NextResponse.json(
@@ -14,7 +17,11 @@ export async function POST(req: Request) {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "Не авторизован" }, { status: 401 });
 
-  const { messages } = await req.json() as { messages: { role: "user" | "assistant"; content: string }[] };
+  const { messages, imageBase64, imageMediaType } = await req.json() as {
+    messages: { role: "user" | "assistant"; content: string }[];
+    imageBase64?: string;
+    imageMediaType?: string;
+  };
   if (!messages?.length) return NextResponse.json({ error: "Пустое сообщение" }, { status: 400 });
 
   const { data: profile } = await supabase.from("profiles").select("*").eq("id", user.id).single();
@@ -33,16 +40,32 @@ export async function POST(req: Request) {
 Дневная норма: ${calTarget} ккал, белок ${profile?.protein_target ?? "?"} г, жиры ${profile?.fat_target ?? "?"} г, углеводы ${profile?.carb_target ?? "?"} г.
 Уже съедено сегодня: ${usedCals} ккал (белок ${usedProtein} г, жиры ${usedFat} г, углеводы ${usedCarbs} г).
 Осталось на сегодня: ${Math.max(0, calTarget - usedCals)} ккал.
-Пользователь ленивый и не хочет тратить время на готовку — давай простые советы и конкретные варианты еды, а не общие рекомендации.`;
+Пользователь ленивый и не хочет тратить время на готовку — давай простые советы и конкретные варианты еды, а не общие рекомендации.
+Если пользователь прислал фото продуктов — определи, что на нём видно, и предложи ОДИН конкретный рецепт именно из этих продуктов (плюс базовые вещи вроде соли, масла, специй, которые обычно есть дома), с учётом остатка КБЖУ на сегодня. Не проси уточнений без необходимости — предполагай разумно и сразу давай рецепт с шагами.`;
 
   const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+
+  const hasImage = imageBase64 && imageMediaType && ALLOWED_IMAGE_TYPES.includes(imageMediaType as AllowedImageType);
+  const anthropicMessages = messages.map((m, i) => {
+    const isLast = i === messages.length - 1;
+    if (isLast && m.role === "user" && hasImage) {
+      return {
+        role: m.role,
+        content: [
+          { type: "image" as const, source: { type: "base64" as const, media_type: imageMediaType as AllowedImageType, data: imageBase64! } },
+          { type: "text" as const, text: m.content }
+        ]
+      };
+    }
+    return { role: m.role, content: m.content };
+  });
 
   try {
     const response = await anthropic.messages.create({
       model: "claude-sonnet-5",
-      max_tokens: 500,
+      max_tokens: 600,
       system: systemPrompt,
-      messages: messages.map(m => ({ role: m.role, content: m.content }))
+      messages: anthropicMessages
     });
 
     const text = response.content
