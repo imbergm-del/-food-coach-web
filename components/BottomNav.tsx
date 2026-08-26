@@ -18,7 +18,7 @@ export function BottomNav() {
     <nav className="bottomnav">
       {NAV.map(item => (
         <Link key={item.href} href={item.href} className={`navbtn ${pathname?.startsWith(item.href) ? "active" : ""}`}>
-          {NavIcons[item.key]}
+          <span className="navicon">{NavIcons[item.key]}</span>
           {item.label}
         </Link>
       ))}
