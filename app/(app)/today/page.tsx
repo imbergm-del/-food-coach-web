@@ -4,26 +4,43 @@ import { addToCart, logMealEaten } from "./actions";
 import { CookingModeTabs } from "./CookingModeTabs";
 import { MacroDial } from "@/components/MacroDial";
 import { FoodThumb } from "@/components/FoodThumb";
+import { RecipeDisclosure } from "./RecipeDisclosure";
 
-const MEALS_BY_MODE: Record<string, { title: string; desc: string; calories: number; protein: number; fat: number; carbs: number; photoUrl?: string; ingredients: { name: string; qty: string }[] }> = {
+const MEALS_BY_MODE: Record<string, { title: string; desc: string; calories: number; protein: number; fat: number; carbs: number; photoUrl?: string; ingredients: { name: string; qty: string }[]; steps: string[] }> = {
   "0": {
     title: "Быстрая тарелка без готовки",
     desc: "Готовая курица-гриль, греч. йогурт, огурцы, хлебцы",
     calories: 480, protein: 46, fat: 14, carbs: 38,
     // photoUrl: "/food/quick-plate.jpg" — добавьте фото в /public/food и впишите путь сюда
-    ingredients: [{ name: "Курица-гриль готовая", qty: "300 г" }, { name: "Греч. йогурт", qty: "1 шт" }, { name: "Огурцы", qty: "2 шт" }, { name: "Хлебцы", qty: "1 уп." }]
+    ingredients: [{ name: "Курица-гриль готовая", qty: "300 г" }, { name: "Греч. йогурт", qty: "1 шт" }, { name: "Огурцы", qty: "2 шт" }, { name: "Хлебцы", qty: "1 уп." }],
+    steps: [
+      "Курицу можно есть холодной или разогреть 1–2 минуты в микроволновке.",
+      "Огурцы ополосните и нарежьте дольками.",
+      "Выложите курицу, йогурт, огурцы и хлебцы на тарелку — готово."
+    ]
   },
   "5": {
     title: "Собрать за 5 минут",
     desc: "Тунец, авокадо, лаваш, свежие овощи",
     calories: 510, protein: 42, fat: 18, carbs: 40,
-    ingredients: [{ name: "Тунец консервир.", qty: "1 банка" }, { name: "Авокадо", qty: "1 шт" }, { name: "Лаваш", qty: "1 шт" }, { name: "Овощи свежие", qty: "150 г" }]
+    ingredients: [{ name: "Тунец консервир.", qty: "1 банка" }, { name: "Авокадо", qty: "1 шт" }, { name: "Лаваш", qty: "1 шт" }, { name: "Овощи свежие", qty: "150 г" }],
+    steps: [
+      "Слейте жидкость с тунца и разомните его вилкой прямо в банке.",
+      "Авокадо и овощи нарежьте некрупно.",
+      "Выложите тунец, авокадо и овощи на лаваш и сверните в рулет."
+    ]
   },
   "15": {
     title: "Боул с курицей и рисом",
     desc: "200 г курицы, 150 г риса, 150 г овощей, 1 ч.л. оливкового масла",
     calories: 520, protein: 48, fat: 12, carbs: 54,
-    ingredients: [{ name: "Куриная грудка", qty: "200 г" }, { name: "Рис", qty: "150 г" }, { name: "Овощи замороженные", qty: "150 г" }, { name: "Оливковое масло", qty: "1 шт" }]
+    ingredients: [{ name: "Куриная грудка", qty: "200 г" }, { name: "Рис", qty: "150 г" }, { name: "Овощи замороженные", qty: "150 г" }, { name: "Оливковое масло", qty: "1 шт" }],
+    steps: [
+      "Разогрейте рис (готовый пакет — 2 минуты в микроволновке, или заранее сваренный).",
+      "Обжарьте или разогрейте курицу на сковороде 3–4 минуты до готовности.",
+      "Разморозьте овощи — 2 минуты в микроволновке или на той же сковороде.",
+      "Соберите всё в тарелке и сбрызните оливковым маслом."
+    ]
   }
 };
 
@@ -97,6 +114,7 @@ export default async function TodayPage() {
         <p style={{ fontFamily: "var(--mono)", fontSize: 13, fontWeight: 500, letterSpacing: ".01em", color: "var(--ink-soft)", margin: "0 0 16px" }}>
           {meal.calories} ккал · Б {meal.protein} · Ж {meal.fat} · У {meal.carbs}
         </p>
+        <RecipeDisclosure steps={meal.steps} />
         <div style={{ display: "flex", gap: 10 }}>
           <form action={logMealEaten} style={{ flex: 1 }}>
             <input type="hidden" name="title" value={meal.title} />
