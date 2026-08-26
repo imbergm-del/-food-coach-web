@@ -41,6 +41,16 @@ export async function logMealEaten(formData: FormData) {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return;
 
+  const mealId = formData.get("mealId") as string;
+
+  if (mealId) {
+    // Приём был запланирован заранее (см. «Напоминания») — просто отмечаем его съеденным
+    await supabase.from("meals").update({ status: "eaten" }).eq("id", Number(mealId)).eq("user_id", user.id);
+    revalidatePath("/today");
+    revalidatePath("/plan");
+    return;
+  }
+
   const title = formData.get("title") as string;
   const mealType = formData.get("mealType") as MealType;
   const ingredients = JSON.parse((formData.get("ingredients") as string) || "[]");

@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabaseServer";
 import { ReminderToggle } from "./ReminderToggle";
+import { PlanTomorrowForm } from "./PlanTomorrowForm";
 import { MEAL_TYPE_LABELS } from "@/lib/mealTypes";
 
 export default async function RemindersPage() {
@@ -25,7 +26,7 @@ export default async function RemindersPage() {
       <div className="card" style={{ marginBottom: 16 }}>
         {!plannedMeals || plannedMeals.length === 0 ? (
           <p style={{ fontSize: 13, color: "var(--ink-soft)", margin: 0 }}>
-            На завтра пока ничего не запланировано — план соберётся по мере того, как вы записываете приёмы пищи.
+            На завтра пока ничего не запланировано.
           </p>
         ) : (
           plannedMeals.map(m => (
@@ -38,6 +39,9 @@ export default async function RemindersPage() {
           ))
         )}
       </div>
+
+      <PlanTomorrowForm initiallyOpen={!plannedMeals || plannedMeals.length === 0} />
+
       <div className="card" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
         <div>
           <h3 style={{ fontSize: 15 }}>Присылать напоминание</h3>

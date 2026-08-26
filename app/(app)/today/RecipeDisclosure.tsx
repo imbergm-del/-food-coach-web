@@ -4,6 +4,7 @@ import { useState } from "react";
 
 export function RecipeDisclosure({ steps }: { steps: string[] }) {
   const [open, setOpen] = useState(false);
+  if (steps.length === 0) return null;
 
   return (
     <div style={{ marginBottom: 16 }}>

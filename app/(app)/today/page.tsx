@@ -122,7 +122,26 @@ export default async function TodayPage() {
   const displayType = !loggedTypes.has(clockType)
     ? clockType
     : MEAL_SEQUENCE.find(t => !loggedTypes.has(t));
-  const meal = displayType ? menu[displayType] : null;
+
+  // Если этот приём был спланирован вечером заранее (см. «Напоминания»), покажем его вместо общей подсказки
+  const plannedRow = displayType ? meals?.find(m => m.meal_type === displayType && m.status === "planned") : undefined;
+  const meal: (MealDef & { plannedMealId?: number }) | null = !displayType
+    ? null
+    : plannedRow
+      ? {
+          title: plannedRow.title ?? "Запланированный приём",
+          desc: Array.isArray(plannedRow.ingredients) && plannedRow.ingredients.length
+            ? plannedRow.ingredients.map((i: { name: string }) => i.name).join(", ")
+            : "Из вашего плана на вечер",
+          calories: plannedRow.calories ?? 0,
+          protein: plannedRow.protein ?? 0,
+          fat: plannedRow.fat ?? 0,
+          carbs: plannedRow.carbs ?? 0,
+          ingredients: plannedRow.ingredients ?? [],
+          steps: [],
+          plannedMealId: plannedRow.id
+        }
+      : menu[displayType];
 
   const p = profile ?? { protein_target: 125, fat_target: 72, carb_target: 210, cal_target: 2200, name: "друг" };
   const usedProtein = meals?.reduce((s, m) => s + (m.status === "eaten" || m.status === "photo_logged" ? m.protein ?? 0 : 0), 0) ?? 0;
@@ -186,6 +205,7 @@ export default async function TodayPage() {
             <RecipeDisclosure steps={meal.steps} />
             <div style={{ display: "flex", gap: 10 }}>
               <form action={logMealEaten} style={{ flex: 1 }}>
+                {meal.plannedMealId && <input type="hidden" name="mealId" value={meal.plannedMealId} />}
                 <input type="hidden" name="title" value={meal.title} />
                 <input type="hidden" name="mealType" value={displayType} />
                 <input type="hidden" name="ingredients" value={JSON.stringify(meal.ingredients)} />
