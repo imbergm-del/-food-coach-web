@@ -4,6 +4,13 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabaseClient";
 
+function friendlyAuthError(message: string) {
+  if (message === "Email not confirmed") return "Please confirm your email before next step.";
+  if (message === "Invalid login credentials") return "Неверный email или пароль.";
+  if (message === "User already registered") return "Этот email уже зарегистрирован — попробуйте войти.";
+  return message;
+}
+
 export default function LoginPage() {
   const supabase = createClient();
   const router = useRouter();
@@ -29,7 +36,7 @@ export default function LoginPage() {
 
     setLoading(false);
     if (error) {
-      setError(error.message);
+      setError(friendlyAuthError(error.message));
       return;
     }
     router.push("/onboarding");
@@ -63,7 +70,7 @@ export default function LoginPage() {
             <label>Пароль</label>
             <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" />
           </div>
-          {error && <p style={{ color: "var(--warn)", fontSize: 12.5, marginTop: -8, marginBottom: 14 }}>{error}</p>}
+          {error && <p style={{ color: "var(--warn)", fontSize: 13.5, fontWeight: 700, marginTop: -8, marginBottom: 14 }}>{error}</p>}
           <button className="btn block" type="submit" disabled={loading}>
             {loading ? "Секунду…" : mode === "login" ? "Войти" : "Зарегистрироваться"}
           </button>
