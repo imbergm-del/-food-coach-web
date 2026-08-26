@@ -168,24 +168,30 @@ export default async function TodayPage() {
         </Link>
       </div>
 
-      <div className="card" style={{ display: "flex", flexDirection: "column", alignItems: "center", marginBottom: 16 }}>
+      <div
+        className="card"
+        style={{
+          display: "flex", flexDirection: "column", alignItems: "center", marginBottom: 16,
+          background: "radial-gradient(120% 100% at 50% 0%, var(--protein-bg) 0%, var(--card) 68%)"
+        }}
+      >
         <MacroDial
           proteinPct={usedProtein / p.protein_target}
           fatPct={usedFat / p.fat_target}
           carbsPct={usedCarbs / p.carb_target}
           caloriesLeft={caloriesLeft}
         />
-        <div style={{ display: "flex", width: "100%", marginTop: 18 }}>
+        <div style={{ display: "flex", width: "100%", marginTop: 18, gap: 8 }}>
           {([
-            ["Белок", usedProtein, p.protein_target, "var(--protein)"],
-            ["Жиры", usedFat, p.fat_target, "var(--fat)"],
-            ["Углеводы", usedCarbs, p.carb_target, "var(--carbs)"]
-          ] as [string, number, number, string][]).map(([label, used, target, color], i) => (
-            <div key={label} style={{ flex: 1, textAlign: "center", borderLeft: i > 0 ? "1px solid var(--line)" : "none" }}>
-              <div style={{ fontFamily: "var(--mono)", fontSize: 19, fontWeight: 600, color }}>
-                {used}<span style={{ fontSize: 12, fontWeight: 500, color: "var(--ink-soft)" }}>/{target}</span>
+            ["Белок", usedProtein, p.protein_target, "var(--protein)", "var(--protein-bg)"],
+            ["Жиры", usedFat, p.fat_target, "var(--fat-ink)", "var(--fat-bg)"],
+            ["Углеводы", usedCarbs, p.carb_target, "var(--carbs)", "var(--carbs-bg)"]
+          ] as [string, number, number, string, string][]).map(([label, used, target, color, bg]) => (
+            <div key={label} style={{ flex: 1, textAlign: "center", background: bg, borderRadius: 14, padding: "10px 4px" }}>
+              <div style={{ fontFamily: "var(--mono)", fontSize: 17, fontWeight: 700, color }}>
+                {used}<span style={{ fontSize: 12, fontWeight: 500, opacity: 0.75 }}>/{target}</span>
               </div>
-              <div className="eyebrow" style={{ marginTop: 3, fontSize: 10 }}>{label}</div>
+              <div style={{ fontSize: 9.5, fontWeight: 600, letterSpacing: ".04em", textTransform: "uppercase", color, opacity: 0.85, marginTop: 3 }}>{label}</div>
             </div>
           ))}
         </div>
@@ -196,7 +202,7 @@ export default async function TodayPage() {
       {meal && displayType ? (
         <>
           <div className="eyebrow" style={{ marginBottom: 8 }}>Следующий приём · {MEAL_TYPE_LABELS[displayType]}</div>
-          <div className="card" style={{ marginBottom: 16 }}>
+          <div className="card" style={{ marginBottom: 16, borderLeft: "5px solid var(--protein)" }}>
             <div style={{ display: "flex", gap: 14, alignItems: "flex-start", marginBottom: 12 }}>
               <FoodThumb color="var(--protein)" bg="var(--protein-bg)" photoUrl={meal.photoUrl} alt={meal.title} />
               <div>
@@ -204,9 +210,18 @@ export default async function TodayPage() {
                 <p style={{ fontSize: 14.5, color: "var(--ink-soft)", margin: 0 }}>{meal.desc}</p>
               </div>
             </div>
-            <p style={{ fontFamily: "var(--mono)", fontSize: 13, fontWeight: 500, letterSpacing: ".01em", color: "var(--ink-soft)", margin: "0 0 16px" }}>
-              {meal.calories} ккал · Б {meal.protein} · Ж {meal.fat} · У {meal.carbs}
-            </p>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 6, margin: "0 0 16px" }}>
+              {[
+                [`${meal.calories} ккал`, "var(--ink-soft)", "var(--paper2)"],
+                [`Б ${meal.protein}`, "var(--protein)", "var(--protein-bg)"],
+                [`Ж ${meal.fat}`, "var(--fat-ink)", "var(--fat-bg)"],
+                [`У ${meal.carbs}`, "var(--carbs)", "var(--carbs-bg)"]
+              ].map(([text, color, bg]) => (
+                <span key={text} style={{ fontFamily: "var(--mono)", fontSize: 11.5, fontWeight: 600, color, background: bg, padding: "5px 10px", borderRadius: 999 }}>
+                  {text}
+                </span>
+              ))}
+            </div>
             <RecipeDisclosure steps={meal.steps} />
             <div style={{ display: "flex", gap: 10 }}>
               <form action={logMealEaten} style={{ flex: 1 }}>

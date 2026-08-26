@@ -4,7 +4,7 @@
   --paper:#EFEEE4; --paper2:#E6E2D2; --ink:#202B1F; --ink-soft:#5B655A;
   --card:#FFFFFF; --line:rgba(32,43,31,.14); --line-strong:rgba(32,43,31,.24);
   --protein:#C1553B; --fat:#E3A72F; --carbs:#7C8C6B; --water:#4F7C82; --warn:#B5533C;
-  --protein-bg:#F3DDD6; --fat-bg:#F8EAC9; --carbs-bg:#E4E9DE; --water-bg:#DCE7E8;
+  --protein-bg:#F3DDD6; --fat-bg:#F8EAC9; --carbs-bg:#E4E9DE; --water-bg:#DCE7E8; --fat-ink:#9C7317;
   --sheet-bg:#1B1F17; --sheet-text:#F1EEE5; --sheet-muted:#B9B6A9; --sheet-line:rgba(241,238,229,.14);
   --serif:'Fraunces',serif; --sans:'Public Sans',sans-serif; --mono:'IBM Plex Mono',monospace;
 }
