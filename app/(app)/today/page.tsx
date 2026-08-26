@@ -7,6 +7,14 @@ import { FoodThumb } from "@/components/FoodThumb";
 import { RecipeDisclosure } from "./RecipeDisclosure";
 import { MEAL_SEQUENCE, MEAL_TYPE_LABELS, currentMealType, type MealType } from "@/lib/mealTypes";
 
+function timeGreeting() {
+  const hour = new Date().getHours();
+  if (hour < 5) return "Доброй ночи";
+  if (hour < 12) return "Доброе утро";
+  if (hour < 18) return "Добрый день";
+  return "Добрый вечер";
+}
+
 type MealDef = {
   title: string; desc: string; calories: number; protein: number; fat: number; carbs: number;
   photoUrl?: string; ingredients: { name: string; qty: string }[]; steps: string[];
@@ -154,35 +162,32 @@ export default async function TodayPage() {
     <div>
       <div className="eyebrow">СЕГОДНЯ</div>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", margin: "6px 0 22px" }}>
-        <h1 style={{ fontSize: 30 }}>С добрым утром, {p.name ?? "друг"}</h1>
+        <h1 style={{ fontSize: 30 }}>{timeGreeting()}, {p.name ?? "друг"}</h1>
         <Link href="/profile" className="btn ghost" style={{ padding: "8px 10px", borderRadius: "50%" }} aria-label="Профиль">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.6}><circle cx="12" cy="12" r="3.2" /><path d="M19.4 13.5a7.6 7.6 0 0 0 0-3l1.9-1.5-2-3.4-2.3.7a7.6 7.6 0 0 0-2.6-1.5L14 2.5h-4l-.4 2.3a7.6 7.6 0 0 0-2.6 1.5l-2.3-.7-2 3.4L4.6 10.5a7.6 7.6 0 0 0 0 3l-1.9 1.5 2 3.4 2.3-.7a7.6 7.6 0 0 0 2.6 1.5l.4 2.3h4l.4-2.3a7.6 7.6 0 0 0 2.6-1.5l2.3.7 2-3.4-1.9-1.5Z" /></svg>
         </Link>
       </div>
 
       <div className="card" style={{ display: "flex", flexDirection: "column", alignItems: "center", marginBottom: 16 }}>
-        <span style={{ fontFamily: "var(--mono)", fontSize: 11, fontWeight: 600, letterSpacing: ".05em", padding: "5px 12px", borderRadius: 999, background: "var(--protein-bg)", color: "var(--protein)", marginBottom: 12 }}>
-          ДЕНЬ A · СИЛОВАЯ
-        </span>
         <MacroDial
           proteinPct={usedProtein / p.protein_target}
           fatPct={usedFat / p.fat_target}
           carbsPct={usedCarbs / p.carb_target}
           caloriesLeft={caloriesLeft}
         />
-        <div style={{ display: "flex", width: "100%", marginTop: 14, gap: 14 }}>
-          <div style={{ flex: 1, textAlign: "center" }}>
-            <div style={{ width: 8, height: 8, borderRadius: "50%", background: "var(--protein)", margin: "0 auto 4px" }} />
-            <div className="macrolabel" style={{ justifyContent: "center" }}>Белок {usedProtein}/{p.protein_target}</div>
-          </div>
-          <div style={{ flex: 1, textAlign: "center" }}>
-            <div style={{ width: 8, height: 8, borderRadius: "50%", background: "var(--fat)", margin: "0 auto 4px" }} />
-            <div className="macrolabel" style={{ justifyContent: "center" }}>Жиры {usedFat}/{p.fat_target}</div>
-          </div>
-          <div style={{ flex: 1, textAlign: "center" }}>
-            <div style={{ width: 8, height: 8, borderRadius: "50%", background: "var(--carbs)", margin: "0 auto 4px" }} />
-            <div className="macrolabel" style={{ justifyContent: "center" }}>Углев. {usedCarbs}/{p.carb_target}</div>
-          </div>
+        <div style={{ display: "flex", width: "100%", marginTop: 18 }}>
+          {([
+            ["Белок", usedProtein, p.protein_target, "var(--protein)"],
+            ["Жиры", usedFat, p.fat_target, "var(--fat)"],
+            ["Углеводы", usedCarbs, p.carb_target, "var(--carbs)"]
+          ] as [string, number, number, string][]).map(([label, used, target, color], i) => (
+            <div key={label} style={{ flex: 1, textAlign: "center", borderLeft: i > 0 ? "1px solid var(--line)" : "none" }}>
+              <div style={{ fontFamily: "var(--mono)", fontSize: 19, fontWeight: 600, color }}>
+                {used}<span style={{ fontSize: 12, fontWeight: 500, color: "var(--ink-soft)" }}>/{target}</span>
+              </div>
+              <div className="eyebrow" style={{ marginTop: 3, fontSize: 10 }}>{label}</div>
+            </div>
+          ))}
         </div>
       </div>
 
