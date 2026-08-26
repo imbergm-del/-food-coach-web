@@ -1,27 +1,27 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabaseServer";
-import { addToCart } from "./actions";
+import { addToCart, logMealEaten } from "./actions";
 import { CookingModeTabs } from "./CookingModeTabs";
 import { MacroDial } from "@/components/MacroDial";
 import { FoodThumb } from "@/components/FoodThumb";
 
-const MEALS_BY_MODE: Record<string, { title: string; desc: string; kcal: string; ingredients: { name: string; qty: string }[] }> = {
+const MEALS_BY_MODE: Record<string, { title: string; desc: string; calories: number; protein: number; fat: number; carbs: number; ingredients: { name: string; qty: string }[] }> = {
   "0": {
     title: "Быстрая тарелка без готовки",
     desc: "Готовая курица-гриль, греч. йогурт, огурцы, хлебцы",
-    kcal: "480 ккал · Б 46 · Ж 14 · У 38",
+    calories: 480, protein: 46, fat: 14, carbs: 38,
     ingredients: [{ name: "Курица-гриль готовая", qty: "300 г" }, { name: "Греч. йогурт", qty: "1 шт" }, { name: "Огурцы", qty: "2 шт" }, { name: "Хлебцы", qty: "1 уп." }]
   },
   "5": {
     title: "Собрать за 5 минут",
     desc: "Тунец, авокадо, лаваш, свежие овощи",
-    kcal: "510 ккал · Б 42 · Ж 18 · У 40",
+    calories: 510, protein: 42, fat: 18, carbs: 40,
     ingredients: [{ name: "Тунец консервир.", qty: "1 банка" }, { name: "Авокадо", qty: "1 шт" }, { name: "Лаваш", qty: "1 шт" }, { name: "Овощи свежие", qty: "150 г" }]
   },
   "15": {
     title: "Боул с курицей и рисом",
     desc: "200 г курицы, 150 г риса, 150 г овощей, 1 ч.л. оливкового масла",
-    kcal: "520 ккал · Б 48 · Ж 12 · У 54",
+    calories: 520, protein: 48, fat: 12, carbs: 54,
     ingredients: [{ name: "Куриная грудка", qty: "200 г" }, { name: "Рис", qty: "150 г" }, { name: "Овощи замороженные", qty: "150 г" }, { name: "Оливковое масло", qty: "1 шт" }]
   }
 };
@@ -37,11 +37,12 @@ export default async function TodayPage() {
 
   const cookingMode = profile?.cooking_mode ?? "0";
   const meal = MEALS_BY_MODE[cookingMode] ?? MEALS_BY_MODE["0"];
+  const alreadyLoggedThisMeal = meals?.some(m => m.title === meal.title) ?? false;
 
   const p = profile ?? { protein_target: 125, fat_target: 72, carb_target: 210, cal_target: 2200, name: "друг" };
-  const usedProtein = meals?.reduce((s, m) => s + (m.status === "eaten" ? m.protein ?? 0 : 0), 0) ?? 62;
-  const usedFat = meals?.reduce((s, m) => s + (m.status === "eaten" ? m.fat ?? 0 : 0), 0) ?? 31;
-  const usedCarbs = meals?.reduce((s, m) => s + (m.status === "eaten" ? m.carbs ?? 0 : 0), 0) ?? 95;
+  const usedProtein = meals?.reduce((s, m) => s + (m.status === "eaten" ? m.protein ?? 0 : 0), 0) ?? 0;
+  const usedFat = meals?.reduce((s, m) => s + (m.status === "eaten" ? m.fat ?? 0 : 0), 0) ?? 0;
+  const usedCarbs = meals?.reduce((s, m) => s + (m.status === "eaten" ? m.carbs ?? 0 : 0), 0) ?? 0;
   const usedCals = usedProtein * 4 + usedFat * 9 + usedCarbs * 4;
   const caloriesLeft = Math.max(0, p.cal_target - usedCals);
 
@@ -92,9 +93,21 @@ export default async function TodayPage() {
             <p style={{ fontSize: 13, color: "var(--ink-soft)", margin: 0 }}>{meal.desc}</p>
           </div>
         </div>
-        <p style={{ fontFamily: "var(--mono)", fontSize: 12, color: "var(--ink-soft)", margin: "0 0 14px" }}>{meal.kcal}</p>
+        <p style={{ fontFamily: "var(--mono)", fontSize: 12, color: "var(--ink-soft)", margin: "0 0 14px" }}>
+          {meal.calories} ккал · Б {meal.protein} · Ж {meal.fat} · У {meal.carbs}
+        </p>
         <div style={{ display: "flex", gap: 10 }}>
-          <button className="btn" style={{ flex: 1 }}>Съел(а)</button>
+          <form action={logMealEaten} style={{ flex: 1 }}>
+            <input type="hidden" name="title" value={meal.title} />
+            <input type="hidden" name="ingredients" value={JSON.stringify(meal.ingredients)} />
+            <input type="hidden" name="calories" value={meal.calories} />
+            <input type="hidden" name="protein" value={meal.protein} />
+            <input type="hidden" name="fat" value={meal.fat} />
+            <input type="hidden" name="carbs" value={meal.carbs} />
+            <button className="btn block" type="submit" disabled={alreadyLoggedThisMeal}>
+              {alreadyLoggedThisMeal ? "Уже съедено ✓" : "Съел(а)"}
+            </button>
+          </form>
           <Link href="/more" className="btn ghost" style={{ flex: 1, textAlign: "center" }}>Другое &#8943;</Link>
         </div>
       </div>

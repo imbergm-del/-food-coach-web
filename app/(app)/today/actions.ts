@@ -34,3 +34,42 @@ export async function setCookingMode(mode: string) {
   await supabase.from("profiles").update({ cooking_mode: mode }).eq("id", user.id);
   revalidatePath("/today");
 }
+
+function currentMealType() {
+  const hour = new Date().getHours();
+  if (hour < 11) return "breakfast";
+  if (hour < 16) return "lunch";
+  if (hour < 19) return "snack";
+  return "dinner";
+}
+
+export async function logMealEaten(formData: FormData) {
+  const supabase = createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return;
+
+  const title = formData.get("title") as string;
+  const ingredients = JSON.parse((formData.get("ingredients") as string) || "[]");
+  const calories = Number(formData.get("calories"));
+  const protein = Number(formData.get("protein"));
+  const fat = Number(formData.get("fat"));
+  const carbs = Number(formData.get("carbs"));
+  const today = new Date().toISOString().slice(0, 10);
+
+  await supabase.from("meals").insert({
+    user_id: user.id,
+    date: today,
+    meal_type: currentMealType(),
+    title,
+    ingredients,
+    calories,
+    protein,
+    fat,
+    carbs,
+    status: "eaten",
+    source: "home"
+  });
+
+  revalidatePath("/today");
+  revalidatePath("/plan");
+}
