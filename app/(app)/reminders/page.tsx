@@ -1,9 +1,6 @@
 import { createClient } from "@/lib/supabaseServer";
 import { ReminderToggle } from "./ReminderToggle";
-
-const MEAL_TYPE_LABELS: Record<string, string> = {
-  breakfast: "Завтрак", lunch: "Обед", snack: "Перекус", dinner: "Ужин"
-};
+import { MEAL_TYPE_LABELS } from "@/lib/mealTypes";
 
 export default async function RemindersPage() {
   const supabase = createClient();
@@ -34,7 +31,7 @@ export default async function RemindersPage() {
           plannedMeals.map(m => (
             <div key={m.id} className="listrow">
               <span style={{ fontFamily: "var(--mono)", fontSize: 11.5, color: "var(--ink-soft)", width: 70 }}>
-                {MEAL_TYPE_LABELS[m.meal_type] ?? m.meal_type}
+                {MEAL_TYPE_LABELS[m.meal_type as keyof typeof MEAL_TYPE_LABELS] ?? m.meal_type}
               </span>
               <span style={{ flex: 1, textAlign: "right" }}>{m.title}</span>
             </div>

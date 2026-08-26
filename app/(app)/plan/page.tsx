@@ -1,10 +1,8 @@
 import { createClient } from "@/lib/supabaseServer";
 import { FoodThumb } from "@/components/FoodThumb";
+import { MEAL_TYPE_LABELS } from "@/lib/mealTypes";
 
 const WEEKDAY_LABELS = ["Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Вс"];
-const MEAL_TYPE_LABELS: Record<string, string> = {
-  breakfast: "Завтрак", lunch: "Обед", snack: "Перекус", dinner: "Ужин"
-};
 
 function startOfWeek(d: Date) {
   const date = new Date(d);
@@ -70,12 +68,12 @@ export default async function PlanPage() {
                 <div key={m.id} className="listrow">
                   <span style={{ display: "flex", alignItems: "center", gap: 10 }}>
                     <FoodThumb
-                      color={m.status === "eaten" ? "var(--protein)" : "var(--carbs)"}
-                      bg={m.status === "eaten" ? "var(--protein-bg)" : "var(--carbs-bg)"}
+                      color={m.status === "eaten" || m.status === "photo_logged" ? "var(--protein)" : "var(--carbs)"}
+                      bg={m.status === "eaten" || m.status === "photo_logged" ? "var(--protein-bg)" : "var(--carbs-bg)"}
                       size={36}
                     />
                     <span>
-                      {MEAL_TYPE_LABELS[m.meal_type] ?? m.meal_type} — {m.title ?? "без названия"}
+                      {MEAL_TYPE_LABELS[m.meal_type as keyof typeof MEAL_TYPE_LABELS] ?? m.meal_type} — {m.title ?? "без названия"}
                     </span>
                   </span>
                   <span className="macrolabel">{m.calories ?? 0} ккал</span>

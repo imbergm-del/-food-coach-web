@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabaseServer";
+import { MEAL_SEQUENCE, type MealType } from "@/lib/mealTypes";
 
 export async function addToCart(formData: FormData) {
   const supabase = createClient();
@@ -35,20 +36,13 @@ export async function setCookingMode(mode: string) {
   revalidatePath("/today");
 }
 
-function currentMealType() {
-  const hour = new Date().getHours();
-  if (hour < 11) return "breakfast";
-  if (hour < 16) return "lunch";
-  if (hour < 19) return "snack";
-  return "dinner";
-}
-
 export async function logMealEaten(formData: FormData) {
   const supabase = createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return;
 
   const title = formData.get("title") as string;
+  const mealType = formData.get("mealType") as MealType;
   const ingredients = JSON.parse((formData.get("ingredients") as string) || "[]");
   const calories = Number(formData.get("calories"));
   const protein = Number(formData.get("protein"));
@@ -59,7 +53,7 @@ export async function logMealEaten(formData: FormData) {
   await supabase.from("meals").insert({
     user_id: user.id,
     date: today,
-    meal_type: currentMealType(),
+    meal_type: MEAL_SEQUENCE.includes(mealType) ? mealType : "snack",
     title,
     ingredients,
     calories,

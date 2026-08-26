@@ -3,14 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabaseServer";
-
-function currentMealType() {
-  const hour = new Date().getHours();
-  if (hour < 11) return "breakfast";
-  if (hour < 16) return "lunch";
-  if (hour < 19) return "snack";
-  return "dinner";
-}
+import { currentMealType } from "@/lib/mealTypes";
 
 export async function logPhotoMeal(formData: FormData) {
   const supabase = createClient();

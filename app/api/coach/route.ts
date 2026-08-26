@@ -20,7 +20,7 @@ export async function POST(req: Request) {
   const { data: profile } = await supabase.from("profiles").select("*").eq("id", user.id).single();
   const today = new Date().toISOString().slice(0, 10);
   const { data: todaysMeals } = await supabase
-    .from("meals").select("*").eq("user_id", user.id).eq("date", today).eq("status", "eaten");
+    .from("meals").select("*").eq("user_id", user.id).eq("date", today).in("status", ["eaten", "photo_logged"]);
 
   const usedProtein = todaysMeals?.reduce((s, m) => s + (m.protein ?? 0), 0) ?? 0;
   const usedFat = todaysMeals?.reduce((s, m) => s + (m.fat ?? 0), 0) ?? 0;
