@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabaseServer";
 import { ReminderToggle } from "./ReminderToggle";
 import { PlanTomorrowForm } from "./PlanTomorrowForm";
+import { savePhoneNumber } from "./actions";
 import { MEAL_TYPE_LABELS } from "@/lib/mealTypes";
 
 export default async function RemindersPage() {
@@ -9,6 +10,8 @@ export default async function RemindersPage() {
 
   const { data: settings } = await supabase
     .from("reminder_settings").select("*").eq("user_id", user!.id).single();
+  const { data: profile } = await supabase
+    .from("profiles").select("phone").eq("id", user!.id).single();
 
   const tomorrow = new Date();
   tomorrow.setDate(tomorrow.getDate() + 1);
@@ -42,12 +45,29 @@ export default async function RemindersPage() {
 
       <PlanTomorrowForm initiallyOpen={!plannedMeals || plannedMeals.length === 0} />
 
-      <div className="card" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+      <div className="card" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
         <div>
           <h3 style={{ fontSize: 15 }}>Присылать напоминание</h3>
           <p style={{ fontSize: 12.5, color: "var(--ink-soft)", margin: "4px 0 0" }}>Накануне вечером, в {sendAt}</p>
         </div>
         <ReminderToggle initialEnabled={settings?.enabled ?? true} />
+      </div>
+
+      <div className="card">
+        <h3 style={{ fontSize: 15, marginBottom: 4 }}>Присылать SMS вместо письма</h3>
+        <p style={{ fontSize: 12.5, color: "var(--ink-soft)", margin: "0 0 14px" }}>
+          Укажите номер — и напоминание придёт текстовым сообщением на телефон, а не на почту.
+        </p>
+        <form action={savePhoneNumber} style={{ display: "flex", gap: 8 }}>
+          <input
+            name="phone" type="tel" defaultValue={profile?.phone ?? ""} placeholder="+1 555 123 4567"
+            style={{
+              flex: 1, border: "1px solid var(--line-strong)", borderRadius: 12, padding: "11px 14px",
+              fontFamily: "var(--mono)", fontSize: 14, background: "var(--card)", color: "var(--ink)"
+            }}
+          />
+          <button className="btn" type="submit">Сохранить</button>
+        </form>
       </div>
     </div>
   );

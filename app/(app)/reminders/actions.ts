@@ -14,6 +14,16 @@ export async function setReminderEnabled(formData: FormData) {
   revalidatePath("/reminders");
 }
 
+export async function savePhoneNumber(formData: FormData) {
+  const supabase = createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return;
+
+  const phone = (formData.get("phone") as string || "").trim();
+  await supabase.from("profiles").update({ phone: phone || null }).eq("id", user.id);
+  revalidatePath("/reminders");
+}
+
 export async function savePlanForTomorrow(formData: FormData) {
   const supabase = createClient();
   const { data: { user } } = await supabase.auth.getUser();

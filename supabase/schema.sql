@@ -7,6 +7,7 @@ create table if not exists profiles (
   weight_kg numeric,
   height_cm numeric,
   workouts_per_week int default 0,
+  phone text,
   cooking_mode text default '0',
   theme text default 'field',
   protein_target int default 120,
