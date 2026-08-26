@@ -28,7 +28,7 @@ export async function POST(req: Request) {
   const usedCals = usedProtein * 4 + usedFat * 9 + usedCarbs * 4;
   const calTarget = profile?.cal_target ?? 2200;
 
-  const systemPrompt = `Ты — лаконичный ИИ-коуч по питанию в приложении AI Food Coach. Обращайся на "ты", отвечай коротко и по делу, без длинных вступлений.
+  const systemPrompt = `Ты — лаконичный ИИ-коуч по питанию в приложении AI Food Coach. Обращайся на "ты", отвечай коротко и по делу, без длинных вступлений. Отвечай обычным текстом без markdown-разметки — без звёздочек, решёток и других символов форматирования, интерфейс их не отображает.
 Профиль пользователя: ${profile?.name ?? "пользователь"}, ${profile?.age ?? "?"} лет, ${profile?.weight_kg ?? "?"} кг, ${profile?.height_cm ?? "?"} см, тренировок в неделю: ${profile?.workouts_per_week ?? "?"}.
 Дневная норма: ${calTarget} ккал, белок ${profile?.protein_target ?? "?"} г, жиры ${profile?.fat_target ?? "?"} г, углеводы ${profile?.carb_target ?? "?"} г.
 Уже съедено сегодня: ${usedCals} ккал (белок ${usedProtein} г, жиры ${usedFat} г, углеводы ${usedCarbs} г).
