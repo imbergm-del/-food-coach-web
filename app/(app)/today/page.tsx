@@ -5,7 +5,9 @@ import { CookingModeTabs } from "./CookingModeTabs";
 import { MacroDial } from "@/components/MacroDial";
 import { FoodThumb } from "@/components/FoodThumb";
 import { RecipeDisclosure } from "./RecipeDisclosure";
-import { MEAL_SEQUENCE, MEAL_TYPE_LABELS, currentMealType, type MealType } from "@/lib/mealTypes";
+import { MEAL_TYPE_LABELS } from "@/lib/mealTypes";
+import { MEALS_BY_MODE, type MealDef } from "@/lib/mealMenu";
+import { getDisplayMealType } from "@/lib/getDisplayMealType";
 
 function timeGreeting() {
   const hour = new Date().getHours();
@@ -14,104 +16,6 @@ function timeGreeting() {
   if (hour < 18) return "Добрый день";
   return "Добрый вечер";
 }
-
-type MealDef = {
-  title: string; desc: string; calories: number; protein: number; fat: number; carbs: number;
-  photoUrl?: string; ingredients: { name: string; qty: string }[]; steps: string[];
-};
-
-const MEALS_BY_MODE: Record<string, Record<MealType, MealDef>> = {
-  "0": {
-    breakfast: {
-      title: "Йогурт с ягодами и гранолой",
-      desc: "Готовый греч. йогурт, замороженные ягоды, гранола",
-      calories: 350, protein: 25, fat: 10, carbs: 40,
-      ingredients: [{ name: "Греч. йогурт", qty: "300 г" }, { name: "Ягоды замороженные", qty: "100 г" }, { name: "Гранола", qty: "30 г" }],
-      steps: ["Разморозьте ягоды 1 минуту в микроволновке (или дайте оттаять).", "Смешайте йогурт с ягодами и гранолой в миске."]
-    },
-    lunch: {
-      title: "Быстрая тарелка без готовки",
-      desc: "Готовая курица-гриль, греч. йогурт, огурцы, хлебцы",
-      calories: 480, protein: 46, fat: 14, carbs: 38,
-      ingredients: [{ name: "Курица-гриль готовая", qty: "300 г" }, { name: "Греч. йогурт", qty: "1 шт" }, { name: "Огурцы", qty: "2 шт" }, { name: "Хлебцы", qty: "1 уп." }],
-      steps: ["Курицу можно есть холодной или разогреть 1–2 минуты в микроволновке.", "Огурцы ополосните и нарежьте дольками.", "Выложите курицу, йогурт, огурцы и хлебцы на тарелку — готово."]
-    },
-    snack: {
-      title: "Протеиновый батончик и яблоко",
-      desc: "Готовка не нужна вообще",
-      calories: 220, protein: 20, fat: 8, carbs: 22,
-      ingredients: [{ name: "Протеиновый батончик", qty: "1 шт" }, { name: "Яблоко", qty: "1 шт" }],
-      steps: ["Просто съешьте — готовить не нужно."]
-    },
-    dinner: {
-      title: "Тарелка с индейкой и овощами",
-      desc: "Готовая нарезка индейки, свежие овощи, хумус",
-      calories: 430, protein: 40, fat: 16, carbs: 28,
-      ingredients: [{ name: "Индейка нарезка готовая", qty: "200 г" }, { name: "Овощи свежие", qty: "200 г" }, { name: "Хумус", qty: "3 ст.л." }],
-      steps: ["Выложите нарезку индейки и овощи на тарелку.", "Добавьте хумус в качестве соуса."]
-    }
-  },
-  "5": {
-    breakfast: {
-      title: "Овсянка на 5 минут",
-      desc: "Хлопья быстрого приготовления, молоко, банан",
-      calories: 380, protein: 14, fat: 8, carbs: 62,
-      ingredients: [{ name: "Овсяные хлопья быстрые", qty: "60 г" }, { name: "Молоко", qty: "200 мл" }, { name: "Банан", qty: "1 шт" }],
-      steps: ["Залейте хлопья горячим молоком или водой, оставьте на 3 минуты.", "Нарежьте банан сверху."]
-    },
-    lunch: {
-      title: "Собрать за 5 минут",
-      desc: "Тунец, авокадо, лаваш, свежие овощи",
-      calories: 510, protein: 42, fat: 18, carbs: 40,
-      ingredients: [{ name: "Тунец консервир.", qty: "1 банка" }, { name: "Авокадо", qty: "1 шт" }, { name: "Лаваш", qty: "1 шт" }, { name: "Овощи свежие", qty: "150 г" }],
-      steps: ["Слейте жидкость с тунца и разомните его вилкой прямо в банке.", "Авокадо и овощи нарежьте некрупно.", "Выложите тунец, авокадо и овощи на лаваш и сверните в рулет."]
-    },
-    snack: {
-      title: "Творог с мёдом",
-      desc: "Просто смешать",
-      calories: 230, protein: 24, fat: 6, carbs: 20,
-      ingredients: [{ name: "Творог 5%", qty: "200 г" }, { name: "Мёд", qty: "1 ч.л." }],
-      steps: ["Смешайте творог с мёдом — готово."]
-    },
-    dinner: {
-      title: "Салат с тунцом и фасолью",
-      desc: "Тунец, фасоль, листья салата, масло",
-      calories: 420, protein: 38, fat: 14, carbs: 36,
-      ingredients: [{ name: "Тунец консервир.", qty: "1 банка" }, { name: "Фасоль консервир.", qty: "150 г" }, { name: "Листья салата", qty: "100 г" }, { name: "Оливковое масло", qty: "1 ст.л." }],
-      steps: ["Слейте жидкость с тунца и фасоли.", "Смешайте всё с листьями салата и маслом."]
-    }
-  },
-  "15": {
-    breakfast: {
-      title: "Омлет с овощами",
-      desc: "Яйца, шпинат, тост",
-      calories: 360, protein: 24, fat: 20, carbs: 20,
-      ingredients: [{ name: "Яйца", qty: "2 шт" }, { name: "Шпинат", qty: "50 г" }, { name: "Тост цельнозерн.", qty: "1 шт" }],
-      steps: ["Взбейте яйца, добавьте шпинат.", "Жарьте на среднем огне 4–5 минут, помешивая.", "Подавайте с тостом."]
-    },
-    lunch: {
-      title: "Боул с курицей и рисом",
-      desc: "200 г курицы, 150 г риса, 150 г овощей, 1 ч.л. оливкового масла",
-      calories: 520, protein: 48, fat: 12, carbs: 54,
-      ingredients: [{ name: "Куриная грудка", qty: "200 г" }, { name: "Рис", qty: "150 г" }, { name: "Овощи замороженные", qty: "150 г" }, { name: "Оливковое масло", qty: "1 шт" }],
-      steps: ["Разогрейте рис (готовый пакет — 2 минуты в микроволновке, или заранее сваренный).", "Обжарьте или разогрейте курицу на сковороде 3–4 минуты до готовности.", "Разморозьте овощи — 2 минуты в микроволновке или на той же сковороде.", "Соберите всё в тарелке и сбрызните оливковым маслом."]
-    },
-    snack: {
-      title: "Тосты с авокадо и яйцом пашот",
-      desc: "Хлеб, авокадо, яйцо",
-      calories: 320, protein: 16, fat: 18, carbs: 26,
-      ingredients: [{ name: "Хлеб цельнозерн.", qty: "2 куска" }, { name: "Авокадо", qty: "1 шт" }, { name: "Яйцо", qty: "1 шт" }],
-      steps: ["Поджарьте тосты.", "Разомните авокадо и намажьте на тосты.", "Сварите яйцо пашот 3 минуты и выложите сверху."]
-    },
-    dinner: {
-      title: "Стейк с овощами на сковороде",
-      desc: "Говяжий стейк, овощи на гриле",
-      calories: 520, protein: 45, fat: 22, carbs: 20,
-      ingredients: [{ name: "Говяжий стейк", qty: "200 г" }, { name: "Овощи на гриле", qty: "200 г" }, { name: "Оливковое масло", qty: "1 ст.л." }],
-      steps: ["Разогрейте сковороду с маслом.", "Обжарьте стейк 3–4 минуты с каждой стороны.", "Обжарьте овощи рядом 5–7 минут."]
-    }
-  }
-};
 
 export default async function TodayPage() {
   const supabase = createClient();
@@ -124,12 +28,7 @@ export default async function TodayPage() {
 
   const cookingMode = profile?.cooking_mode ?? "0";
   const menu = MEALS_BY_MODE[cookingMode] ?? MEALS_BY_MODE["0"];
-
-  const loggedTypes = new Set((meals ?? []).filter(m => m.status !== "planned").map(m => m.meal_type));
-  const clockType = currentMealType();
-  const displayType = !loggedTypes.has(clockType)
-    ? clockType
-    : MEAL_SEQUENCE.find(t => !loggedTypes.has(t));
+  const displayType = await getDisplayMealType(supabase, user!.id);
 
   // Если этот приём был спланирован вечером заранее (см. «Напоминания»), покажем его вместо общей подсказки
   const plannedRow = displayType ? meals?.find(m => m.meal_type === displayType && m.status === "planned") : undefined;
