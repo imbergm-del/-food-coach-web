@@ -1,0 +1,76 @@
+"use client";
+
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { createClient } from "@/lib/supabaseClient";
+
+export default function OnboardingPage() {
+  const supabase = createClient();
+  const router = useRouter();
+  const [age, setAge] = useState("");
+  const [weight, setWeight] = useState("");
+  const [height, setHeight] = useState("");
+  const [workouts, setWorkouts] = useState("");
+  const [error, setError] = useState("");
+  const [saving, setSaving] = useState(false);
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    const ageN = parseFloat(age), weightN = parseFloat(weight), heightN = parseFloat(height), workoutsN = parseFloat(workouts);
+
+    const valid =
+      ageN >= 10 && ageN <= 100 &&
+      weightN >= 30 && weightN <= 250 &&
+      heightN >= 100 && heightN <= 230 &&
+      workoutsN >= 0 && workoutsN <= 14;
+
+    if (!valid) {
+      setError("Проверьте значения — заполните все поля реальными числами.");
+      return;
+    }
+    setError("");
+    setSaving(true);
+
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) { router.push("/login"); return; }
+
+    const proteinTarget = Math.round(weightN * 1.3);
+    const fatTarget = Math.round(weightN * 0.75);
+    const calTarget = Math.round(weightN * 23);
+    const carbTarget = Math.max(0, Math.round((calTarget - (proteinTarget * 4 + fatTarget * 9)) / 4));
+
+    await supabase.from("profiles").update({
+      age: ageN, weight_kg: weightN, height_cm: heightN, workouts_per_week: workoutsN,
+      protein_target: proteinTarget, fat_target: fatTarget, carb_target: carbTarget, cal_target: calTarget
+    }).eq("id", user.id);
+
+    setSaving(false);
+    router.push("/today");
+  }
+
+  return (
+    <div className="shell">
+      <div className="screen">
+        <div style={{ width: 56, height: 56, borderRadius: 18, background: "var(--carbs-bg)", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 18 }}>
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="var(--carbs)" strokeWidth={1.6} strokeLinecap="round" strokeLinejoin="round">
+            <path d="M12 3v3M12 18v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M3 12h3M18 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1" />
+            <circle cx="12" cy="12" r="4" />
+          </svg>
+        </div>
+        <div className="eyebrow" style={{ marginBottom: 6 }}>Шаг 1 из 1</div>
+        <h1 style={{ fontSize: 24, marginBottom: 6 }}>Расскажите о себе</h1>
+        <p style={{ fontSize: 13, color: "var(--ink-soft)", margin: "0 0 22px" }}>
+          Это нужно, чтобы сразу посчитать вашу норму — без лишних вопросов.
+        </p>
+        <form onSubmit={handleSubmit}>
+          <div className="field"><label>Возраст</label><input type="number" value={age} onChange={e => setAge(e.target.value)} placeholder="Например, 35" /></div>
+          <div className="field"><label>Вес, кг</label><input type="number" value={weight} onChange={e => setWeight(e.target.value)} placeholder="Например, 82" /></div>
+          <div className="field"><label>Рост, см</label><input type="number" value={height} onChange={e => setHeight(e.target.value)} placeholder="Например, 180" /></div>
+          <div className="field"><label>Тренировок в неделю</label><input type="number" value={workouts} onChange={e => setWorkouts(e.target.value)} placeholder="Например, 3" /></div>
+          {error && <p style={{ color: "var(--warn)", fontSize: 12, marginTop: -10, marginBottom: 14 }}>{error}</p>}
+          <button className="btn block" type="submit" disabled={saving}>{saving ? "Сохраняем…" : "Создать мой план"}</button>
+        </form>
+      </div>
+    </div>
+  );
+}

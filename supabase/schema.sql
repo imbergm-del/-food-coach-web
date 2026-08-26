@@ -1,0 +1,101 @@
+-- Run this in Supabase SQL editor (Project -> SQL Editor -> New query)
+
+create table if not exists profiles (
+  id uuid primary key references auth.users(id) on delete cascade,
+  name text,
+  age int,
+  weight_kg numeric,
+  height_cm numeric,
+  workouts_per_week int default 0,
+  cooking_mode text default '0',
+  theme text default 'field',
+  protein_target int default 120,
+  fat_target int default 70,
+  carb_target int default 200,
+  cal_target int default 2000,
+  created_at timestamptz default now()
+);
+
+create table if not exists training_schedule (
+  id bigint generated always as identity primary key,
+  user_id uuid references auth.users(id) on delete cascade,
+  weekday int not null,          -- 0 = Monday ... 6 = Sunday
+  workout_type text not null,    -- strength / cardio / boxing / rest
+  label text
+);
+
+create table if not exists meals (
+  id bigint generated always as identity primary key,
+  user_id uuid references auth.users(id) on delete cascade,
+  date date not null,
+  meal_type text not null,       -- breakfast / lunch / snack / dinner
+  title text,
+  ingredients jsonb default '[]',
+  calories int, protein int, fat int, carbs int,
+  status text default 'planned', -- planned / eaten / changed / skipped / photo_logged
+  source text default 'home',
+  created_at timestamptz default now()
+);
+
+create table if not exists cart_items (
+  id bigint generated always as identity primary key,
+  user_id uuid references auth.users(id) on delete cascade,
+  name text not null,
+  quantity text,
+  from_meal_id bigint references meals(id) on delete set null,
+  created_at timestamptz default now()
+);
+
+create table if not exists grocery_items (
+  id bigint generated always as identity primary key,
+  user_id uuid references auth.users(id) on delete cascade,
+  name text not null,
+  status text default 'need',    -- need / have / low_stock
+  created_at timestamptz default now()
+);
+
+create table if not exists fridge_items (
+  id bigint generated always as identity primary key,
+  user_id uuid references auth.users(id) on delete cascade,
+  name text not null,
+  quantity text
+);
+
+create table if not exists reminder_settings (
+  user_id uuid primary key references auth.users(id) on delete cascade,
+  enabled boolean default true,
+  send_at time default '20:00'
+);
+
+-- Row Level Security: every user only ever sees their own rows
+alter table profiles enable row level security;
+alter table training_schedule enable row level security;
+alter table meals enable row level security;
+alter table cart_items enable row level security;
+alter table grocery_items enable row level security;
+alter table fridge_items enable row level security;
+alter table reminder_settings enable row level security;
+
+create policy "own profile" on profiles for all using (auth.uid() = id) with check (auth.uid() = id);
+create policy "own schedule" on training_schedule for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
+create policy "own meals" on meals for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
+create policy "own cart" on cart_items for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
+create policy "own groceries" on grocery_items for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
+create policy "own fridge" on fridge_items for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
+create policy "own reminders" on reminder_settings for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
+
+-- Auto-create a profile row whenever someone signs up
+create or replace function public.handle_new_user()
+returns trigger as $$
+begin
+  insert into public.profiles (id, name) values (new.id, new.raw_user_meta_data->>'name');
+  insert into public.reminder_settings (user_id) values (new.id);
+  insert into public.fridge_items (user_id, name, quantity) values
+    (new.id, 'Курица', '600 г'), (new.id, 'Яйца', '8 шт'), (new.id, 'Греч. йогурт', '3 шт'), (new.id, 'Рис', 'мало');
+  return new;
+end;
+$$ language plpgsql security definer;
+
+create trigger on_auth_user_created
+  after insert on auth.users
+  for each row execute procedure public.handle_new_user();
