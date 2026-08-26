@@ -1,5 +1,7 @@
+import Link from "next/link";
 import { createClient } from "@/lib/supabaseServer";
 import { signOut } from "./actions";
+import { isAdminEmail } from "@/lib/isAdmin";
 
 export default async function ProfilePage() {
   const supabase = createClient();
@@ -16,6 +18,9 @@ export default async function ProfilePage() {
         <div className="listrow"><span>Вес</span><span>{profile?.weight_kg ?? "—"} кг</span></div>
         <div className="listrow"><span>Тренировок в неделю</span><span>{profile?.workouts_per_week ?? "—"}</span></div>
       </div>
+      {isAdminEmail(user?.email) && (
+        <Link href="/admin" className="btn ghost block" style={{ marginBottom: 14, textAlign: "center" }}>Админ-панель</Link>
+      )}
       <form action={signOut}>
         <button className="btn ghost block" type="submit">Выйти</button>
       </form>

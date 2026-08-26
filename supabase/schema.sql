@@ -2,6 +2,7 @@
 
 create table if not exists profiles (
   id uuid primary key references auth.users(id) on delete cascade,
+  email text,
   name text,
   age int,
   weight_kg numeric,
@@ -89,7 +90,7 @@ create policy "own reminders" on reminder_settings for all using (auth.uid() = u
 create or replace function public.handle_new_user()
 returns trigger as $$
 begin
-  insert into public.profiles (id, name) values (new.id, new.raw_user_meta_data->>'name');
+  insert into public.profiles (id, email, name) values (new.id, new.email, new.raw_user_meta_data->>'name');
   insert into public.reminder_settings (user_id) values (new.id);
   insert into public.fridge_items (user_id, name, quantity) values
     (new.id, 'Курица', '600 г'), (new.id, 'Яйца', '8 шт'), (new.id, 'Греч. йогурт', '3 шт'), (new.id, 'Рис', 'мало');

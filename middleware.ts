@@ -1,5 +1,6 @@
 import { createServerClient, type CookieOptions } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
+import { isAdminEmail } from "@/lib/isAdmin";
 
 export async function middleware(request: NextRequest) {
   let response = NextResponse.next({ request });
@@ -30,10 +31,15 @@ export async function middleware(request: NextRequest) {
     request.nextUrl.pathname.startsWith("/cart") ||
     request.nextUrl.pathname.startsWith("/coach") ||
     request.nextUrl.pathname.startsWith("/profile") ||
-    request.nextUrl.pathname.startsWith("/onboarding");
+    request.nextUrl.pathname.startsWith("/onboarding") ||
+    request.nextUrl.pathname.startsWith("/admin");
 
   if (isAppRoute && !user) {
     return NextResponse.redirect(new URL("/login", request.url));
+  }
+
+  if (request.nextUrl.pathname.startsWith("/admin") && !isAdminEmail(user?.email)) {
+    return NextResponse.redirect(new URL("/today", request.url));
   }
 
   return response;
