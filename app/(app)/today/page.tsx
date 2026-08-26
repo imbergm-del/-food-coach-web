@@ -5,11 +5,12 @@ import { CookingModeTabs } from "./CookingModeTabs";
 import { MacroDial } from "@/components/MacroDial";
 import { FoodThumb } from "@/components/FoodThumb";
 
-const MEALS_BY_MODE: Record<string, { title: string; desc: string; calories: number; protein: number; fat: number; carbs: number; ingredients: { name: string; qty: string }[] }> = {
+const MEALS_BY_MODE: Record<string, { title: string; desc: string; calories: number; protein: number; fat: number; carbs: number; photoUrl?: string; ingredients: { name: string; qty: string }[] }> = {
   "0": {
     title: "Быстрая тарелка без готовки",
     desc: "Готовая курица-гриль, греч. йогурт, огурцы, хлебцы",
     calories: 480, protein: 46, fat: 14, carbs: 38,
+    // photoUrl: "/food/quick-plate.jpg" — добавьте фото в /public/food и впишите путь сюда
     ingredients: [{ name: "Курица-гриль готовая", qty: "300 г" }, { name: "Греч. йогурт", qty: "1 шт" }, { name: "Огурцы", qty: "2 шт" }, { name: "Хлебцы", qty: "1 уп." }]
   },
   "5": {
@@ -49,15 +50,15 @@ export default async function TodayPage() {
   return (
     <div>
       <div className="eyebrow">СЕГОДНЯ</div>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", margin: "6px 0 20px" }}>
-        <h1 style={{ fontSize: 26 }}>С добрым утром, {p.name ?? "друг"}</h1>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", margin: "6px 0 22px" }}>
+        <h1 style={{ fontSize: 30 }}>С добрым утром, {p.name ?? "друг"}</h1>
         <Link href="/profile" className="btn ghost" style={{ padding: "8px 10px", borderRadius: "50%" }} aria-label="Профиль">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.6}><circle cx="12" cy="12" r="3.2" /><path d="M19.4 13.5a7.6 7.6 0 0 0 0-3l1.9-1.5-2-3.4-2.3.7a7.6 7.6 0 0 0-2.6-1.5L14 2.5h-4l-.4 2.3a7.6 7.6 0 0 0-2.6 1.5l-2.3-.7-2 3.4L4.6 10.5a7.6 7.6 0 0 0 0 3l-1.9 1.5 2 3.4 2.3-.7a7.6 7.6 0 0 0 2.6 1.5l.4 2.3h4l.4-2.3a7.6 7.6 0 0 0 2.6-1.5l2.3.7 2-3.4-1.9-1.5Z" /></svg>
         </Link>
       </div>
 
       <div className="card" style={{ display: "flex", flexDirection: "column", alignItems: "center", marginBottom: 16 }}>
-        <span style={{ fontFamily: "var(--mono)", fontSize: 10.5, letterSpacing: ".04em", padding: "4px 10px", borderRadius: 999, background: "var(--protein-bg)", color: "var(--protein)", marginBottom: 10 }}>
+        <span style={{ fontFamily: "var(--mono)", fontSize: 11, fontWeight: 600, letterSpacing: ".05em", padding: "5px 12px", borderRadius: 999, background: "var(--protein-bg)", color: "var(--protein)", marginBottom: 12 }}>
           ДЕНЬ A · СИЛОВАЯ
         </span>
         <MacroDial
@@ -86,14 +87,14 @@ export default async function TodayPage() {
 
       <div className="eyebrow" style={{ marginBottom: 8 }}>Следующий приём · 12:30</div>
       <div className="card" style={{ marginBottom: 16 }}>
-        <div style={{ display: "flex", gap: 12, alignItems: "flex-start", marginBottom: 10 }}>
-          <FoodThumb color="var(--protein)" bg="var(--protein-bg)" />
+        <div style={{ display: "flex", gap: 14, alignItems: "flex-start", marginBottom: 12 }}>
+          <FoodThumb color="var(--protein)" bg="var(--protein-bg)" photoUrl={meal.photoUrl} alt={meal.title} />
           <div>
-            <h3 style={{ fontSize: 18, marginBottom: 6 }}>{meal.title}</h3>
-            <p style={{ fontSize: 13, color: "var(--ink-soft)", margin: 0 }}>{meal.desc}</p>
+            <h3 style={{ fontSize: 20, marginBottom: 6 }}>{meal.title}</h3>
+            <p style={{ fontSize: 14.5, color: "var(--ink-soft)", margin: 0 }}>{meal.desc}</p>
           </div>
         </div>
-        <p style={{ fontFamily: "var(--mono)", fontSize: 12, color: "var(--ink-soft)", margin: "0 0 14px" }}>
+        <p style={{ fontFamily: "var(--mono)", fontSize: 13, fontWeight: 500, letterSpacing: ".01em", color: "var(--ink-soft)", margin: "0 0 16px" }}>
           {meal.calories} ккал · Б {meal.protein} · Ж {meal.fat} · У {meal.carbs}
         </p>
         <div style={{ display: "flex", gap: 10 }}>
@@ -115,7 +116,7 @@ export default async function TodayPage() {
       <div className="card" style={{ marginBottom: 24, display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10 }}>
         <div>
           <div className="eyebrow">Напоминание придёт сегодня в 20:00</div>
-          <h3 style={{ fontSize: 15, marginTop: 4 }}>Ваше питание на завтра готово</h3>
+          <h3 style={{ fontSize: 17, marginTop: 6 }}>Ваше питание на завтра готово</h3>
         </div>
         <Link href="/reminders" className="btn ghost" style={{ whiteSpace: "nowrap" }}>Смотреть</Link>
       </div>
