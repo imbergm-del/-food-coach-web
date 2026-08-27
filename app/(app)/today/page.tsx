@@ -2,7 +2,7 @@ import { createClient } from "@/lib/supabaseServer";
 import { LoadingLink } from "@/components/LoadingLink";
 import { addToCart, logMealEaten } from "./actions";
 import { CookingModeTabs } from "./CookingModeTabs";
-import { MacroDial } from "@/components/MacroDial";
+import { MacroBreakdown } from "@/components/MacroBreakdown";
 import { FoodThumb } from "@/components/FoodThumb";
 import { RecipeDisclosure } from "./RecipeDisclosure";
 import { SubmitButton } from "@/components/SubmitButton";
@@ -89,6 +89,7 @@ export default async function TodayPage() {
   const usedCarbs = meals?.reduce((s, m) => s + (m.status === "eaten" || m.status === "photo_logged" ? m.carbs ?? 0 : 0), 0) ?? 0;
   const usedCals = usedProtein * 4 + usedFat * 9 + usedCarbs * 4;
   const caloriesLeft = Math.max(0, p.cal_target - usedCals);
+  const eatenMeals = meals?.filter(m => m.status === "eaten" || m.status === "photo_logged") ?? [];
 
   return (
     <div>
@@ -127,7 +128,7 @@ export default async function TodayPage() {
       )}
 
       <div className="card ringcard" style={{ marginBottom: 16 }}>
-        <MacroDial usedCals={usedCals} calTarget={p.cal_target} caloriesLeft={caloriesLeft} />
+        <MacroBreakdown meals={eatenMeals} usedCals={usedCals} calTarget={p.cal_target} caloriesLeft={caloriesLeft} />
         <div className="macrorows">
           {([
             ["Белки", usedProtein, p.protein_target, "protein"],
