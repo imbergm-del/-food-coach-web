@@ -34,6 +34,7 @@ create table if not exists meals (
   meal_type text not null,       -- breakfast / lunch / snack / dinner
   title text,
   ingredients jsonb default '[]',
+  steps jsonb default '[]',
   calories int, protein int, fat int, carbs int,
   status text default 'planned', -- planned / eaten / changed / skipped / photo_logged
   source text default 'home',
@@ -86,6 +87,7 @@ create table if not exists meal_reminder_log (
 -- колонки в таблицу, которая уже была создана раньше без них):
 alter table profiles add column if not exists timezone text;
 alter table reminder_settings add column if not exists meal_reminders_enabled boolean default false;
+alter table meals add column if not exists steps jsonb default '[]';
 
 -- Row Level Security: every user only ever sees their own rows
 alter table profiles enable row level security;

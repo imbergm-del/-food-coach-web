@@ -72,7 +72,7 @@ export default async function TodayPage() {
           fat: plannedRow.fat ?? 0,
           carbs: plannedRow.carbs ?? 0,
           ingredients: plannedRow.ingredients ?? [],
-          steps: [],
+          steps: plannedRow.steps ?? [],
           plannedMealId: plannedRow.id,
           badge: plannedBadge
         }

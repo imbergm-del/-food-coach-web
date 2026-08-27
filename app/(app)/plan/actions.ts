@@ -51,6 +51,7 @@ export async function generateWeekPlan(formData: FormData) {
         meal_type: mealType,
         title: def.title,
         ingredients: def.ingredients,
+        steps: def.steps,
         calories: def.calories,
         protein: def.protein,
         fat: def.fat,

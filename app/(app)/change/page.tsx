@@ -76,6 +76,7 @@ export default async function ChangePage() {
             <input type="hidden" name="fat" value={alt.fat} />
             <input type="hidden" name="carbs" value={alt.carbs} />
             <input type="hidden" name="ingredients" value={JSON.stringify(alt.ingredients)} />
+            <input type="hidden" name="steps" value={JSON.stringify(alt.steps)} />
             <SubmitButton>Выбрать это блюдо</SubmitButton>
           </form>
         </div>
