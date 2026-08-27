@@ -128,7 +128,10 @@ export default async function TodayPage() {
       )}
 
       <div className="card ringcard" style={{ marginBottom: 16 }}>
-        <MacroBreakdown meals={eatenMeals} usedCals={usedCals} calTarget={p.cal_target} caloriesLeft={caloriesLeft} />
+        <MacroBreakdown
+          meals={eatenMeals} usedCals={usedCals} usedProtein={usedProtein} usedFat={usedFat} usedCarbs={usedCarbs}
+          calTarget={p.cal_target} caloriesLeft={caloriesLeft}
+        />
         <div className="macrorows">
           {([
             ["Белки", usedProtein, p.protein_target, "protein"],

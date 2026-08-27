@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { MacroDial } from "./MacroDial";
+import { FoodThumb } from "./FoodThumb";
 import { MEAL_TYPE_LABELS } from "@/lib/mealTypes";
 
 type EatenMeal = {
@@ -14,9 +15,23 @@ type EatenMeal = {
   carbs: number | null;
 };
 
+function MacroPill({ label, value, bg, color }: { label: string; value: number; bg: string; color: string }) {
+  return (
+    <span style={{
+      fontFamily: "var(--mono)", fontSize: 10.5, fontWeight: 600, padding: "3px 8px", borderRadius: 999,
+      background: bg, color
+    }}>
+      {label}{value}
+    </span>
+  );
+}
+
 export function MacroBreakdown({
-  meals, usedCals, calTarget, caloriesLeft
-}: { meals: EatenMeal[]; usedCals: number; calTarget: number; caloriesLeft: number }) {
+  meals, usedCals, usedProtein, usedFat, usedCarbs, calTarget, caloriesLeft
+}: {
+  meals: EatenMeal[]; usedCals: number; usedProtein: number; usedFat: number; usedCarbs: number;
+  calTarget: number; caloriesLeft: number;
+}) {
   const [open, setOpen] = useState(false);
 
   return (
@@ -43,35 +58,51 @@ export function MacroBreakdown({
             className="card"
             style={{
               width: "100%", maxWidth: 480, margin: "0 auto", borderRadius: "22px 22px 0 0",
-              maxHeight: "75vh", overflowY: "auto", paddingBottom: 28
+              maxHeight: "80vh", overflowY: "auto", paddingBottom: 24
             }}
           >
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
-              <h3 style={{ fontSize: 16 }}>Съедено сегодня</h3>
+            <div style={{ width: 36, height: 4, borderRadius: 999, background: "var(--line-strong)", margin: "-4px auto 16px" }} />
+
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 4 }}>
+              <div className="eyebrow">Съедено сегодня</div>
               <button type="button" onClick={() => setOpen(false)} className="btn ghost" style={{ padding: "6px 14px" }}>
                 Закрыть
               </button>
             </div>
+            <h3 style={{ fontSize: 20, marginBottom: 16 }}>{usedCals} ккал</h3>
+
+            <div className="goalgrid">
+              <div className="goalcell cal"><b>{usedCals}</b><span>ккал</span></div>
+              <div className="goalcell protein"><b>{usedProtein}</b><span>белок</span></div>
+              <div className="goalcell fat"><b>{usedFat}</b><span>жиры</span></div>
+              <div className="goalcell carbs"><b>{usedCarbs}</b><span>углев.</span></div>
+            </div>
 
             {meals.length ? (
               meals.map(m => (
-                <div key={m.id} className="listrow" style={{ flexDirection: "column", alignItems: "stretch", gap: 4, padding: "8px 0" }}>
-                  <span style={{ fontWeight: 600, fontSize: 14 }}>
-                    {MEAL_TYPE_LABELS[m.meal_type as keyof typeof MEAL_TYPE_LABELS] ?? m.meal_type} — {m.title ?? "без названия"}
-                  </span>
-                  <span style={{ fontFamily: "var(--mono)", fontSize: 12, color: "var(--ink-soft)" }}>
-                    {m.calories ?? 0} ккал · Б{m.protein ?? 0} Ж{m.fat ?? 0} У{m.carbs ?? 0}
-                  </span>
+                <div key={m.id} className="card" style={{ display: "flex", gap: 12, alignItems: "center", padding: 12, marginBottom: 10, boxShadow: "none", border: "1px solid var(--line)" }}>
+                  <FoodThumb color="var(--protein)" bg="var(--protein-bg)" size={44} />
+                  <div style={{ minWidth: 0, flex: 1 }}>
+                    <div className="eyebrow" style={{ marginBottom: 2 }}>
+                      {MEAL_TYPE_LABELS[m.meal_type as keyof typeof MEAL_TYPE_LABELS] ?? m.meal_type}
+                    </div>
+                    <div style={{ fontWeight: 600, fontSize: 14, marginBottom: 6, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                      {m.title ?? "без названия"}
+                    </div>
+                    <div style={{ display: "flex", gap: 6, flexWrap: "wrap", alignItems: "center" }}>
+                      <span style={{ fontFamily: "var(--mono)", fontSize: 11.5, color: "var(--ink-soft)", marginRight: 2 }}>
+                        {m.calories ?? 0} ккал
+                      </span>
+                      <MacroPill label="Б" value={m.protein ?? 0} bg="var(--protein-bg)" color="var(--protein)" />
+                      <MacroPill label="Ж" value={m.fat ?? 0} bg="var(--fat-bg)" color="var(--fat-ink)" />
+                      <MacroPill label="У" value={m.carbs ?? 0} bg="var(--carbs-bg)" color="var(--carbs)" />
+                    </div>
+                  </div>
                 </div>
               ))
             ) : (
               <p style={{ fontSize: 13, color: "var(--ink-soft)", margin: 0 }}>Сегодня пока ничего не отмечено съеденным.</p>
             )}
-
-            <div className="listrow" style={{ borderTop: "1px solid var(--line)", marginTop: 8, paddingTop: 10, fontWeight: 700 }}>
-              <span>Итого</span>
-              <span style={{ fontFamily: "var(--mono)" }}>{usedCals} ккал</span>
-            </div>
           </div>
         </div>
       )}
