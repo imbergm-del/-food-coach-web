@@ -2,10 +2,8 @@ import Anthropic from "@anthropic-ai/sdk";
 
 // Generic helper for server components that need a structured (JSON) suggestion
 // from the model. Returns null if unconfigured or on any failure — callers show
-// a fallback message instead of crashing the page. Uses Haiku (fast + cheap) since
-// these are short, well-specified extraction tasks, not open-ended conversation —
-// and retries once on failure/timeout, since a single dropped request otherwise
-// means an empty screen.
+// a fallback message instead of crashing the page. Retries once on failure/timeout,
+// since a single dropped request otherwise means an empty screen.
 export async function suggestJSON<T>(
   systemPrompt: string, userPrompt: string, maxTokens = 500
 ): Promise<T | null> {
@@ -15,7 +13,7 @@ export async function suggestJSON<T>(
 
   const attempt = async () => {
     const response = await anthropic.messages.create({
-      model: "claude-haiku-4-5-20251001",
+      model: "claude-sonnet-5",
       max_tokens: maxTokens,
       system: systemPrompt,
       messages: [{ role: "user", content: userPrompt }]
