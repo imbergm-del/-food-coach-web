@@ -31,15 +31,19 @@ export async function setMealRemindersEnabled(formData: FormData) {
 type SaveResult = { ok: boolean; error?: string };
 const SESSION_EXPIRED: SaveResult = { ok: false, error: "Сессия истекла — обновите страницу и попробуйте снова." };
 
+const NOT_UPDATED: SaveResult = { ok: false, error: "Не удалось сохранить: строка профиля не найдена или обновление отклонено." };
+
 export async function savePhoneNumber(formData: FormData): Promise<SaveResult> {
   const supabase = createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return SESSION_EXPIRED;
 
   const phone = (formData.get("phone") as string || "").trim();
-  const { error } = await supabase.from("profiles").update({ phone: phone || null }).eq("id", user.id);
+  const { data, error } = await supabase.from("profiles").update({ phone: phone || null }).eq("id", user.id).select("id");
   revalidatePath("/settings");
-  return error ? { ok: false, error: error.message } : { ok: true };
+  if (error) return { ok: false, error: error.message };
+  if (!data?.length) return NOT_UPDATED;
+  return { ok: true };
 }
 
 export async function saveName(formData: FormData): Promise<SaveResult> {
@@ -48,10 +52,12 @@ export async function saveName(formData: FormData): Promise<SaveResult> {
   if (!user) return SESSION_EXPIRED;
 
   const name = (formData.get("name") as string || "").trim();
-  const { error } = await supabase.from("profiles").update({ name: name || null }).eq("id", user.id);
+  const { data, error } = await supabase.from("profiles").update({ name: name || null }).eq("id", user.id).select("id");
   revalidatePath("/settings");
   revalidatePath("/today");
-  return error ? { ok: false, error: error.message } : { ok: true };
+  if (error) return { ok: false, error: error.message };
+  if (!data?.length) return NOT_UPDATED;
+  return { ok: true };
 }
 
 export async function saveMealSchedule(formData: FormData): Promise<SaveResult> {
@@ -59,16 +65,18 @@ export async function saveMealSchedule(formData: FormData): Promise<SaveResult> 
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return SESSION_EXPIRED;
 
-  const { error } = await supabase.from("profiles").update({
+  const { data, error } = await supabase.from("profiles").update({
     breakfast_time: (formData.get("breakfast_time") as string) || null,
     lunch_time: (formData.get("lunch_time") as string) || null,
     snack_time: (formData.get("snack_time") as string) || null,
     dinner_time: (formData.get("dinner_time") as string) || null
-  }).eq("id", user.id);
+  }).eq("id", user.id).select("id");
 
   revalidatePath("/settings");
   revalidatePath("/today");
-  return error ? { ok: false, error: error.message } : { ok: true };
+  if (error) return { ok: false, error: error.message };
+  if (!data?.length) return NOT_UPDATED;
+  return { ok: true };
 }
 
 // Подбирает другие блюда на завтрак/обед/ужин на завтра — каждый раз следующие
