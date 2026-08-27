@@ -86,8 +86,15 @@ create table if not exists meal_reminder_log (
 -- Миграция для уже существующей базы (create table if not exists выше не добавит
 -- колонки в таблицу, которая уже была создана раньше без них):
 alter table profiles add column if not exists timezone text;
+alter table profiles add column if not exists email text;
 alter table reminder_settings add column if not exists meal_reminders_enabled boolean default false;
 alter table meals add column if not exists steps jsonb default '[]';
+
+-- Заполняем email для аккаунтов, созданных до того, как колонка появилась
+update public.profiles p
+set email = u.email
+from auth.users u
+where p.id = u.id and p.email is null;
 
 -- Row Level Security: every user only ever sees their own rows
 alter table profiles enable row level security;
