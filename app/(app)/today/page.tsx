@@ -1,5 +1,5 @@
-import Link from "next/link";
 import { createClient } from "@/lib/supabaseServer";
+import { LoadingLink } from "@/components/LoadingLink";
 import { addToCart, logMealEaten } from "./actions";
 import { CookingModeTabs } from "./CookingModeTabs";
 import { MacroDial } from "@/components/MacroDial";
@@ -75,9 +75,9 @@ export default async function TodayPage() {
       <div className="eyebrow" style={{ fontWeight: 800 }}>СЕГОДНЯ · {dateLabel()}</div>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", margin: "6px 0 10px" }}>
         <h1 style={{ fontSize: 30 }}>{timeGreeting()}, {p.name ?? "друг"}</h1>
-        <Link href="/profile" className="btn ghost" style={{ padding: "8px 10px", borderRadius: "50%" }} aria-label="Профиль">
+        <LoadingLink href="/profile" className="btn ghost" style={{ padding: "8px 10px", borderRadius: "50%" }} ariaLabel="Профиль">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.6}><circle cx="12" cy="12" r="3.2" /><path d="M19.4 13.5a7.6 7.6 0 0 0 0-3l1.9-1.5-2-3.4-2.3.7a7.6 7.6 0 0 0-2.6-1.5L14 2.5h-4l-.4 2.3a7.6 7.6 0 0 0-2.6 1.5l-2.3-.7-2 3.4L4.6 10.5a7.6 7.6 0 0 0 0 3l-1.9 1.5 2 3.4 2.3-.7a7.6 7.6 0 0 0 2.6 1.5l.4 2.3h4l.4-2.3a7.6 7.6 0 0 0 2.6-1.5l2.3.7 2-3.4-1.9-1.5Z" /></svg>
-        </Link>
+        </LoadingLink>
       </div>
       <p style={{ fontSize: 13, color: "var(--ink-soft)", margin: "0 0 16px" }}>
         Норма на день: {p.cal_target} ккал · Б {p.protein_target} · Ж {p.fat_target} · У {p.carb_target}
@@ -159,7 +159,7 @@ export default async function TodayPage() {
                 <input type="hidden" name="carbs" value={meal.carbs} />
                 <SubmitButton>Съел(а)</SubmitButton>
               </form>
-              <Link href="/more" className="btn ghost" style={{ flex: 1, textAlign: "center" }}>Другое &#8943;</Link>
+              <LoadingLink href="/more" className="btn ghost" style={{ flex: 1, textAlign: "center" }}>Другое &#8943;</LoadingLink>
             </div>
           </div>
         </>
@@ -175,7 +175,7 @@ export default async function TodayPage() {
           <div className="eyebrow">Напоминание придёт сегодня в 20:00</div>
           <h3 style={{ fontSize: 17, marginTop: 6 }}>Ваше питание на завтра готово</h3>
         </div>
-        <Link href="/reminders" className="btn ghost" style={{ whiteSpace: "nowrap" }}>Смотреть</Link>
+        <LoadingLink href="/reminders" className="btn ghost" style={{ whiteSpace: "nowrap" }}>Смотреть</LoadingLink>
       </div>
 
       {meal && (

@@ -1,7 +1,7 @@
 "use client";
 
-import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
+import { useState, useTransition } from "react";
 import { NavIcons } from "@/components/NavIcons";
 
 const NAV = [
@@ -14,14 +14,35 @@ const NAV = [
 
 export function BottomNav() {
   const pathname = usePathname();
+  const router = useRouter();
+  const [isPending, startTransition] = useTransition();
+  const [loadingHref, setLoadingHref] = useState<string | null>(null);
+
+  function go(href: string) {
+    if (pathname?.startsWith(href)) return;
+    setLoadingHref(href);
+    startTransition(() => router.push(href));
+  }
+
   return (
     <nav className="bottomnav">
-      {NAV.map(item => (
-        <Link key={item.href} href={item.href} className={`navbtn ${pathname?.startsWith(item.href) ? "active" : ""}`}>
-          <span className="navicon">{NavIcons[item.key]}</span>
-          {item.label}
-        </Link>
-      ))}
+      {NAV.map(item => {
+        const active = pathname?.startsWith(item.href);
+        const loading = isPending && loadingHref === item.href;
+        return (
+          <button
+            key={item.href}
+            type="button"
+            onClick={() => go(item.href)}
+            disabled={isPending}
+            className={`navbtn ${active ? "active" : ""}`}
+            style={{ background: "none", border: "none", font: "inherit", opacity: isPending && !loading ? 0.4 : 1 }}
+          >
+            <span className="navicon">{loading ? <span className="spinner" /> : NavIcons[item.key]}</span>
+            {item.label}
+          </button>
+        );
+      })}
     </nav>
   );
 }

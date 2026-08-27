@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
-import Link from "next/link";
 import { createClient } from "@/lib/supabaseServer";
+import { LoadingLink } from "@/components/LoadingLink";
 import { createAdminClient } from "@/lib/supabaseAdmin";
 import { isAdminEmail } from "@/lib/isAdmin";
 import { cookingModeLabel } from "@/lib/cookingMode";
@@ -37,7 +37,7 @@ export default async function AdminPage() {
             <div className="eyebrow" style={{ marginBottom: 6 }}>Админ</div>
             <h1 style={{ fontSize: 26 }}>Клиенты</h1>
           </div>
-          <Link href="/today" className="btn ghost">В приложение</Link>
+          <LoadingLink href="/today" className="btn ghost">В приложение</LoadingLink>
         </div>
 
         <div style={{ display: "flex", gap: 10, marginBottom: 20 }}>

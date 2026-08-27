@@ -1,11 +1,14 @@
-import Link from "next/link";
 import { createClient } from "@/lib/supabaseServer";
+import { LoadingLink } from "@/components/LoadingLink";
+import { RetryButton } from "@/components/RetryButton";
 import { FoodThumb } from "@/components/FoodThumb";
 import { getDisplayMealType } from "@/lib/getDisplayMealType";
 import { getNutritionContext } from "@/lib/nutritionContext";
 import { MEAL_TYPE_LABELS } from "@/lib/mealTypes";
 import { suggestJSON } from "@/lib/aiSuggest";
 import { randomCuisineHint } from "@/lib/cuisineHint";
+
+export const maxDuration = 30;
 
 type Pick = { title: string; desc: string; calories: number; protein: number; fat: number; carbs: number };
 
@@ -26,7 +29,7 @@ export default async function RestaurantPage() {
 
   return (
     <div className="sheet">
-      <Link href="/today" className="btn ghost on-sheet" style={{ marginBottom: 16, display: "inline-block" }}>&larr; Назад</Link>
+      <LoadingLink href="/today" className="btn ghost on-sheet" style={{ marginBottom: 16, display: "inline-block" }}>&larr; Назад</LoadingLink>
       <div className="eyebrow" style={{ marginBottom: 6 }}>Режим ресторана · {mealLabel}</div>
       <h1 style={{ fontSize: 22, marginBottom: 16, color: "var(--sheet-text)" }}>Ем вне дома</h1>
       <div style={{ display: "flex", flexWrap: "wrap", marginBottom: 16 }}>
@@ -41,11 +44,12 @@ export default async function RestaurantPage() {
         </div>
       ) : !pick ? (
         <div className="sheet-card" style={{ flexDirection: "column", alignItems: "stretch" }}>
-          <p style={{ color: "var(--sheet-muted)", fontSize: 13, margin: 0 }}>
+          <p style={{ color: "var(--sheet-muted)", fontSize: 13, margin: "0 0 12px" }}>
             {process.env.ANTHROPIC_API_KEY
-              ? "Не получилось подобрать вариант. Попробуйте обновить страницу."
+              ? "Не получилось подобрать вариант — коуч мог не ответить вовремя."
               : "Подбор ещё не настроен: добавьте ANTHROPIC_API_KEY в переменные окружения Vercel."}
           </p>
+          {process.env.ANTHROPIC_API_KEY && <RetryButton />}
         </div>
       ) : (
         <div className="sheet-card" style={{ alignItems: "flex-start" }}>

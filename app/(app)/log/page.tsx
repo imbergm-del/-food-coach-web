@@ -1,5 +1,5 @@
-import Link from "next/link";
 import { FoodThumb } from "@/components/FoodThumb";
+import { LoadingLink } from "@/components/LoadingLink";
 
 export default function LogPage() {
   return (
@@ -14,7 +14,7 @@ export default function LogPage() {
         <button className="btn block">Разобрать с ИИ</button>
       </div>
       <div style={{ display: "flex", gap: 10, marginBottom: 16 }}>
-        <Link href="/photo" className="btn ghost block" style={{ textAlign: "center" }}>Сфотографировать</Link>
+        <LoadingLink href="/photo" className="btn ghost block" style={{ textAlign: "center" }}>Сфотографировать</LoadingLink>
         <button className="btn ghost block">Голосом</button>
       </div>
       <div className="eyebrow" style={{ marginBottom: 8 }}>Сегодня записано</div>

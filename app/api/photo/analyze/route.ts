@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import Anthropic from "@anthropic-ai/sdk";
 import { createClient } from "@/lib/supabaseServer";
 
+export const maxDuration = 30;
+
 const SYSTEM_PROMPT = `Ты — модуль распознавания еды по фото в приложении AI Food Coach.
 Посмотри на фото и определи, что за блюдо и из чего оно состоит. Оцени вес каждого компонента на глаз и посчитай примерное КБЖУ всего блюда.
 
@@ -35,7 +37,7 @@ export async function POST(req: Request) {
 
   try {
     const response = await anthropic.messages.create({
-      model: "claude-sonnet-5",
+      model: "claude-haiku-4-5-20251001",
       max_tokens: 500,
       system: SYSTEM_PROMPT,
       messages: [{

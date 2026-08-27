@@ -1,5 +1,6 @@
-import Link from "next/link";
 import { createClient } from "@/lib/supabaseServer";
+import { LoadingLink } from "@/components/LoadingLink";
+import { RetryButton } from "@/components/RetryButton";
 import { FoodThumb } from "@/components/FoodThumb";
 import { getDisplayMealType } from "@/lib/getDisplayMealType";
 import { MEAL_TYPE_LABELS } from "@/lib/mealTypes";
@@ -9,6 +10,8 @@ import { chooseAlternative } from "./actions";
 import { SubmitButton } from "@/components/SubmitButton";
 import { normalizeCookingMode } from "@/lib/cookingMode";
 import { randomCuisineHint } from "@/lib/cuisineHint";
+
+export const maxDuration = 30;
 
 type Alt = { title: string; calories: number; protein: number; fat: number; carbs: number; ingredients: { name: string; qty: string }[] };
 
@@ -36,7 +39,7 @@ export default async function ChangePage() {
 
   return (
     <div className="sheet">
-      <Link href="/today" className="btn ghost on-sheet" style={{ marginBottom: 16, display: "inline-block" }}>&larr; Назад</Link>
+      <LoadingLink href="/today" className="btn ghost on-sheet" style={{ marginBottom: 16, display: "inline-block" }}>&larr; Назад</LoadingLink>
       <div className="eyebrow" style={{ marginBottom: 6 }}>Замена блюда · {mealLabel}</div>
       <h1 style={{ fontSize: 22, marginBottom: 16, color: "var(--sheet-text)" }}>Похожие по КБЖУ варианты</h1>
 
@@ -46,11 +49,12 @@ export default async function ChangePage() {
         </div>
       ) : !alts ? (
         <div className="sheet-card" style={{ flexDirection: "column", alignItems: "stretch" }}>
-          <p style={{ color: "var(--sheet-muted)", fontSize: 13, margin: 0 }}>
+          <p style={{ color: "var(--sheet-muted)", fontSize: 13, margin: "0 0 12px" }}>
             {process.env.ANTHROPIC_API_KEY
-              ? "Не получилось подобрать варианты. Попробуйте обновить страницу."
+              ? "Не получилось подобрать варианты — коуч мог не ответить вовремя."
               : "Подбор альтернатив ещё не настроен: добавьте ANTHROPIC_API_KEY в переменные окружения Vercel."}
           </p>
+          {process.env.ANTHROPIC_API_KEY && <RetryButton />}
         </div>
       ) : (
         alts.map(a => (

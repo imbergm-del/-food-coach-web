@@ -1,10 +1,10 @@
 "use client";
 
 import { useRef, useState } from "react";
-import Link from "next/link";
 import { logPhotoMeal } from "./actions";
 import { resizeToJpegBase64 } from "@/lib/imageResize";
 import { SubmitButton } from "@/components/SubmitButton";
+import { LoadingLink } from "@/components/LoadingLink";
 
 type Result = {
   title: string;
@@ -98,7 +98,7 @@ export function PhotoCapture() {
         </div>
         <div style={{ display: "flex", gap: 10, marginTop: 16 }}>
           <button className="btn block" onClick={reset}>Попробовать снова</button>
-          <Link href="/today" className="btn ghost on-sheet" style={{ flex: 1, textAlign: "center" }}>Отмена</Link>
+          <LoadingLink href="/today" className="btn ghost on-sheet" style={{ flex: 1, textAlign: "center" }}>Отмена</LoadingLink>
         </div>
       </div>
     );

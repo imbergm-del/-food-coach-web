@@ -1,7 +1,7 @@
-import Link from "next/link";
 import { createClient } from "@/lib/supabaseServer";
 import { checkoutCart, removeCartItem } from "./actions";
 import { SubmitButton } from "@/components/SubmitButton";
+import { LoadingLink } from "@/components/LoadingLink";
 
 export default async function CartPage({ searchParams }: { searchParams: { tab?: string } }) {
   const activeTab = searchParams.tab === "fridge" ? "fridge" : "list";
@@ -22,8 +22,8 @@ export default async function CartPage({ searchParams }: { searchParams: { tab?:
       <h1 style={{ fontSize: 24, marginBottom: 16 }}>Что нужно купить</h1>
 
       <div className="tabs">
-        <Link href="/cart?tab=list" className={`tab ${activeTab === "list" ? "active" : ""}`}>Список</Link>
-        <Link href="/cart?tab=fridge" className={`tab ${activeTab === "fridge" ? "active" : ""}`}>Мой холодильник</Link>
+        <LoadingLink href="/cart?tab=list" className={`tab ${activeTab === "list" ? "active" : ""}`}>Список</LoadingLink>
+        <LoadingLink href="/cart?tab=fridge" className={`tab ${activeTab === "fridge" ? "active" : ""}`}>Мой холодильник</LoadingLink>
       </div>
 
       {activeTab === "list" ? (
@@ -80,7 +80,7 @@ export default async function CartPage({ searchParams }: { searchParams: { tab?:
               <p style={{ fontSize: 13.5, margin: "0 0 10px" }}>
                 Заканчивается: {lowStock.map(f => f.name).join(", ")}. Этого не хватит на план недели.
               </p>
-              <Link href="/cart?tab=list" className="btn block" style={{ textAlign: "center" }}>Добавить в список покупок</Link>
+              <LoadingLink href="/cart?tab=list" className="btn block" style={{ textAlign: "center" }}>Добавить в список покупок</LoadingLink>
             </div>
           )}
         </>

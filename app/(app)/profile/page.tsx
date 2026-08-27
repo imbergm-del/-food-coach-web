@@ -1,8 +1,8 @@
-import Link from "next/link";
 import { createClient } from "@/lib/supabaseServer";
 import { signOut } from "./actions";
 import { isAdminEmail } from "@/lib/isAdmin";
 import { SubmitButton } from "@/components/SubmitButton";
+import { LoadingLink } from "@/components/LoadingLink";
 
 export default async function ProfilePage() {
   const supabase = createClient();
@@ -20,7 +20,7 @@ export default async function ProfilePage() {
         <div className="listrow"><span>Тренировок в неделю</span><span>{profile?.workouts_per_week ?? "—"}</span></div>
       </div>
       {isAdminEmail(user?.email) && (
-        <Link href="/admin" className="btn ghost block" style={{ marginBottom: 14, textAlign: "center" }}>Админ-панель</Link>
+        <LoadingLink href="/admin" className="btn ghost block" style={{ marginBottom: 14, textAlign: "center" }}>Админ-панель</LoadingLink>
       )}
       <form action={signOut}>
         <SubmitButton className="btn ghost block" pendingText="Выходим…">Выйти</SubmitButton>

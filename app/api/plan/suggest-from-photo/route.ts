@@ -3,6 +3,8 @@ import Anthropic from "@anthropic-ai/sdk";
 import { createClient } from "@/lib/supabaseServer";
 import { DINNER_PROTEINS, DINNER_FATS } from "@/lib/mealTypes";
 
+export const maxDuration = 30;
+
 const ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif"] as const;
 type AllowedImageType = (typeof ALLOWED_IMAGE_TYPES)[number];
 
@@ -37,7 +39,7 @@ export async function POST(req: Request) {
 
   try {
     const response = await anthropic.messages.create({
-      model: "claude-sonnet-5",
+      model: "claude-haiku-4-5-20251001",
       max_tokens: 300,
       system: SYSTEM_PROMPT,
       messages: [{

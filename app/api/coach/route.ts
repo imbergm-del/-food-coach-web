@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import Anthropic from "@anthropic-ai/sdk";
 import { createClient } from "@/lib/supabaseServer";
 
+export const maxDuration = 30;
+
 const ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif"] as const;
 type AllowedImageType = (typeof ALLOWED_IMAGE_TYPES)[number];
 
