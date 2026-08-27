@@ -49,7 +49,7 @@ export default async function PlanPage() {
       isToday: iso === todayISO,
       meals: meals?.filter(m => m.date === iso) ?? []
     };
-  });
+  }).filter(day => day.iso >= todayISO);
 
   return (
     <div>

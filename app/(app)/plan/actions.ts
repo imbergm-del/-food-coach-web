@@ -14,11 +14,14 @@ function toISODate(d: Date) {
   return d.toISOString().slice(0, 10);
 }
 
-// Заполняет пустые завтрак/обед/ужин от сегодняшнего дня до конца недели
-// реальными рецептами с граммовкой. Блюдо на каждый день берётся по календарной
-// дате из подборки на 7 вариантов — так за любые 7 дней подряд ни один завтрак,
-// обед или ужин не повторится, в какую бы неделю план ни составляли.
-// Не трогает уже существующие записи — безопасно нажимать повторно.
+// Заполняет завтрак/обед/ужин от сегодняшнего дня до конца недели реальными
+// рецептами с граммовкой. Блюдо на каждый день берётся по календарной дате из
+// подборки на 7 вариантов — так за любые 7 дней подряд ни один завтрак, обед или
+// ужин не повторится, в какую бы неделю план ни составляли. Съеденное и выбранное
+// пользователем вручную (замена, вечерний план) не трогаем; а вот ещё не съеденные
+// автосгенерированные записи — в том числе оставшиеся от старой, менее
+// разнообразной версии плана — пересобираем заново, чтобы повторное нажатие само
+// чинило устаревшие повторы.
 export async function generateWeekPlan(formData: FormData) {
   const supabase = createClient();
   const { data: { user } } = await supabase.auth.getUser();
@@ -31,11 +34,19 @@ export async function generateWeekPlan(formData: FormData) {
 
   const { data: existing } = await supabase
     .from("meals")
-    .select("date, meal_type")
+    .select("id, date, meal_type, status, source")
     .eq("user_id", user.id)
     .gte("date", todayISO)
     .lte("date", weekEnd);
-  const existingKeys = new Set((existing ?? []).map(m => `${m.date}|${m.meal_type}`));
+  const isStaleAutoPlan = (m: { status: string; source: string | null }) => m.status === "planned" && m.source === "week_plan";
+  const settledKeys = new Set(
+    (existing ?? []).filter(m => !isStaleAutoPlan(m)).map(m => `${m.date}|${m.meal_type}`)
+  );
+  const stalePlannedIds = (existing ?? []).filter(isStaleAutoPlan).map(m => m.id);
+
+  if (stalePlannedIds.length) {
+    await supabase.from("meals").delete().in("id", stalePlannedIds);
+  }
 
   const rows: Record<string, unknown>[] = [];
   const start = new Date(todayISO);
@@ -43,8 +54,7 @@ export async function generateWeekPlan(formData: FormData) {
   for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
     const iso = toISODate(d);
     for (const mealType of MAIN_MEALS) {
-      const key = `${iso}|${mealType}`;
-      if (existingKeys.has(key)) continue;
+      if (settledKeys.has(`${iso}|${mealType}`)) continue;
       const def = scaleMealToTarget(pickMealForDate(MEAL_POOL[mealType], iso), mealType, calTarget);
       rows.push({
         user_id: user.id,
