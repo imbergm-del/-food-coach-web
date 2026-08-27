@@ -26,18 +26,18 @@ export function MoreMenu({ items }: { items: Item[] }) {
             type="button"
             onClick={() => go(it.href)}
             disabled={isPending}
-            className="sheet-card"
+            className="card"
             style={{
-              width: "100%", textAlign: "left", border: "none", cursor: "pointer",
-              font: "inherit", opacity: isPending && !isLoading ? 0.4 : 1
+              width: "100%", textAlign: "left", border: "none", cursor: "pointer", display: "flex", gap: 12, alignItems: "center",
+              marginBottom: 10, font: "inherit", opacity: isPending && !isLoading ? 0.4 : 1
             }}
           >
             <FoodThumb color={it.color} bg={it.bg} size={44} />
             <span style={{ flex: 1 }}>
-              <span style={{ display: "block", fontWeight: 600, fontSize: 14.5, color: "var(--sheet-text)" }}>{it.title}</span>
-              <span style={{ display: "block", fontSize: 12, color: "var(--sheet-muted)", marginTop: 2 }}>{it.desc}</span>
+              <span style={{ display: "block", fontWeight: 600, fontSize: 14.5, color: "var(--ink)" }}>{it.title}</span>
+              <span style={{ display: "block", fontSize: 12, color: "var(--ink-soft)", marginTop: 2 }}>{it.desc}</span>
             </span>
-            {isLoading && <span className="spinner" style={{ color: "var(--sheet-text)" }} />}
+            {isLoading && <span className="spinner" style={{ color: "var(--ink)" }} />}
           </button>
         );
       })}

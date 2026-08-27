@@ -17,19 +17,19 @@ export function ChangePicker({
   const current = options[index];
 
   return (
-    <div className="sheet-card" style={{ flexDirection: "column", alignItems: "stretch" }}>
+    <div className="card" style={{ display: "flex", flexDirection: "column", alignItems: "stretch" }}>
       <div style={{ display: "flex", gap: 12, alignItems: "flex-start", marginBottom: 12 }}>
         <FoodThumb color="var(--protein)" bg="var(--protein-bg)" size={48} />
         <div style={{ flex: 1 }}>
-          <h3 style={{ fontSize: 16, color: "var(--sheet-text)" }}>{current.title}</h3>
-          <p style={{ fontFamily: "var(--mono)", fontSize: 11, color: "var(--sheet-muted)", margin: "4px 0 0" }}>
+          <h3 style={{ fontSize: 16 }}>{current.title}</h3>
+          <p style={{ fontFamily: "var(--mono)", fontSize: 11, color: "var(--ink-soft)", margin: "4px 0 0" }}>
             {current.calories} ккал · Б {current.protein} · Ж {current.fat} · У {current.carbs}
           </p>
         </div>
       </div>
       <ul style={{ margin: "0 0 14px", padding: "0 0 0 18px" }}>
         {current.ingredients.map(i => (
-          <li key={i.name} style={{ fontSize: 12.5, color: "var(--sheet-muted)", marginBottom: 2 }}>
+          <li key={i.name} style={{ fontSize: 12.5, color: "var(--ink-soft)", marginBottom: 2 }}>
             {i.name} — {i.qty}
           </li>
         ))}
@@ -37,7 +37,7 @@ export function ChangePicker({
       {current.steps.length > 0 && (
         <ol style={{ margin: "0 0 14px", padding: "0 0 0 18px" }}>
           {current.steps.map((step, i) => (
-            <li key={i} style={{ fontSize: 12.5, color: "var(--sheet-muted)", marginBottom: 4, lineHeight: 1.5 }}>
+            <li key={i} style={{ fontSize: 12.5, color: "var(--ink-soft)", marginBottom: 4, lineHeight: 1.5 }}>
               {step}
             </li>
           ))}
@@ -46,7 +46,7 @@ export function ChangePicker({
       <div style={{ display: "flex", gap: 10 }}>
         <button
           type="button"
-          className="btn ghost on-sheet"
+          className="btn ghost"
           style={{ flex: 1 }}
           onClick={() => setIndex(i => (i + 1) % options.length)}
         >

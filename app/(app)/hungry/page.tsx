@@ -27,14 +27,14 @@ export default async function HungryPage() {
   );
 
   return (
-    <div className="sheet">
-      <BackButton style={{ marginBottom: 16, display: "inline-block" }} />
+    <div>
+      <BackButton className="btn ghost" style={{ marginBottom: 16, display: "inline-block" }} />
       <div className="eyebrow" style={{ marginBottom: 6 }}>Срочный режим</div>
-      <h1 style={{ fontSize: 22, marginBottom: 18, color: "var(--sheet-text)" }}>Я голоден сейчас</h1>
+      <h1 style={{ fontSize: 22, marginBottom: 18 }}>Я голоден сейчас</h1>
 
       {!options ? (
-        <div className="sheet-card" style={{ flexDirection: "column", alignItems: "stretch" }}>
-          <p style={{ color: "var(--sheet-muted)", fontSize: 13, margin: "0 0 12px" }}>
+        <div className="card" style={{ display: "flex", flexDirection: "column", alignItems: "stretch" }}>
+          <p style={{ color: "var(--ink-soft)", fontSize: 13, margin: "0 0 12px" }}>
             {process.env.ANTHROPIC_API_KEY
               ? "Не получилось подобрать варианты — коуч мог не ответить вовремя."
               : "Подбор ещё не настроен: добавьте ANTHROPIC_API_KEY в переменные окружения Vercel."}
@@ -43,11 +43,11 @@ export default async function HungryPage() {
         </div>
       ) : (
         options.map((o, i) => (
-          <div key={o.title} className="sheet-card">
+          <div key={o.title} className="card" style={{ display: "flex", gap: 12, alignItems: "center", marginBottom: 10 }}>
             <FoodThumb color="var(--protein)" bg="var(--protein-bg)" size={48} />
             <div style={{ flex: 1 }}>
-              <h3 style={{ fontSize: 15, color: "var(--sheet-text)", marginBottom: 4 }}>{o.title}</h3>
-              <p style={{ fontSize: 12.5, color: "var(--sheet-muted)", margin: 0 }}>{o.desc}</p>
+              <h3 style={{ fontSize: 15, marginBottom: 4 }}>{o.title}</h3>
+              <p style={{ fontSize: 12.5, color: "var(--ink-soft)", margin: 0 }}>{o.desc}</p>
               {i === 2 && <LoadingLink href="/cart" className="btn" style={{ marginTop: 10, padding: "8px 14px", display: "inline-block" }}>Заказать продукты</LoadingLink>}
             </div>
           </div>

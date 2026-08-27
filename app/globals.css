@@ -5,7 +5,6 @@
   --card:#FFFFFF; --line:rgba(32,43,31,.14); --line-strong:rgba(32,43,31,.24);
   --protein:#C1553B; --fat:#E3A72F; --carbs:#7C8C6B; --water:#4F7C82; --warn:#B5533C;
   --protein-bg:#F3DDD6; --fat-bg:#F8EAC9; --carbs-bg:#E4E9DE; --water-bg:#DCE7E8; --fat-ink:#9C7317;
-  --sheet-bg:#1B1F17; --sheet-text:#F1EEE5; --sheet-muted:#B9B6A9; --sheet-line:rgba(241,238,229,.14);
   --serif:'Fraunces',serif; --sans:'Public Sans',sans-serif; --mono:'IBM Plex Mono',monospace;
 }
 
@@ -41,7 +40,6 @@ p { font-size: 15px; line-height: 1.5; }
 }
 .btn.ghost { background: transparent; color: var(--ink); border: 1px solid var(--line-strong); box-shadow: none; }
 .btn.block { width: 100%; }
-.btn.on-sheet { color: var(--sheet-text); border-color: rgba(241,238,229,.3); background: transparent; box-shadow: none; }
 .btn:disabled { opacity: .5; cursor: default; box-shadow: none; }
 
 @keyframes spin { to { transform: rotate(360deg); } }
@@ -117,16 +115,6 @@ p { font-size: 15px; line-height: 1.5; }
 }
 .actbtn.ghost { background: transparent; color: var(--ink); border-color: var(--line-strong); }
 .actbtn:disabled { opacity: .5; cursor: default; }
-
-.sheet {
-  margin: -24px -20px -12px; padding: 34px 20px 24px; background: var(--sheet-bg);
-  min-height: calc(100% + 36px); color: var(--sheet-text);
-}
-.sheet .eyebrow { color: var(--sheet-muted); }
-.sheet-card {
-  background: rgba(255,255,255,.06); border: 1px solid var(--sheet-line); border-radius: 18px;
-  padding: 14px; margin-bottom: 12px; display: flex; gap: 12px; align-items: center;
-}
 
 .bottomnav {
   position: sticky; bottom: 0; display: flex; justify-content: space-around; align-items: center;

@@ -29,18 +29,18 @@ export default async function RestaurantPage() {
     : null;
 
   return (
-    <div className="sheet">
-      <BackButton style={{ marginBottom: 16, display: "inline-block" }} />
+    <div>
+      <BackButton className="btn ghost" style={{ marginBottom: 16, display: "inline-block" }} />
       <div className="eyebrow" style={{ marginBottom: 6 }}>Режим ресторана · {mealLabel}</div>
-      <h1 style={{ fontSize: 22, marginBottom: 16, color: "var(--sheet-text)" }}>Ем вне дома</h1>
+      <h1 style={{ fontSize: 22, marginBottom: 16 }}>Ем вне дома</h1>
 
       {!displayType ? (
-        <div className="sheet-card" style={{ flexDirection: "column", alignItems: "stretch" }}>
-          <p style={{ color: "var(--sheet-muted)", fontSize: 13, margin: 0 }}>Все приёмы на сегодня уже отмечены.</p>
+        <div className="card" style={{ display: "flex", flexDirection: "column", alignItems: "stretch" }}>
+          <p style={{ color: "var(--ink-soft)", fontSize: 13, margin: 0 }}>Все приёмы на сегодня уже отмечены.</p>
         </div>
       ) : !pick ? (
-        <div className="sheet-card" style={{ flexDirection: "column", alignItems: "stretch" }}>
-          <p style={{ color: "var(--sheet-muted)", fontSize: 13, margin: "0 0 12px" }}>
+        <div className="card" style={{ display: "flex", flexDirection: "column", alignItems: "stretch" }}>
+          <p style={{ color: "var(--ink-soft)", fontSize: 13, margin: "0 0 12px" }}>
             {process.env.ANTHROPIC_API_KEY
               ? "Не получилось подобрать вариант — коуч мог не ответить вовремя."
               : "Подбор ещё не настроен: добавьте ANTHROPIC_API_KEY в переменные окружения Vercel."}
@@ -48,25 +48,25 @@ export default async function RestaurantPage() {
           {process.env.ANTHROPIC_API_KEY && <RetryButton />}
         </div>
       ) : (
-        <div className="sheet-card" style={{ alignItems: "flex-start" }}>
+        <div className="card" style={{ display: "flex", gap: 12, alignItems: "flex-start" }}>
           <FoodThumb color="var(--water)" bg="var(--water-bg)" size={52} />
           <div style={{ flex: 1 }}>
             <div className="eyebrow" style={{ marginBottom: 6 }}>Лучший выбор сейчас</div>
-            <h3 style={{ fontSize: 16, marginBottom: 6, color: "var(--sheet-text)" }}>{pick.title}</h3>
-            <p style={{ fontSize: 12.5, color: "var(--sheet-muted)", margin: "0 0 8px" }}>{pick.desc}</p>
-            <p style={{ fontFamily: "var(--mono)", fontSize: 11.5, color: "var(--sheet-muted)", margin: "0 0 14px" }}>
+            <h3 style={{ fontSize: 16, marginBottom: 6 }}>{pick.title}</h3>
+            <p style={{ fontSize: 12.5, color: "var(--ink-soft)", margin: "0 0 8px" }}>{pick.desc}</p>
+            <p style={{ fontFamily: "var(--mono)", fontSize: 11.5, color: "var(--ink-soft)", margin: "0 0 14px" }}>
               {pick.calories} ккал · Б {pick.protein} · Ж {pick.fat} · У {pick.carbs}
             </p>
             <div style={{ display: "flex", gap: 8 }}>
               <a
                 href={`https://www.doordash.com/search/store/${encodeURIComponent(pick.title)}/`}
-                target="_blank" rel="noopener noreferrer" className="btn on-sheet" style={{ flex: 1, textAlign: "center" }}
+                target="_blank" rel="noopener noreferrer" className="btn ghost" style={{ flex: 1, textAlign: "center" }}
               >
                 DoorDash
               </a>
               <a
                 href={`https://www.ubereats.com/search?q=${encodeURIComponent(pick.title)}`}
-                target="_blank" rel="noopener noreferrer" className="btn on-sheet" style={{ flex: 1, textAlign: "center" }}
+                target="_blank" rel="noopener noreferrer" className="btn ghost" style={{ flex: 1, textAlign: "center" }}
               >
                 Uber Eats
               </a>

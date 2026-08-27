@@ -39,14 +39,14 @@ export default async function ChangePage() {
   })();
 
   return (
-    <div className="sheet">
-      <BackButton style={{ marginBottom: 16, display: "inline-block" }} />
+    <div>
+      <BackButton className="btn ghost" style={{ marginBottom: 16, display: "inline-block" }} />
       <div className="eyebrow" style={{ marginBottom: 6 }}>Замена блюда · {mealLabel}</div>
-      <h1 style={{ fontSize: 22, marginBottom: 16, color: "var(--sheet-text)" }}>Другой вариант</h1>
+      <h1 style={{ fontSize: 22, marginBottom: 16 }}>Другой вариант</h1>
 
       {!displayType || !scaledOptions.length ? (
-        <div className="sheet-card" style={{ flexDirection: "column", alignItems: "stretch" }}>
-          <p style={{ color: "var(--sheet-muted)", fontSize: 13, margin: 0 }}>Все приёмы на сегодня уже отмечены — заменять нечего.</p>
+        <div className="card" style={{ display: "flex", flexDirection: "column", alignItems: "stretch" }}>
+          <p style={{ color: "var(--ink-soft)", fontSize: 13, margin: 0 }}>Все приёмы на сегодня уже отмечены — заменять нечего.</p>
         </div>
       ) : (
         <ChangePicker options={scaledOptions} startIndex={startIndex} mealType={displayType} mealDate={mealDate} />

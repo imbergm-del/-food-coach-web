@@ -20,10 +20,10 @@ export default async function MorePage() {
   ];
 
   return (
-    <div className="sheet">
-      <BackButton style={{ marginBottom: 16, display: "inline-block" }} />
+    <div>
+      <BackButton className="btn ghost" style={{ marginBottom: 16, display: "inline-block" }} />
       <div className="eyebrow" style={{ marginBottom: 6 }}>Ещё варианты</div>
-      <h1 style={{ fontSize: 22, marginBottom: 16, color: "var(--sheet-text)" }}>Что хотите сделать?</h1>
+      <h1 style={{ fontSize: 22, marginBottom: 16 }}>Что хотите сделать?</h1>
       <MoreMenu items={items} />
     </div>
   );
