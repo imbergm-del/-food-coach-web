@@ -5,6 +5,7 @@ import { getDisplayMealType } from "@/lib/getDisplayMealType";
 import { getNutritionContext } from "@/lib/nutritionContext";
 import { MEAL_TYPE_LABELS } from "@/lib/mealTypes";
 import { suggestJSON } from "@/lib/aiSuggest";
+import { randomCuisineHint } from "@/lib/cuisineHint";
 
 type Option = { title: string; desc: string; ingredients?: { name: string; qty: string }[] };
 
@@ -18,8 +19,8 @@ export default async function HungryPage() {
 
   const options = displayType
     ? await suggestJSON<Option[]>(
-        `Ты подбираешь срочные варианты еды в приложении AI Food Coach для человека, который голоден прямо сейчас. Отвечай СТРОГО валидным JSON-массивом без markdown, ровно из 3 элементов в этом порядке и формате: [{"title":"Дома","desc":"...", "ingredients":[{"name":"...","qty":"..."}]}, {"title":"Купить рядом","desc":"..."}, {"title":"Заказать","desc":"...", "ingredients":[{"name":"...","qty":"..."}]}]. desc — 1 короткое предложение с конкретным блюдом.`,
-        `${summary} Сейчас время приёма пищи: ${mealLabel.toLowerCase()}. Дай 3 срочных варианта именно под ${mealLabel.toLowerCase()} (не предлагай ужинные блюда на завтрак и наоборот): что съесть дома прямо сейчас без готовки, что купить готовое поблизости, и что можно заказать с доставкой — с учётом остатка КБЖУ.`
+        `Ты подбираешь срочные варианты еды в приложении AI Food Coach для человека, который голоден прямо сейчас. Каждый раз старайся предлагать разные блюда — избегай одних и тех же типовых вариантов между запросами. Отвечай СТРОГО валидным JSON-массивом без markdown, ровно из 3 элементов в этом порядке и формате: [{"title":"Дома","desc":"...", "ingredients":[{"name":"...","qty":"..."}]}, {"title":"Купить рядом","desc":"..."}, {"title":"Заказать","desc":"...", "ingredients":[{"name":"...","qty":"..."}]}]. desc — 1 короткое предложение с конкретным блюдом.`,
+        `${summary} Сейчас время приёма пищи: ${mealLabel.toLowerCase()}. Для разнообразия сегодня ориентируйся на ${randomCuisineHint()} кухню, если это уместно. Дай 3 срочных варианта именно под ${mealLabel.toLowerCase()} (не предлагай ужинные блюда на завтрак и наоборот): что съесть дома прямо сейчас без готовки, что купить готовое поблизости, и что можно заказать с доставкой — с учётом остатка КБЖУ.`
       )
     : null;
 

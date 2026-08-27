@@ -5,6 +5,7 @@ import { getDisplayMealType } from "@/lib/getDisplayMealType";
 import { getNutritionContext } from "@/lib/nutritionContext";
 import { MEAL_TYPE_LABELS } from "@/lib/mealTypes";
 import { suggestJSON } from "@/lib/aiSuggest";
+import { randomCuisineHint } from "@/lib/cuisineHint";
 
 type Pick = { title: string; desc: string; calories: number; protein: number; fat: number; carbs: number };
 
@@ -18,8 +19,8 @@ export default async function RestaurantPage() {
 
   const pick = displayType
     ? await suggestJSON<Pick>(
-        `Ты подбираешь лучший заказ в ресторане в приложении AI Food Coach. Отвечай СТРОГО валидным JSON-объектом без markdown, в этом формате: {"title":"...", "desc":"гарнир/соус одним коротким предложением", "calories":0, "protein":0, "fat":0, "carbs":0}.`,
-        `${summary} Сейчас время приёма пищи: ${mealLabel.toLowerCase()}. Пользователь ест вне дома — подбери ОДНО конкретное блюдо, уместное именно для ${mealLabel.toLowerCase()}а в обычном ресторане (не предлагай ужинные блюда на завтрак и наоборот), которое впишется в остаток КБЖУ на сегодня.`
+        `Ты подбираешь лучший заказ в ресторане в приложении AI Food Coach. Каждый раз старайся предлагать разные блюда — избегай одних и тех же типовых вариантов между запросами. Отвечай СТРОГО валидным JSON-объектом без markdown, в этом формате: {"title":"...", "desc":"гарнир/соус одним коротким предложением", "calories":0, "protein":0, "fat":0, "carbs":0}.`,
+        `${summary} Сейчас время приёма пищи: ${mealLabel.toLowerCase()}. Пользователь ест вне дома, сегодня в ресторане с уклоном в ${randomCuisineHint()} кухню, если это уместно — подбери ОДНО конкретное блюдо, уместное именно для ${mealLabel.toLowerCase()}а (не предлагай ужинные блюда на завтрак и наоборот), которое впишется в остаток КБЖУ на сегодня.`
       )
     : null;
 

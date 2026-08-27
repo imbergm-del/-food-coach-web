@@ -8,6 +8,7 @@ import { suggestJSON } from "@/lib/aiSuggest";
 import { chooseAlternative } from "./actions";
 import { SubmitButton } from "@/components/SubmitButton";
 import { normalizeCookingMode } from "@/lib/cookingMode";
+import { randomCuisineHint } from "@/lib/cuisineHint";
 
 type Alt = { title: string; calories: number; protein: number; fat: number; carbs: number; ingredients: { name: string; qty: string }[] };
 
@@ -28,8 +29,8 @@ export default async function ChangePage() {
 
   const alts = displayType
     ? await suggestJSON<Alt[]>(
-        `Ты подбираешь замену блюду в приложении AI Food Coach. Пользователь ленивый и не хочет тратить время на готовку. Отвечай СТРОГО валидным JSON-массивом без markdown и пояснений, ровно в этом формате: [{"title":"...", "calories":0, "protein":0, "fat":0, "carbs":0, "ingredients":[{"name":"...", "qty":"180 г"}]}] — три варианта. В ingredients укажи каждый компонент блюда с конкретным весом в граммах (или мл/шт с граммовкой в скобках), чтобы калории были проверяемы по составу.`,
-        `Приём пищи: ${mealLabel}. Текущее предложенное блюдо: ${currentMeal?.title ?? "не задано"} (${currentMeal?.calories ?? "?"} ккал, Б${currentMeal?.protein ?? "?"} Ж${currentMeal?.fat ?? "?"} У${currentMeal?.carbs ?? "?"}). Время на готовку: ${COOKING_TIME_LABEL[cookingMode]}. Предложи 3 альтернативы, которые уместны именно для приёма «${mealLabel.toLowerCase()}» (не предлагай ужинные блюда на завтрак и наоборот), с похожим на текущее блюдо КБЖУ, и подходящие под время на готовку.`
+        `Ты подбираешь замену блюду в приложении AI Food Coach. Пользователь ленивый и не хочет тратить время на готовку. Каждый раз старайся предлагать разные блюда — избегай одних и тех же типовых вариантов между запросами. Отвечай СТРОГО валидным JSON-массивом без markdown и пояснений, ровно в этом формате: [{"title":"...", "calories":0, "protein":0, "fat":0, "carbs":0, "ingredients":[{"name":"...", "qty":"180 г"}]}] — три варианта. В ingredients укажи каждый компонент блюда с конкретным весом в граммах (или мл/шт с граммовкой в скобках), чтобы калории были проверяемы по составу.`,
+        `Приём пищи: ${mealLabel}. Текущее предложенное блюдо: ${currentMeal?.title ?? "не задано"} (${currentMeal?.calories ?? "?"} ккал, Б${currentMeal?.protein ?? "?"} Ж${currentMeal?.fat ?? "?"} У${currentMeal?.carbs ?? "?"}). Время на готовку: ${COOKING_TIME_LABEL[cookingMode]}. Для разнообразия сегодня ориентируйся на ${randomCuisineHint()} кухню, если это уместно. Предложи 3 альтернативы, которые уместны именно для приёма «${mealLabel.toLowerCase()}» (не предлагай ужинные блюда на завтрак и наоборот), с похожим на текущее блюдо КБЖУ, и подходящие под время на готовку.`
       )
     : null;
 
