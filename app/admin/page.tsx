@@ -74,7 +74,17 @@ export default async function AdminPage() {
                 const stats = mealStatsByUser.get(p.id);
                 return (
                   <tr key={p.id} style={{ borderBottom: "1px solid var(--line)" }}>
-                    <td style={{ padding: "8px 10px" }}>{p.email ?? "—"}</td>
+                    <td style={{ padding: "8px 10px" }}>
+                      <LoadingLink
+                        href={`/admin/clients/${p.id}`}
+                        style={{
+                          background: "none", border: "none", padding: 0, font: "inherit",
+                          color: "var(--ink)", fontWeight: 600, textDecoration: "underline", cursor: "pointer"
+                        }}
+                      >
+                        {p.email ?? "—"}
+                      </LoadingLink>
+                    </td>
                     <td style={{ padding: "8px 10px" }}>{p.name ?? "—"}</td>
                     <td style={{ padding: "8px 10px", fontFamily: "var(--mono)", fontSize: 11.5, color: "var(--ink-soft)" }}>
                       {p.created_at ? new Date(p.created_at).toLocaleDateString("ru-RU") : "—"}
