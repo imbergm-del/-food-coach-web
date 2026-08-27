@@ -23,7 +23,7 @@ export default async function SettingsPage() {
 
   return (
     <div>
-      <BackButton href="/profile" style={{ marginBottom: 16, display: "inline-block" }} />
+      <BackButton href="/profile" className="btn ghost" style={{ marginBottom: 16, display: "inline-block" }} />
       <div className="eyebrow" style={{ marginBottom: 6 }}>Настройки</div>
       <h1 style={{ fontSize: 24, marginBottom: 16 }}>Общие настройки</h1>
 

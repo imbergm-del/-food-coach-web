@@ -14,7 +14,7 @@ export function MacroDial({ usedCals, calTarget, caloriesLeft }: { usedCals: num
       </svg>
       <div className="ringtext">
         <b>{caloriesLeft}</b>
-        <span>ккал<br />осталось</span>
+        <span>ккал осталось<br />из {calTarget}</span>
       </div>
     </div>
   );

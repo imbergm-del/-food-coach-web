@@ -27,10 +27,10 @@ function MacroPill({ label, value, bg, color }: { label: string; value: number; 
 }
 
 export function MacroBreakdown({
-  meals, usedCals, usedProtein, usedFat, usedCarbs, calTarget, caloriesLeft
+  meals, usedCals, usedProtein, usedFat, usedCarbs, calTarget, proteinTarget, fatTarget, carbTarget, caloriesLeft
 }: {
   meals: EatenMeal[]; usedCals: number; usedProtein: number; usedFat: number; usedCarbs: number;
-  calTarget: number; caloriesLeft: number;
+  calTarget: number; proteinTarget: number; fatTarget: number; carbTarget: number; caloriesLeft: number;
 }) {
   const [open, setOpen] = useState(false);
 
@@ -40,9 +40,32 @@ export function MacroBreakdown({
         type="button"
         onClick={() => setOpen(true)}
         aria-label="Показать, что съедено сегодня"
-        style={{ background: "none", border: "none", padding: 0, cursor: "pointer" }}
+        style={{ background: "none", border: "none", padding: 0, cursor: "pointer", width: "100%", textAlign: "left" }}
       >
-        <MacroDial usedCals={usedCals} calTarget={calTarget} caloriesLeft={caloriesLeft} />
+        <div className="ringcard">
+          <MacroDial usedCals={usedCals} calTarget={calTarget} caloriesLeft={caloriesLeft} />
+          <div className="macrorows">
+            {([
+              ["Белки", usedProtein, proteinTarget, "protein"],
+              ["Жиры", usedFat, fatTarget, "fat"],
+              ["Углеводы", usedCarbs, carbTarget, "carbs"]
+            ] as [string, number, number, string][]).map(([label, used, target, colorClass]) => (
+              <div key={label}>
+                <div className="macrolabel"><span>{label}</span><span><b style={{ color: "var(--ink)" }}>{used}</b>&nbsp;/&nbsp;{target} г</span></div>
+                <div className="bar">
+                  <div style={{ width: `${Math.min(100, target > 0 ? (used / target) * 100 : 0)}%`, background: `var(--${colorClass})` }} />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+        <div style={{
+          display: "flex", alignItems: "center", justifyContent: "center", gap: 5,
+          marginTop: 14, paddingTop: 12, borderTop: "1px solid var(--line)"
+        }}>
+          <span style={{ fontFamily: "var(--mono)", fontSize: 10.5, color: "var(--ink-soft)" }}>Что вы сегодня съели</span>
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--ink-soft)" strokeWidth={2}><path d="M9 6l6 6-6 6" /></svg>
+        </div>
       </button>
 
       {open && (

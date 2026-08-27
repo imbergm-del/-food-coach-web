@@ -115,37 +115,18 @@ export default async function TodayPage() {
           </form>
         </div>
       )}
-      <div className="goalgrid">
-        <div className="goalcell cal"><b>{p.cal_target}</b><span>ккал</span></div>
-        <div className="goalcell protein"><b>{p.protein_target}</b><span>белок</span></div>
-        <div className="goalcell fat"><b>{p.fat_target}</b><span>жиры</span></div>
-        <div className="goalcell carbs"><b>{p.carb_target}</b><span>углев.</span></div>
-      </div>
       {isTomorrow && (
         <p style={{ fontSize: 12.5, color: "var(--protein)", fontWeight: 700, margin: "-8px 0 16px" }}>
           Поздний час — приёмы на сегодня позади, дальше речь про завтра, {formatDateLabel(mealDate)}.
         </p>
       )}
 
-      <div className="card ringcard" style={{ marginBottom: 16 }}>
+      <div className="card" style={{ marginBottom: 16 }}>
         <MacroBreakdown
           meals={eatenMeals} usedCals={usedCals} usedProtein={usedProtein} usedFat={usedFat} usedCarbs={usedCarbs}
-          calTarget={p.cal_target} caloriesLeft={caloriesLeft}
+          calTarget={p.cal_target} proteinTarget={p.protein_target} fatTarget={p.fat_target} carbTarget={p.carb_target}
+          caloriesLeft={caloriesLeft}
         />
-        <div className="macrorows">
-          {([
-            ["Белки", usedProtein, p.protein_target, "protein"],
-            ["Жиры", usedFat, p.fat_target, "fat"],
-            ["Углеводы", usedCarbs, p.carb_target, "carbs"]
-          ] as [string, number, number, string][]).map(([label, used, target, colorClass]) => (
-            <div key={label}>
-              <div className="macrolabel"><span>{label}</span><span><b style={{ color: "var(--ink)" }}>{used}</b>&nbsp;/&nbsp;{target} г</span></div>
-              <div className="bar">
-                <div style={{ width: `${Math.min(100, target > 0 ? (used / target) * 100 : 0)}%`, background: `var(--${colorClass})` }} />
-              </div>
-            </div>
-          ))}
-        </div>
       </div>
 
       {plannedRow && plannedRow.source !== "week_plan" && (
@@ -197,7 +178,15 @@ export default async function TodayPage() {
               </form>
               <LoadingLink href="/change" className="actbtn ghost">Заменить</LoadingLink>
             </div>
-            <LoadingLink href="/more" className="btn ghost block" style={{ textAlign: "center" }}>Другое &#8943;</LoadingLink>
+            <LoadingLink
+              href="/more" className="btn ghost block"
+              style={{ textAlign: "center", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style={{ flexShrink: 0 }}>
+                <circle cx="5" cy="12" r="1.6" /><circle cx="12" cy="12" r="1.6" /><circle cx="19" cy="12" r="1.6" />
+              </svg>
+              Ещё варианты — фото, ресторан, голоден сейчас
+            </LoadingLink>
           </div>
         </>
       ) : (
@@ -207,8 +196,17 @@ export default async function TodayPage() {
         </div>
       )}
 
-      <div className="card" style={{ marginBottom: 24, display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10 }}>
-        <div>
+      <div className="card" style={{ marginBottom: 24, display: "flex", alignItems: "center", gap: 14 }}>
+        <div style={{
+          width: 40, height: 40, borderRadius: 12, background: "var(--carbs-bg)",
+          display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0
+        }}>
+          <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="var(--carbs)" strokeWidth={1.7}>
+            <path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9Z" />
+            <path d="M13.7 21a2 2 0 0 1-3.4 0" />
+          </svg>
+        </div>
+        <div style={{ flex: 1, minWidth: 0 }}>
           <div className="eyebrow">Напоминание придёт сегодня в 20:00</div>
           <h3 style={{ fontSize: 17, marginTop: 6 }}>Ваше питание на завтра готово</h3>
         </div>

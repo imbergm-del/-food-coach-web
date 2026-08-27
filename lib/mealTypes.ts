@@ -47,24 +47,28 @@ export function getMealSchedule(profile?: {
 
 const toMinutes = (t: MealTime) => t.hour * 60 + t.minute;
 
-// Какой приём сейчас «текущий» по личному расписанию: держится до времени
-// следующего приёма, так что пропущенный приём не блокирует переход дальше.
+// Приём остаётся «текущим» недолго после своего времени (полчаса — как и SMS-
+// напоминание, которое приходит за столько же ДО еды), а не до времени следующего
+// приёма: иначе, скажем, перекус в 16:30 продолжал бы висеть на экране до ужина в 19:00.
+const CUTOVER_GRACE_MINUTES = 30;
+
+// Какой приём сейчас «текущий» по личному расписанию — первый в порядке дня,
+// чьё время (плюс грейс-период) ещё не прошло. Пропущенный приём не блокирует
+// переход дальше: как только его окно закрылось, экран сам подскажет следующий.
 export function currentMealType(timezone?: string | null, schedule: MealSchedule = MEAL_TIME_DEFAULTS): MealType {
   const now = nowInTz(timezone);
   const nowMinutes = now.getHours() * 60 + now.getMinutes();
-  const lunch = toMinutes(schedule.lunch), snack = toMinutes(schedule.snack), dinner = toMinutes(schedule.dinner);
-  if (nowMinutes < lunch) return "breakfast";
-  if (nowMinutes < snack) return "lunch";
-  if (nowMinutes < dinner) return "snack";
-  if (nowMinutes < dinner + 60) return "dinner";
-  return "breakfast"; // через час после ужина — переходим к завтраку на завтра
+  for (const type of MEAL_SEQUENCE) {
+    if (nowMinutes < toMinutes(schedule[type]) + CUTOVER_GRACE_MINUTES) return type;
+  }
+  return "breakfast"; // все приёмы на сегодня позади — переходим к завтраку на завтра
 }
 
-// Дата, на которую подбирается «следующий приём»: обычно сегодня, но через час
-// после ужина по расписанию — уже завтра. Всё по часовому поясу пользователя.
+// Дата, на которую подбирается «следующий приём»: обычно сегодня, но как только
+// закрылось окно ужина (см. выше) — уже завтра. По часовому поясу пользователя.
 export function currentMealDate(timezone?: string | null, schedule: MealSchedule = MEAL_TIME_DEFAULTS): string {
   const today = todayISOInTz(timezone);
   const now = nowInTz(timezone);
   const nowMinutes = now.getHours() * 60 + now.getMinutes();
-  return nowMinutes >= toMinutes(schedule.dinner) + 60 ? addDaysISO(today, 1) : today;
+  return nowMinutes >= toMinutes(schedule.dinner) + CUTOVER_GRACE_MINUTES ? addDaysISO(today, 1) : today;
 }
