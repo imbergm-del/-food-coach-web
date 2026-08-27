@@ -50,7 +50,10 @@ export async function fillMissingPlan(
       rows.push(buildRow(userId, iso, mealType, calTarget));
     }
   }
-  if (rows.length) await supabase.from("meals").insert(rows);
+  if (rows.length) {
+    const { error } = await supabase.from("meals").insert(rows);
+    if (error) console.error("fillMissingPlan insert failed:", error.message);
+  }
 }
 
 // Пересобирает ещё не съеденные автосгенерированные ("week_plan") записи — вызывается
@@ -76,5 +79,8 @@ export async function regeneratePlan(
       rows.push(buildRow(userId, iso, mealType, calTarget));
     }
   }
-  if (rows.length) await supabase.from("meals").insert(rows);
+  if (rows.length) {
+    const { error } = await supabase.from("meals").insert(rows);
+    if (error) console.error("regeneratePlan insert failed:", error.message);
+  }
 }

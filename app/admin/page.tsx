@@ -4,6 +4,7 @@ import { LoadingLink } from "@/components/LoadingLink";
 import { createAdminClient } from "@/lib/supabaseAdmin";
 import { isAdminEmail } from "@/lib/isAdmin";
 import { cookingModeLabel } from "@/lib/cookingMode";
+import { formatRelative } from "@/lib/relativeDate";
 
 export default async function AdminPage() {
   const supabase = createClient();
@@ -13,10 +14,8 @@ export default async function AdminPage() {
   const admin = createAdminClient();
 
   const { data: profiles } = await admin.from("profiles").select("*").order("created_at", { ascending: false });
-  const { data: reminderSettings } = await admin.from("reminder_settings").select("user_id, enabled");
   const { data: meals } = await admin.from("meals").select("user_id, status, created_at").in("status", ["eaten", "photo_logged"]);
 
-  const remindersByUser = new Map((reminderSettings ?? []).map(r => [r.user_id, r.enabled]));
   const mealStatsByUser = new Map<string, { count: number; lastAt: string }>();
   (meals ?? []).forEach(m => {
     const cur = mealStatsByUser.get(m.user_id) ?? { count: 0, lastAt: "" };
@@ -55,56 +54,60 @@ export default async function AdminPage() {
           </div>
         </div>
 
-        <div style={{ overflowX: "auto" }}>
-          <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13, minWidth: 720 }}>
-            <thead>
-              <tr style={{ textAlign: "left", borderBottom: "1px solid var(--line-strong)" }}>
-                <th style={{ padding: "8px 10px", fontSize: 11 }}>Email</th>
-                <th style={{ padding: "8px 10px", fontSize: 11 }}>Имя</th>
-                <th style={{ padding: "8px 10px", fontSize: 11 }}>Регистрация</th>
-                <th style={{ padding: "8px 10px", fontSize: 11 }}>Онбординг</th>
-                <th style={{ padding: "8px 10px", fontSize: 11 }}>Готовка</th>
-                <th style={{ padding: "8px 10px", fontSize: 11 }}>Приёмов записано</th>
-                <th style={{ padding: "8px 10px", fontSize: 11 }}>Последняя активность</th>
-                <th style={{ padding: "8px 10px", fontSize: 11 }}>Напоминания</th>
-              </tr>
-            </thead>
-            <tbody>
-              {profiles?.map(p => {
-                const stats = mealStatsByUser.get(p.id);
-                return (
-                  <tr key={p.id} style={{ borderBottom: "1px solid var(--line)" }}>
-                    <td style={{ padding: "8px 10px" }}>
-                      <LoadingLink
-                        href={`/admin/clients/${p.id}`}
-                        style={{
-                          background: "none", border: "none", padding: 0, font: "inherit",
-                          color: "var(--ink)", fontWeight: 600, textDecoration: "underline", cursor: "pointer"
-                        }}
-                      >
-                        {p.email ?? "—"}
-                      </LoadingLink>
-                    </td>
-                    <td style={{ padding: "8px 10px" }}>{p.name ?? "—"}</td>
-                    <td style={{ padding: "8px 10px", fontFamily: "var(--mono)", fontSize: 11.5, color: "var(--ink-soft)" }}>
-                      {p.created_at ? new Date(p.created_at).toLocaleDateString("ru-RU") : "—"}
-                    </td>
-                    <td style={{ padding: "8px 10px" }}>{p.age != null ? "✓" : "—"}</td>
-                    <td style={{ padding: "8px 10px" }}>{cookingModeLabel(p.cooking_mode)}</td>
-                    <td style={{ padding: "8px 10px", fontFamily: "var(--mono)" }}>{stats?.count ?? 0}</td>
-                    <td style={{ padding: "8px 10px", fontFamily: "var(--mono)", fontSize: 11.5, color: "var(--ink-soft)" }}>
-                      {stats?.lastAt ? new Date(stats.lastAt).toLocaleString("ru-RU") : "—"}
-                    </td>
-                    <td style={{ padding: "8px 10px" }}>{remindersByUser.get(p.id) ? "вкл" : "выкл"}</td>
-                  </tr>
-                );
-              })}
-              {!profiles?.length && (
-                <tr><td colSpan={8} style={{ padding: "16px 10px", color: "var(--ink-soft)" }}>Клиентов пока нет.</td></tr>
-              )}
-            </tbody>
-          </table>
-        </div>
+        <div className="eyebrow" style={{ marginBottom: 10 }}>Все клиенты ({totalClients})</div>
+
+        {!profiles?.length && (
+          <div className="card"><p style={{ fontSize: 13, color: "var(--ink-soft)", margin: 0 }}>Клиентов пока нет.</p></div>
+        )}
+
+        {profiles?.map(p => {
+          const stats = mealStatsByUser.get(p.id);
+          const onboarded = p.age != null;
+          return (
+            <LoadingLink
+              key={p.id}
+              href={`/admin/clients/${p.id}`}
+              className="card"
+              style={{
+                display: "block", width: "100%", textAlign: "left", marginBottom: 10,
+                textDecoration: "none", border: "none", cursor: "pointer"
+              }}
+            >
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 10, marginBottom: 8 }}>
+                <div style={{ minWidth: 0 }}>
+                  <div style={{ fontWeight: 700, fontSize: 15, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                    {p.email ?? "Без email"}
+                  </div>
+                  {p.name && <div style={{ fontSize: 12.5, color: "var(--ink-soft)", marginTop: 2 }}>{p.name}</div>}
+                </div>
+                <span style={{ fontFamily: "var(--mono)", fontSize: 10.5, color: "var(--ink-soft)", whiteSpace: "nowrap" }}>
+                  рег. {p.created_at ? new Date(p.created_at).toLocaleDateString("ru-RU") : "—"}
+                </span>
+              </div>
+
+              <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 8 }}>
+                <span style={{
+                  fontFamily: "var(--mono)", fontSize: 10, fontWeight: 600, padding: "3px 9px", borderRadius: 999,
+                  background: onboarded ? "var(--carbs-bg)" : "var(--protein-bg)", color: onboarded ? "var(--carbs)" : "var(--protein)"
+                }}>
+                  {onboarded ? "Онбординг ✓" : "Онбординг не завершён"}
+                </span>
+                <span style={{
+                  fontFamily: "var(--mono)", fontSize: 10, fontWeight: 600, padding: "3px 9px", borderRadius: 999,
+                  background: "var(--paper2)", color: "var(--ink-soft)"
+                }}>
+                  {cookingModeLabel(p.cooking_mode)}
+                </span>
+              </div>
+
+              <p style={{ fontSize: 13, color: "var(--ink-soft)", margin: 0 }}>
+                {stats
+                  ? `Записал(а) ${stats.count} приёмов пищи · последний раз ${formatRelative(stats.lastAt)}`
+                  : "Ещё не записывал(а) ни одного приёма пищи"}
+              </p>
+            </LoadingLink>
+          );
+        })}
       </div>
     </div>
   );

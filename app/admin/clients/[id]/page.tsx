@@ -80,34 +80,24 @@ export default async function AdminClientPage({ params }: { params: { id: string
         <div className="eyebrow" style={{ marginBottom: 8 }}>Питание — последние записи</div>
         <div className="card">
           {meals?.length ? (
-            <div style={{ overflowX: "auto" }}>
-              <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 12.5, minWidth: 560 }}>
-                <thead>
-                  <tr style={{ textAlign: "left", borderBottom: "1px solid var(--line-strong)" }}>
-                    <th style={{ padding: "6px 8px", fontSize: 10.5 }}>Дата</th>
-                    <th style={{ padding: "6px 8px", fontSize: 10.5 }}>Приём</th>
-                    <th style={{ padding: "6px 8px", fontSize: 10.5 }}>Блюдо</th>
-                    <th style={{ padding: "6px 8px", fontSize: 10.5 }}>КБЖУ</th>
-                    <th style={{ padding: "6px 8px", fontSize: 10.5 }}>Статус</th>
-                    <th style={{ padding: "6px 8px", fontSize: 10.5 }}>Источник</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {meals.map(m => (
-                    <tr key={m.id} style={{ borderBottom: "1px solid var(--line)" }}>
-                      <td style={{ padding: "6px 8px", fontFamily: "var(--mono)", fontSize: 11, color: "var(--ink-soft)", whiteSpace: "nowrap" }}>{m.date}</td>
-                      <td style={{ padding: "6px 8px", whiteSpace: "nowrap" }}>{MEAL_TYPE_LABELS[m.meal_type as keyof typeof MEAL_TYPE_LABELS] ?? m.meal_type}</td>
-                      <td style={{ padding: "6px 8px" }}>{m.title ?? "—"}</td>
-                      <td style={{ padding: "6px 8px", fontFamily: "var(--mono)", fontSize: 11, color: "var(--ink-soft)", whiteSpace: "nowrap" }}>
-                        {m.calories ?? 0} / Б{m.protein ?? 0} Ж{m.fat ?? 0} У{m.carbs ?? 0}
-                      </td>
-                      <td style={{ padding: "6px 8px", whiteSpace: "nowrap" }}>{STATUS_LABELS[m.status] ?? m.status}</td>
-                      <td style={{ padding: "6px 8px", color: "var(--ink-soft)", whiteSpace: "nowrap" }}>{m.source ?? "—"}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+            meals.map(m => (
+              <div key={m.id} className="listrow" style={{ flexDirection: "column", alignItems: "stretch", gap: 4 }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 8 }}>
+                  <span style={{ fontWeight: 600 }}>
+                    {MEAL_TYPE_LABELS[m.meal_type as keyof typeof MEAL_TYPE_LABELS] ?? m.meal_type} — {m.title ?? "без названия"}
+                  </span>
+                  <span style={{ fontFamily: "var(--mono)", fontSize: 11, color: "var(--ink-soft)", whiteSpace: "nowrap" }}>{m.date}</span>
+                </div>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 6 }}>
+                  <span style={{ fontFamily: "var(--mono)", fontSize: 11.5, color: "var(--ink-soft)" }}>
+                    {m.calories ?? 0} ккал · Б{m.protein ?? 0} Ж{m.fat ?? 0} У{m.carbs ?? 0}
+                  </span>
+                  <span style={{ fontSize: 11, color: "var(--ink-soft)" }}>
+                    {STATUS_LABELS[m.status] ?? m.status} · {m.source ?? "—"}
+                  </span>
+                </div>
+              </div>
+            ))
           ) : (
             <p style={{ fontSize: 13, color: "var(--ink-soft)", margin: 0 }}>Записей о еде пока нет.</p>
           )}
