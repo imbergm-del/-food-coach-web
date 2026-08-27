@@ -7,7 +7,8 @@ import { FoodThumb } from "@/components/FoodThumb";
 import { RecipeDisclosure } from "./RecipeDisclosure";
 import { SubmitButton } from "@/components/SubmitButton";
 import { MEAL_TYPE_LABELS } from "@/lib/mealTypes";
-import { MEALS_BY_MODE, type MealDef } from "@/lib/mealMenu";
+import { MEAL_POOL, type MealDef } from "@/lib/mealMenu";
+import { pickMealForDateAndMode } from "@/lib/mealRotation";
 import { getDisplayMealType } from "@/lib/getDisplayMealType";
 import { normalizeCookingMode } from "@/lib/cookingMode";
 import { scaleMealToTarget } from "@/lib/scaleMeal";
@@ -40,7 +41,6 @@ export default async function TodayPage() {
     .from("meals").select("*").eq("user_id", user!.id).eq("date", today).order("id");
 
   const cookingMode = normalizeCookingMode(profile?.cooking_mode);
-  const menu = MEALS_BY_MODE[cookingMode];
   const { type: displayType, date: mealDate } = await getDisplayMealType(supabase, user!.id, tz);
   const isTomorrow = mealDate !== today;
 
@@ -76,7 +76,10 @@ export default async function TodayPage() {
           plannedMealId: plannedRow.id,
           badge: plannedBadge
         }
-      : { ...scaleMealToTarget(menu[displayType], displayType, profile?.cal_target ?? 2200), badge: "Рецепт под ваш режим" };
+      : {
+          ...scaleMealToTarget(pickMealForDateAndMode(MEAL_POOL[displayType], mealDate, cookingMode), displayType, profile?.cal_target ?? 2200),
+          badge: "Рецепт под ваш режим"
+        };
 
   const p = profile ?? { protein_target: 125, fat_target: 72, carb_target: 210, cal_target: 2200, name: "друг" };
   const usedProtein = meals?.reduce((s, m) => s + (m.status === "eaten" || m.status === "photo_logged" ? m.protein ?? 0 : 0), 0) ?? 0;

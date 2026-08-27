@@ -3,7 +3,8 @@ import { BackButton } from "@/components/BackButton";
 import { FoodThumb } from "@/components/FoodThumb";
 import { getDisplayMealType } from "@/lib/getDisplayMealType";
 import { MEAL_TYPE_LABELS } from "@/lib/mealTypes";
-import { MEALS_BY_MODE, MEAL_ALTERNATIVES } from "@/lib/mealMenu";
+import { MEAL_POOL } from "@/lib/mealMenu";
+import { pickMealForDateAndMode } from "@/lib/mealRotation";
 import { scaleMealToTarget } from "@/lib/scaleMeal";
 import { chooseAlternative } from "./actions";
 import { SubmitButton } from "@/components/SubmitButton";
@@ -24,11 +25,18 @@ export default async function ChangePage() {
     : { data: null };
   const plannedTitle = mealsForSlot?.find(m => m.status === "planned")?.title;
 
-  // Показываем ту сторону пары «основной рецепт / альтернатива», которая сейчас
-  // НЕ отображается на «Сегодня» — так «Заменить» переключает туда-обратно.
-  const primary = displayType ? scaleMealToTarget(MEALS_BY_MODE[cookingMode][displayType], displayType, calTarget) : null;
-  const alternative = displayType ? scaleMealToTarget(MEAL_ALTERNATIVES[cookingMode][displayType], displayType, calTarget) : null;
-  const alt = primary && alternative ? (plannedTitle === alternative.title ? primary : alternative) : null;
+  // Каждое нажатие «Заменить» даёт следующее блюдо из подборки под текущий режим
+  // готовки, по кругу — так повторные нажатия каждый раз показывают что-то новое.
+  const alt = displayType
+    ? (() => {
+        const pool = MEAL_POOL[displayType].filter(m => m.cookingMode === cookingMode);
+        const usable = pool.length ? pool : MEAL_POOL[displayType];
+        const currentTitle = plannedTitle ?? pickMealForDateAndMode(MEAL_POOL[displayType], mealDate, cookingMode).title;
+        const currentIndex = usable.findIndex(m => m.title === currentTitle);
+        const nextIndex = currentIndex === -1 ? 0 : (currentIndex + 1) % usable.length;
+        return scaleMealToTarget(usable[nextIndex], displayType, calTarget);
+      })()
+    : null;
 
   return (
     <div className="sheet">

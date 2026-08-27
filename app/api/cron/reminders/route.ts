@@ -1,9 +1,9 @@
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabaseAdmin";
 import { MEAL_TYPE_LABELS, MEAL_SEQUENCE, MEAL_TIME_DEFAULTS, type MealType } from "@/lib/mealTypes";
-import { MEALS_BY_MODE } from "@/lib/mealMenu";
+import { MEAL_POOL } from "@/lib/mealMenu";
+import { pickMealForDate } from "@/lib/mealRotation";
 import { scaleMealToTarget } from "@/lib/scaleMeal";
-import { normalizeCookingMode } from "@/lib/cookingMode";
 import { nowInTz, todayISOInTz, addDaysISO } from "@/lib/userTime";
 
 // Triggered every 15 minutes by Vercel Cron (see vercel.json), which sends the secret
@@ -126,8 +126,7 @@ export async function GET(req: Request) {
           .from("meals").select("title, status").eq("user_id", s.user_id).eq("date", today).eq("meal_type", mealType);
         let title = mealsToday?.find(m => m.status === "planned")?.title ?? mealsToday?.[0]?.title;
         if (!title) {
-          const mode = normalizeCookingMode(profile.cooking_mode);
-          title = scaleMealToTarget(MEALS_BY_MODE[mode][mealType as MealType], mealType as MealType, profile.cal_target ?? 2200).title;
+          title = scaleMealToTarget(pickMealForDate(MEAL_POOL[mealType as MealType], today), mealType as MealType, profile.cal_target ?? 2200).title;
         }
 
         try {

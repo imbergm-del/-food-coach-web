@@ -3,7 +3,8 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabaseServer";
-import { MEALS_BY_MODE } from "@/lib/mealMenu";
+import { MEAL_POOL } from "@/lib/mealMenu";
+import { pickMealForDate } from "@/lib/mealRotation";
 import { scaleMealToTarget } from "@/lib/scaleMeal";
 import { todayISOInTz } from "@/lib/userTime";
 
@@ -14,7 +15,9 @@ function toISODate(d: Date) {
 }
 
 // Заполняет пустые завтрак/обед/ужин от сегодняшнего дня до конца недели
-// реальными рецептами с граммовкой (чередуя два режима готовки для разнообразия).
+// реальными рецептами с граммовкой. Блюдо на каждый день берётся по календарной
+// дате из подборки на 7 вариантов — так за любые 7 дней подряд ни один завтрак,
+// обед или ужин не повторится, в какую бы неделю план ни составляли.
 // Не трогает уже существующие записи — безопасно нажимать повторно.
 export async function generateWeekPlan(formData: FormData) {
   const supabase = createClient();
@@ -37,14 +40,12 @@ export async function generateWeekPlan(formData: FormData) {
   const rows: Record<string, unknown>[] = [];
   const start = new Date(todayISO);
   const end = new Date(weekEnd);
-  let dayIndex = 0;
-  for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1), dayIndex++) {
+  for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
     const iso = toISODate(d);
-    const mode = dayIndex % 2 === 0 ? "5" : "15";
     for (const mealType of MAIN_MEALS) {
       const key = `${iso}|${mealType}`;
       if (existingKeys.has(key)) continue;
-      const def = scaleMealToTarget(MEALS_BY_MODE[mode][mealType], mealType, calTarget);
+      const def = scaleMealToTarget(pickMealForDate(MEAL_POOL[mealType], iso), mealType, calTarget);
       rows.push({
         user_id: user.id,
         date: iso,

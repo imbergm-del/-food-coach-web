@@ -12,7 +12,7 @@ export async function setReminderEnabled(formData: FormData) {
 
   const enabled = formData.get("enabled") === "true";
   await supabase.from("reminder_settings").upsert({ user_id: user.id, enabled });
-  revalidatePath("/reminders");
+  revalidatePath("/settings");
 }
 
 export async function setMealRemindersEnabled(formData: FormData) {
@@ -22,7 +22,7 @@ export async function setMealRemindersEnabled(formData: FormData) {
 
   const enabled = formData.get("enabled") === "true";
   await supabase.from("reminder_settings").upsert({ user_id: user.id, meal_reminders_enabled: enabled });
-  revalidatePath("/reminders");
+  revalidatePath("/settings");
 }
 
 export async function savePhoneNumber(formData: FormData) {
@@ -32,7 +32,7 @@ export async function savePhoneNumber(formData: FormData) {
 
   const phone = (formData.get("phone") as string || "").trim();
   await supabase.from("profiles").update({ phone: phone || null }).eq("id", user.id);
-  revalidatePath("/reminders");
+  revalidatePath("/settings");
 }
 
 export async function saveName(formData: FormData) {
@@ -42,7 +42,7 @@ export async function saveName(formData: FormData) {
 
   const name = (formData.get("name") as string || "").trim();
   await supabase.from("profiles").update({ name: name || null }).eq("id", user.id);
-  revalidatePath("/reminders");
+  revalidatePath("/settings");
   revalidatePath("/today");
 }
 
