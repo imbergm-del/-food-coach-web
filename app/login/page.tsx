@@ -8,7 +8,15 @@ function friendlyAuthError(message: string) {
   if (message === "Email not confirmed") return "Please confirm your email before next step.";
   if (message === "Invalid login credentials") return "Неверный email или пароль.";
   if (message === "User already registered") return "Этот email уже зарегистрирован — попробуйте войти.";
+  if (message === "auth timeout") return "Сервис входа сейчас отвечает медленно. Попробуйте ещё раз через минуту.";
   return message;
+}
+
+function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
+  return Promise.race([
+    promise,
+    new Promise<never>((_, reject) => setTimeout(() => reject(new Error("auth timeout")), ms))
+  ]);
 }
 
 export default function LoginPage() {
@@ -29,23 +37,30 @@ export default function LoginPage() {
     setError("");
     setLoading(true);
 
-    const { error } =
-      mode === "login"
-        ? await supabase.auth.signInWithPassword({ email, password })
-        : await supabase.auth.signUp({ email, password });
+    try {
+      const { error } = await withTimeout(
+        mode === "login"
+          ? supabase.auth.signInWithPassword({ email, password })
+          : supabase.auth.signUp({ email, password }),
+        15000
+      );
 
-    setLoading(false);
-    if (error) {
-      setError(friendlyAuthError(error.message));
-      return;
+      if (error) {
+        setError(friendlyAuthError(error.message));
+        return;
+      }
+
+      const { data: { user } } = await withTimeout(supabase.auth.getUser(), 15000);
+      const { data: profile } = user
+        ? await supabase.from("profiles").select("age").eq("id", user.id).single()
+        : { data: null };
+      router.push(profile?.age == null ? "/onboarding" : "/today");
+      router.refresh();
+    } catch (e) {
+      setError(friendlyAuthError(e instanceof Error ? e.message : String(e)));
+    } finally {
+      setLoading(false);
     }
-
-    const { data: { user } } = await supabase.auth.getUser();
-    const { data: profile } = user
-      ? await supabase.from("profiles").select("age").eq("id", user.id).single()
-      : { data: null };
-    router.push(profile?.age == null ? "/onboarding" : "/today");
-    router.refresh();
   }
 
   async function handleGoogle() {
