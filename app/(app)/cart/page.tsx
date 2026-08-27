@@ -1,31 +1,36 @@
 import { createClient } from "@/lib/supabaseServer";
-import { checkoutCart, removeCartItem } from "./actions";
+import { removeGroceryItem } from "./actions";
+import { GroceryCheckbox } from "./GroceryCheckbox";
 import { SubmitButton } from "@/components/SubmitButton";
 
 export default async function CartPage() {
   const supabase = createClient();
   const { data: { user } } = await supabase.auth.getUser();
-  const { data: cartItems } = await supabase.from("cart_items").select("*").eq("user_id", user!.id).order("id");
-  const { data: groceryItems } = await supabase.from("grocery_items").select("*").eq("user_id", user!.id).order("id");
-
-  const groups: Record<string, typeof groceryItems> = { need: [], have: [], low_stock: [] };
-  groceryItems?.forEach(g => { (groups[g.status] ??= []).push(g); });
-  const labels: Record<string, string> = { need: "Купить", have: "Уже есть", low_stock: "Заканчивается" };
+  const { data: items } = await supabase
+    .from("grocery_items").select("*").eq("user_id", user!.id)
+    .order("bought").order("id");
 
   return (
     <div>
       <div className="eyebrow" style={{ marginBottom: 6 }}>Корзина и покупки</div>
-      <h1 style={{ fontSize: 24, marginBottom: 16 }}>Что нужно купить</h1>
+      <h1 style={{ fontSize: 24, marginBottom: 16 }}>Список покупок</h1>
 
-      <div className="eyebrow" style={{ marginBottom: 8 }}>Из заказанных блюд ({cartItems?.length ?? 0})</div>
-      <div className="card" style={{ marginBottom: 16 }}>
-        {cartItems?.length ? cartItems.map(c => (
-          <div key={c.id} className="listrow">
-            <span>{c.name}</span>
-            <span style={{ display: "flex", alignItems: "center", gap: 10 }}>
-              <span style={{ fontFamily: "var(--mono)", fontSize: 11 }}>{c.quantity}</span>
-              <form action={removeCartItem}>
-                <input type="hidden" name="id" value={c.id} />
+      <div className="card">
+        {items?.length ? items.map(i => (
+          <div key={i.id} className="listrow" style={{ opacity: i.bought ? 0.5 : 1 }}>
+            <label style={{ display: "flex", alignItems: "center", gap: 10, flex: 1, minWidth: 0, cursor: "pointer" }}>
+              <GroceryCheckbox id={i.id} initialBought={!!i.bought} />
+              <span style={{
+                textDecoration: i.bought ? "line-through" : "none",
+                overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap"
+              }}>
+                {i.name}
+              </span>
+            </label>
+            <span style={{ display: "flex", alignItems: "center", gap: 10, flexShrink: 0 }}>
+              {i.quantity && <span style={{ fontFamily: "var(--mono)", fontSize: 11, color: "var(--ink-soft)" }}>{i.quantity}</span>}
+              <form action={removeGroceryItem}>
+                <input type="hidden" name="id" value={i.id} />
                 <SubmitButton className="btn ghost" style={{ padding: "4px 9px" }} pendingText="">×</SubmitButton>
               </form>
             </span>
@@ -36,23 +41,6 @@ export default async function CartPage() {
           </p>
         )}
       </div>
-
-      {!!cartItems?.length && (
-        <form action={checkoutCart} style={{ marginBottom: 20 }}>
-          <SubmitButton>Добавить всё в список покупок</SubmitButton>
-        </form>
-      )}
-
-      {Object.entries(groups).map(([key, items]) => (
-        <div key={key}>
-          <div className="eyebrow" style={{ margin: "16px 0 8px" }}>{labels[key]}</div>
-          <div className="card">
-            {items && items.length ? items.map(i => (
-              <div key={i.id} className="listrow"><span>{i.name}</span></div>
-            )) : <p style={{ fontSize: 13, color: "var(--ink-soft)", margin: 0 }}>Пусто.</p>}
-          </div>
-        </div>
-      ))}
     </div>
   );
 }

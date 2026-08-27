@@ -56,8 +56,8 @@ export async function addWeekIngredientsToCart() {
   }
 
   if (items.length) {
-    await supabase.from("cart_items").insert(
-      items.map(i => ({ user_id: user.id, name: i.name, quantity: i.qty }))
+    await supabase.from("grocery_items").insert(
+      items.map(i => ({ user_id: user.id, name: i.name, quantity: i.qty, bought: false }))
     );
   }
 

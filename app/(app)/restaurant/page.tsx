@@ -33,11 +33,6 @@ export default async function RestaurantPage() {
       <BackButton style={{ marginBottom: 16, display: "inline-block" }} />
       <div className="eyebrow" style={{ marginBottom: 6 }}>Режим ресторана · {mealLabel}</div>
       <h1 style={{ fontSize: 22, marginBottom: 16, color: "var(--sheet-text)" }}>Ем вне дома</h1>
-      <div style={{ display: "flex", flexWrap: "wrap", marginBottom: 16 }}>
-        {["Итальянская", "Японская", "Стейк-хаус", "Грузинская"].map(c => (
-          <span key={c} style={{ background: "rgba(255,255,255,.08)", color: "var(--sheet-muted)", margin: 4, fontFamily: "var(--mono)", fontSize: 10.5, padding: "4px 10px", borderRadius: 999 }}>{c}</span>
-        ))}
-      </div>
 
       {!displayType ? (
         <div className="sheet-card" style={{ flexDirection: "column", alignItems: "stretch" }}>
@@ -59,9 +54,23 @@ export default async function RestaurantPage() {
             <div className="eyebrow" style={{ marginBottom: 6 }}>Лучший выбор сейчас</div>
             <h3 style={{ fontSize: 16, marginBottom: 6, color: "var(--sheet-text)" }}>{pick.title}</h3>
             <p style={{ fontSize: 12.5, color: "var(--sheet-muted)", margin: "0 0 8px" }}>{pick.desc}</p>
-            <p style={{ fontFamily: "var(--mono)", fontSize: 11.5, color: "var(--sheet-muted)", margin: 0 }}>
+            <p style={{ fontFamily: "var(--mono)", fontSize: 11.5, color: "var(--sheet-muted)", margin: "0 0 14px" }}>
               {pick.calories} ккал · Б {pick.protein} · Ж {pick.fat} · У {pick.carbs}
             </p>
+            <div style={{ display: "flex", gap: 8 }}>
+              <a
+                href={`https://www.doordash.com/search/store/${encodeURIComponent(pick.title)}/`}
+                target="_blank" rel="noopener noreferrer" className="btn on-sheet" style={{ flex: 1, textAlign: "center" }}
+              >
+                DoorDash
+              </a>
+              <a
+                href={`https://www.ubereats.com/search?q=${encodeURIComponent(pick.title)}`}
+                target="_blank" rel="noopener noreferrer" className="btn on-sheet" style={{ flex: 1, textAlign: "center" }}
+              >
+                Uber Eats
+              </a>
+            </div>
           </div>
         </div>
       )}

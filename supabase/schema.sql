@@ -58,7 +58,9 @@ create table if not exists grocery_items (
   id bigint generated always as identity primary key,
   user_id uuid references auth.users(id) on delete cascade,
   name text not null,
-  status text default 'need',    -- need / have / low_stock
+  quantity text,
+  bought boolean default false,  -- один общий список покупок с чекбоксом вместо статусов
+  status text default 'need',    -- оставлено для совместимости, больше не используется
   created_at timestamptz default now()
 );
 
@@ -95,6 +97,8 @@ alter table profiles add column if not exists breakfast_time time default '08:00
 alter table profiles add column if not exists lunch_time time default '13:00';
 alter table profiles add column if not exists snack_time time default '16:30';
 alter table profiles add column if not exists dinner_time time default '19:30';
+alter table grocery_items add column if not exists quantity text;
+alter table grocery_items add column if not exists bought boolean default false;
 alter table reminder_settings add column if not exists meal_reminders_enabled boolean default false;
 alter table meals add column if not exists steps jsonb default '[]';
 

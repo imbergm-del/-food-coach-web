@@ -11,16 +11,10 @@ export async function addToCart(formData: FormData) {
   if (!user) return;
 
   const ingredients = JSON.parse((formData.get("ingredients") as string) || "[]") as { name: string; qty: string }[];
-  const mealId = formData.get("mealId") as string;
 
   if (ingredients.length) {
-    await supabase.from("cart_items").insert(
-      ingredients.map(i => ({
-        user_id: user.id,
-        name: i.name,
-        quantity: i.qty,
-        from_meal_id: mealId ? Number(mealId) : null
-      }))
+    await supabase.from("grocery_items").insert(
+      ingredients.map(i => ({ user_id: user.id, name: i.name, quantity: i.qty, bought: false }))
     );
   }
 
