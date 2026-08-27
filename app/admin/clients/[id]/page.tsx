@@ -24,6 +24,12 @@ export default async function AdminClientPage({ params }: { params: { id: string
   const { data: reminderSettings } = await admin
     .from("reminder_settings").select("*").eq("user_id", params.id).single();
 
+  let email = profile.email as string | null;
+  if (!email) {
+    const { data: authUser } = await admin.auth.admin.getUserById(params.id);
+    email = authUser?.user?.email ?? null;
+  }
+
   const loggedMeals = (meals ?? []).filter(m => m.status === "eaten" || m.status === "photo_logged");
   const totalLogged = loggedMeals.length;
   const last7 = loggedMeals.filter(m => {
@@ -40,8 +46,8 @@ export default async function AdminClientPage({ params }: { params: { id: string
         <LoadingLink href="/admin" className="btn ghost" style={{ marginBottom: 16, display: "inline-block" }}>&larr; К клиентам</LoadingLink>
 
         <div className="eyebrow" style={{ marginBottom: 6 }}>Клиент</div>
-        <h1 style={{ fontSize: 24, marginBottom: 4 }}>{profile.name ?? profile.email ?? "Без имени"}</h1>
-        <p style={{ fontSize: 13, color: "var(--ink-soft)", margin: "0 0 16px" }}>{profile.email}</p>
+        <h1 style={{ fontSize: 24, marginBottom: 4 }}>{profile.name ?? email ?? "Без имени"}</h1>
+        <p style={{ fontSize: 13, color: "var(--ink-soft)", margin: "0 0 16px" }}>{email ?? "Без email"}</p>
 
         <div style={{ display: "flex", gap: 10, marginBottom: 16 }}>
           <div className="card" style={{ flex: 1, textAlign: "center" }}>

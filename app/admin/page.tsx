@@ -16,6 +16,10 @@ export default async function AdminPage() {
   const { data: profiles } = await admin.from("profiles").select("*").order("created_at", { ascending: false });
   const { data: meals } = await admin.from("meals").select("user_id, status, created_at").in("status", ["eaten", "photo_logged"]);
 
+  const { data: authUsers } = await admin.auth.admin.listUsers({ perPage: 1000 });
+  const emailByUserId = new Map<string, string>();
+  (authUsers?.users ?? []).forEach(u => { if (u.email) emailByUserId.set(u.id, u.email); });
+
   const mealStatsByUser = new Map<string, { count: number; lastAt: string }>();
   (meals ?? []).forEach(m => {
     const cur = mealStatsByUser.get(m.user_id) ?? { count: 0, lastAt: "" };
@@ -63,6 +67,7 @@ export default async function AdminPage() {
         {profiles?.map(p => {
           const stats = mealStatsByUser.get(p.id);
           const onboarded = p.age != null;
+          const email = p.email ?? emailByUserId.get(p.id) ?? "Без email";
           return (
             <LoadingLink
               key={p.id}
@@ -76,7 +81,7 @@ export default async function AdminPage() {
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 10, marginBottom: 8 }}>
                 <div style={{ minWidth: 0 }}>
                   <div style={{ fontWeight: 700, fontSize: 15, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                    {p.email ?? "Без email"}
+                    {email}
                   </div>
                   {p.name && <div style={{ fontSize: 12.5, color: "var(--ink-soft)", marginTop: 2 }}>{p.name}</div>}
                 </div>
