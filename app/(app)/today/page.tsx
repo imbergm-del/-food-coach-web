@@ -11,17 +11,18 @@ import { MEALS_BY_MODE, type MealDef } from "@/lib/mealMenu";
 import { getDisplayMealType } from "@/lib/getDisplayMealType";
 import { normalizeCookingMode } from "@/lib/cookingMode";
 import { scaleMealToTarget } from "@/lib/scaleMeal";
+import { nowInTz, todayISOInTz } from "@/lib/userTime";
 
-function timeGreeting() {
-  const hour = new Date().getHours();
+function timeGreeting(tz?: string | null) {
+  const hour = nowInTz(tz).getHours();
   if (hour < 5) return "Доброй ночи";
   if (hour < 12) return "Доброе утро";
   if (hour < 18) return "Добрый день";
   return "Добрый вечер";
 }
 
-function dateLabel() {
-  return new Date().toLocaleDateString("ru-RU", { weekday: "short", day: "numeric", month: "long" }).toUpperCase();
+function dateLabel(tz?: string | null) {
+  return nowInTz(tz).toLocaleDateString("ru-RU", { weekday: "short", day: "numeric", month: "long" }).toUpperCase();
 }
 
 function formatDateLabel(iso: string) {
@@ -32,14 +33,15 @@ export default async function TodayPage() {
   const supabase = createClient();
   const { data: { user } } = await supabase.auth.getUser();
   const { data: profile } = await supabase.from("profiles").select("*").eq("id", user!.id).single();
+  const tz = profile?.timezone;
 
-  const today = new Date().toISOString().slice(0, 10);
+  const today = todayISOInTz(tz);
   const { data: meals } = await supabase
     .from("meals").select("*").eq("user_id", user!.id).eq("date", today).order("id");
 
   const cookingMode = normalizeCookingMode(profile?.cooking_mode);
   const menu = MEALS_BY_MODE[cookingMode];
-  const { type: displayType, date: mealDate } = await getDisplayMealType(supabase, user!.id);
+  const { type: displayType, date: mealDate } = await getDisplayMealType(supabase, user!.id, tz);
   const isTomorrow = mealDate !== today;
 
   const mealDateMeals = isTomorrow
@@ -85,18 +87,18 @@ export default async function TodayPage() {
 
   return (
     <div>
-      <div className="eyebrow" style={{ fontWeight: 800 }}>СЕГОДНЯ · {dateLabel()}</div>
+      <div className="eyebrow" style={{ fontWeight: 800 }}>СЕГОДНЯ · {dateLabel(tz)}</div>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", margin: "6px 0 10px" }}>
-        <h1 style={{ fontSize: 30 }}>{timeGreeting()}, {p.name ?? "друг"}</h1>
+        <h1 style={{ fontSize: 30 }}>{timeGreeting(tz)}, {p.name ?? "друг"}</h1>
         <LoadingLink href="/profile" className="btn ghost" style={{ padding: "8px 10px", borderRadius: "50%" }} ariaLabel="Профиль">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.6}><circle cx="12" cy="12" r="3.2" /><path d="M19.4 13.5a7.6 7.6 0 0 0 0-3l1.9-1.5-2-3.4-2.3.7a7.6 7.6 0 0 0-2.6-1.5L14 2.5h-4l-.4 2.3a7.6 7.6 0 0 0-2.6 1.5l-2.3-.7-2 3.4L4.6 10.5a7.6 7.6 0 0 0 0 3l-1.9 1.5 2 3.4 2.3-.7a7.6 7.6 0 0 0 2.6 1.5l.4 2.3h4l.4-2.3a7.6 7.6 0 0 0 2.6-1.5l2.3.7 2-3.4-1.9-1.5Z" /></svg>
         </LoadingLink>
       </div>
-      <div className="chiprow">
-        <span className="chip cal">🔥 <b>{p.cal_target}</b>&nbsp;ккал</span>
-        <span className="chip protein"><b>{p.protein_target}</b>&nbsp;г Б</span>
-        <span className="chip fat"><b>{p.fat_target}</b>&nbsp;г Ж</span>
-        <span className="chip carbs"><b>{p.carb_target}</b>&nbsp;г У</span>
+      <div className="goalgrid">
+        <div className="goalcell cal"><b>{p.cal_target}</b><span>ккал</span></div>
+        <div className="goalcell protein"><b>{p.protein_target}</b><span>белок</span></div>
+        <div className="goalcell fat"><b>{p.fat_target}</b><span>жиры</span></div>
+        <div className="goalcell carbs"><b>{p.carb_target}</b><span>углев.</span></div>
       </div>
       {isTomorrow && (
         <p style={{ fontSize: 12.5, color: "var(--protein)", fontWeight: 700, margin: "-8px 0 16px" }}>
@@ -131,8 +133,8 @@ export default async function TodayPage() {
 
       {meal && displayType ? (
         <>
-          <div className="eyebrow" style={{ marginBottom: 8 }}>
-            Следующий приём{isTomorrow ? " · Завтра" : ""} · {MEAL_TYPE_LABELS[displayType]}
+          <div className="eyebrow" style={{ marginBottom: 8, color: "var(--protein)", fontWeight: 700 }}>
+            Следующий приём · {formatDateLabel(mealDate)} · {MEAL_TYPE_LABELS[displayType]}
           </div>
           <div className="card" style={{ marginBottom: 16, borderLeft: "5px solid var(--protein)" }}>
             <div className="mealtop" style={{ marginBottom: 12 }}>
@@ -170,7 +172,6 @@ export default async function TodayPage() {
                 <SubmitButton className="actbtn" pendingText="…">Съел</SubmitButton>
               </form>
               <LoadingLink href="/change" className="actbtn ghost">Заменить</LoadingLink>
-              <LoadingLink href="/photo" className="actbtn ghost">Фото</LoadingLink>
             </div>
             <LoadingLink href="/more" className="btn ghost block" style={{ textAlign: "center" }}>Другое &#8943;</LoadingLink>
           </div>

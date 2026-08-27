@@ -1,3 +1,5 @@
+import { nowInTz, todayISOInTz, addDaysISO } from "@/lib/userTime";
+
 export const MEAL_SEQUENCE = ["breakfast", "lunch", "snack", "dinner"] as const;
 export type MealType = (typeof MEAL_SEQUENCE)[number];
 
@@ -11,8 +13,8 @@ export const MEAL_CALORIE_SHARE: Record<MealType, number> = {
   breakfast: 0.25, lunch: 0.35, snack: 0.15, dinner: 0.25
 };
 
-export function currentMealType(): MealType {
-  const hour = new Date().getHours();
+export function currentMealType(timezone?: string | null): MealType {
+  const hour = nowInTz(timezone).getHours();
   if (hour < 11) return "breakfast";
   if (hour < 16) return "lunch";
   if (hour < 19) return "snack";
@@ -21,12 +23,21 @@ export function currentMealType(): MealType {
 }
 
 // Дата, на которую подбирается «следующий приём»: обычно сегодня,
-// но после 20:00 (когда ужин уже позади) — уже завтра.
-export function currentMealDate(): string {
-  const now = new Date();
-  if (now.getHours() >= 20) now.setDate(now.getDate() + 1);
-  return now.toISOString().slice(0, 10);
+// но после 20:00 (когда ужин уже позади) — уже завтра. Всё — по часовому
+// поясу пользователя (profiles.timezone), а не сервера.
+export function currentMealDate(timezone?: string | null): string {
+  const today = todayISOInTz(timezone);
+  return nowInTz(timezone).getHours() >= 20 ? addDaysISO(today, 1) : today;
 }
+
+// Ориентировочное время каждого приёма — используется, чтобы прислать SMS
+// за час до еды. Не настраивается пользователем, только вкл/выкл функции целиком.
+export const MEAL_TIME_DEFAULTS: Record<MealType, { hour: number; minute: number }> = {
+  breakfast: { hour: 8, minute: 0 },
+  lunch: { hour: 13, minute: 0 },
+  snack: { hour: 16, minute: 30 },
+  dinner: { hour: 19, minute: 30 }
+};
 
 // По совету тренера: ужин = белок + овощи + полезный жир
 export const DINNER_PROTEINS = {

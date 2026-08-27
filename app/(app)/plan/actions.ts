@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabaseServer";
 import { MEALS_BY_MODE } from "@/lib/mealMenu";
 import { scaleMealToTarget } from "@/lib/scaleMeal";
+import { todayISOInTz } from "@/lib/userTime";
 
 const MAIN_MEALS = ["breakfast", "lunch", "dinner"] as const;
 
@@ -20,11 +21,10 @@ export async function generateWeekPlan(formData: FormData) {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return;
 
-  const weekEnd = (formData.get("weekEnd") as string) || toISODate(new Date());
-  const todayISO = toISODate(new Date());
-
-  const { data: profile } = await supabase.from("profiles").select("cal_target").eq("id", user.id).single();
+  const { data: profile } = await supabase.from("profiles").select("cal_target, timezone").eq("id", user.id).single();
   const calTarget = profile?.cal_target ?? 2200;
+  const todayISO = todayISOInTz(profile?.timezone);
+  const weekEnd = (formData.get("weekEnd") as string) || todayISO;
 
   const { data: existing } = await supabase
     .from("meals")

@@ -9,6 +9,7 @@ create table if not exists profiles (
   height_cm numeric,
   workouts_per_week int default 0,
   phone text,
+  timezone text,                  -- IANA-название часового пояса (America/New_York), определяется браузером
   cooking_mode text default '5',
   theme text default 'field',
   protein_target int default 120,
@@ -66,8 +67,25 @@ create table if not exists fridge_items (
 create table if not exists reminder_settings (
   user_id uuid primary key references auth.users(id) on delete cascade,
   enabled boolean default true,
+  meal_reminders_enabled boolean default false,  -- SMS за час до каждого приёма
   send_at time default '20:00'
 );
+
+-- Не даёт слать одно и то же SMS-напоминание о приёме дважды за день
+-- (крон проверяет чаще, чем раз в день, чтобы попасть в нужный часовой пояс).
+create table if not exists meal_reminder_log (
+  id bigint generated always as identity primary key,
+  user_id uuid references auth.users(id) on delete cascade,
+  date date not null,
+  meal_type text not null,        -- breakfast / lunch / snack / dinner / evening_plan
+  sent_at timestamptz default now(),
+  unique (user_id, date, meal_type)
+);
+
+-- Миграция для уже существующей базы (create table if not exists выше не добавит
+-- колонки в таблицу, которая уже была создана раньше без них):
+alter table profiles add column if not exists timezone text;
+alter table reminder_settings add column if not exists meal_reminders_enabled boolean default false;
 
 -- Row Level Security: every user only ever sees their own rows
 alter table profiles enable row level security;
@@ -77,6 +95,7 @@ alter table cart_items enable row level security;
 alter table grocery_items enable row level security;
 alter table fridge_items enable row level security;
 alter table reminder_settings enable row level security;
+alter table meal_reminder_log enable row level security;
 
 create policy "own profile" on profiles for all using (auth.uid() = id) with check (auth.uid() = id);
 create policy "own schedule" on training_schedule for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
@@ -85,6 +104,7 @@ create policy "own cart" on cart_items for all using (auth.uid() = user_id) with
 create policy "own groceries" on grocery_items for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
 create policy "own fridge" on fridge_items for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
 create policy "own reminders" on reminder_settings for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
+create policy "own meal reminder log" on meal_reminder_log for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
 
 -- Auto-create a profile row whenever someone signs up
 create or replace function public.handle_new_user()

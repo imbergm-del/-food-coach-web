@@ -16,8 +16,9 @@ type Option = { title: string; desc: string; ingredients?: { name: string; qty: 
 export default async function HungryPage() {
   const supabase = createClient();
   const { data: { user } } = await supabase.auth.getUser();
+  const { data: profile } = await supabase.from("profiles").select("timezone").eq("id", user!.id).single();
 
-  const { type: displayType } = await getDisplayMealType(supabase, user!.id);
+  const { type: displayType } = await getDisplayMealType(supabase, user!.id, profile?.timezone);
   const mealLabel = displayType ? MEAL_TYPE_LABELS[displayType] : "приём пищи";
   const { summary } = await getNutritionContext(supabase, user!.id);
 

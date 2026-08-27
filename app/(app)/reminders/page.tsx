@@ -1,9 +1,11 @@
 import { createClient } from "@/lib/supabaseServer";
 import { ReminderToggle } from "./ReminderToggle";
+import { MealRemindersToggle } from "./MealRemindersToggle";
 import { PlanTomorrowForm } from "./PlanTomorrowForm";
-import { savePhoneNumber } from "./actions";
+import { savePhoneNumber, saveName } from "./actions";
 import { MEAL_TYPE_LABELS } from "@/lib/mealTypes";
 import { SubmitButton } from "@/components/SubmitButton";
+import { todayISOInTz, addDaysISO } from "@/lib/userTime";
 
 export default async function RemindersPage() {
   const supabase = createClient();
@@ -12,11 +14,9 @@ export default async function RemindersPage() {
   const { data: settings } = await supabase
     .from("reminder_settings").select("*").eq("user_id", user!.id).single();
   const { data: profile } = await supabase
-    .from("profiles").select("phone").eq("id", user!.id).single();
+    .from("profiles").select("name, phone, timezone").eq("id", user!.id).single();
 
-  const tomorrow = new Date();
-  tomorrow.setDate(tomorrow.getDate() + 1);
-  const tomorrowISO = tomorrow.toISOString().slice(0, 10);
+  const tomorrowISO = addDaysISO(todayISOInTz(profile?.timezone), 1);
 
   const { data: plannedMeals } = await supabase
     .from("meals").select("*").eq("user_id", user!.id).eq("date", tomorrowISO).order("id");
@@ -27,6 +27,24 @@ export default async function RemindersPage() {
     <div>
       <div className="eyebrow" style={{ marginBottom: 6 }}>Придёт сегодня в {sendAt}</div>
       <h1 style={{ fontSize: 24, marginBottom: 16 }}>Ваше питание на завтра</h1>
+
+      <div className="card" style={{ marginBottom: 16 }}>
+        <h3 style={{ fontSize: 15, marginBottom: 4 }}>Как к вам обращаться</h3>
+        <p style={{ fontSize: 12.5, color: "var(--ink-soft)", margin: "0 0 14px" }}>
+          Приложение поздоровается по имени на экране «Сегодня».
+        </p>
+        <form action={saveName} style={{ display: "flex", gap: 8 }}>
+          <input
+            name="name" type="text" defaultValue={profile?.name ?? ""} placeholder="Например, Майк"
+            style={{
+              flex: 1, border: "1px solid var(--line-strong)", borderRadius: 12, padding: "11px 14px",
+              fontFamily: "var(--sans)", fontSize: 14, background: "var(--card)", color: "var(--ink)"
+            }}
+          />
+          <SubmitButton className="btn" style={{ width: "auto" }} pendingText="Сохраняем…">Сохранить</SubmitButton>
+        </form>
+      </div>
+
       <div className="card" style={{ marginBottom: 16 }}>
         {!plannedMeals || plannedMeals.length === 0 ? (
           <p style={{ fontSize: 13, color: "var(--ink-soft)", margin: 0 }}>
@@ -52,6 +70,14 @@ export default async function RemindersPage() {
           <p style={{ fontSize: 12.5, color: "var(--ink-soft)", margin: "4px 0 0" }}>Накануне вечером, в {sendAt}</p>
         </div>
         <ReminderToggle initialEnabled={settings?.enabled ?? true} />
+      </div>
+
+      <div className="card" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+        <div>
+          <h3 style={{ fontSize: 15 }}>SMS за час до еды</h3>
+          <p style={{ fontSize: 12.5, color: "var(--ink-soft)", margin: "4px 0 0" }}>Короткое напоминание перед завтраком, обедом, перекусом и ужином</p>
+        </div>
+        <MealRemindersToggle initialEnabled={settings?.meal_reminders_enabled ?? false} />
       </div>
 
       <div className="card">

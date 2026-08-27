@@ -76,16 +76,17 @@ p { font-size: 15px; line-height: 1.5; }
 .bar { height: 7px; border-radius: 4px; background: var(--paper2); overflow: hidden; }
 .bar > div { height: 100%; border-radius: 4px; }
 
-.chiprow { display: flex; gap: 7px; margin-bottom: 18px; overflow-x: auto; }
-.chip {
-  display: flex; align-items: baseline; gap: 4px; padding: 8px 12px; border-radius: 999px;
-  font-family: var(--mono); font-size: 12.5px; font-weight: 500; white-space: nowrap; flex-shrink: 0;
+.goalgrid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-bottom: 18px; }
+.goalcell {
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
+  padding: 9px 2px; border-radius: 14px; font-family: var(--mono); text-align: center; min-width: 0;
 }
-.chip b { font-size: 13.5px; font-weight: 500; }
-.chip.cal { background: var(--ink); color: var(--paper); }
-.chip.protein { background: var(--protein-bg); color: var(--protein); }
-.chip.fat { background: var(--fat-bg); color: var(--fat-ink); }
-.chip.carbs { background: var(--carbs-bg); color: var(--carbs); }
+.goalcell b { font-size: 15px; font-weight: 600; line-height: 1.1; }
+.goalcell span { font-size: 8.5px; font-weight: 600; letter-spacing: .03em; text-transform: uppercase; opacity: .75; }
+.goalcell.cal { background: var(--ink); color: var(--paper); }
+.goalcell.protein { background: var(--protein-bg); color: var(--protein); }
+.goalcell.fat { background: var(--fat-bg); color: var(--fat-ink); }
+.goalcell.carbs { background: var(--carbs-bg); color: var(--carbs); }
 
 .ringcard { display: flex; gap: 18px; align-items: center; }
 .ringwrap { position: relative; width: 122px; height: 122px; flex-shrink: 0; }
@@ -108,10 +109,11 @@ p { font-size: 15px; line-height: 1.5; }
 }
 
 .actionrow { display: flex; gap: 8px; }
+.actionrow > * { flex: 1; min-width: 0; }
 .actbtn {
-  flex: 1; display: flex; flex-direction: column; align-items: center; gap: 5px; padding: 11px 4px;
-  border-radius: 16px; font-family: var(--sans); font-size: 11.5px; font-weight: 600; border: 1px solid var(--ink);
-  background: var(--ink); color: var(--paper); cursor: pointer; text-decoration: none;
+  width: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 5px; padding: 13px 4px; border-radius: 16px; font-family: var(--sans); font-size: 13px; font-weight: 600;
+  border: 1px solid var(--ink); background: var(--ink); color: var(--paper); cursor: pointer; text-decoration: none;
 }
 .actbtn.ghost { background: transparent; color: var(--ink); border-color: var(--line-strong); }
 .actbtn:disabled { opacity: .5; cursor: default; }

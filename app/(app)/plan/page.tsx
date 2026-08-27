@@ -3,6 +3,7 @@ import { FoodThumb } from "@/components/FoodThumb";
 import { MEAL_TYPE_LABELS } from "@/lib/mealTypes";
 import { generateWeekPlan, addWeekIngredientsToCart } from "./actions";
 import { SubmitButton } from "@/components/SubmitButton";
+import { nowInTz, todayISOInTz } from "@/lib/userTime";
 
 const WEEKDAY_LABELS = ["Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Вс"];
 
@@ -21,11 +22,13 @@ function toISODate(d: Date) {
 export default async function PlanPage() {
   const supabase = createClient();
   const { data: { user } } = await supabase.auth.getUser();
+  const { data: profile } = await supabase.from("profiles").select("timezone").eq("id", user!.id).single();
+  const tz = profile?.timezone;
 
-  const monday = startOfWeek(new Date());
+  const monday = startOfWeek(nowInTz(tz));
   const sunday = new Date(monday);
   sunday.setDate(sunday.getDate() + 6);
-  const todayISO = toISODate(new Date());
+  const todayISO = todayISOInTz(tz);
 
   const { data: meals } = await supabase
     .from("meals")
