@@ -15,10 +15,18 @@ export default async function AdminPage() {
 
   const { data: profiles } = await admin.from("profiles").select("*").order("created_at", { ascending: false });
   const { data: meals } = await admin.from("meals").select("user_id, status, created_at").in("status", ["eaten", "photo_logged"]);
+  const { data: reminderSettings } = await admin.from("reminder_settings").select("*");
 
   const { data: authUsers } = await admin.auth.admin.listUsers({ perPage: 1000 });
   const emailByUserId = new Map<string, string>();
-  (authUsers?.users ?? []).forEach(u => { if (u.email) emailByUserId.set(u.id, u.email); });
+  const lastLoginByUserId = new Map<string, string>();
+  (authUsers?.users ?? []).forEach(u => {
+    if (u.email) emailByUserId.set(u.id, u.email);
+    if (u.last_sign_in_at) lastLoginByUserId.set(u.id, u.last_sign_in_at);
+  });
+
+  const reminderByUser = new Map<string, { enabled: boolean; meal_reminders_enabled: boolean }>();
+  (reminderSettings ?? []).forEach(r => reminderByUser.set(r.user_id, r));
 
   const mealStatsByUser = new Map<string, { count: number; lastAt: string }>();
   (meals ?? []).forEach(m => {
@@ -68,6 +76,10 @@ export default async function AdminPage() {
           const stats = mealStatsByUser.get(p.id);
           const onboarded = p.age != null;
           const email = p.email ?? emailByUserId.get(p.id) ?? "Без email";
+          const reminders = reminderByUser.get(p.id);
+          const smsOn = !!reminders?.meal_reminders_enabled;
+          const eveningOn = !!reminders?.enabled;
+          const lastLogin = lastLoginByUserId.get(p.id);
           return (
             <LoadingLink
               key={p.id}
@@ -103,12 +115,20 @@ export default async function AdminPage() {
                 }}>
                   {cookingModeLabel(p.cooking_mode)}
                 </span>
+                <span style={{
+                  fontFamily: "var(--mono)", fontSize: 10, fontWeight: 600, padding: "3px 9px", borderRadius: 999,
+                  background: (smsOn || eveningOn) ? "var(--fat-bg)" : "var(--paper2)",
+                  color: (smsOn || eveningOn) ? "var(--fat)" : "var(--ink-soft)"
+                }}>
+                  {smsOn && eveningOn ? "🔔 SMS + вечер" : smsOn ? "🔔 SMS" : eveningOn ? "🔔 Вечернее" : "Уведомления выкл"}
+                </span>
               </div>
 
               <p style={{ fontSize: 13, color: "var(--ink-soft)", margin: 0 }}>
                 {stats
                   ? `Записал(а) ${stats.count} приёмов пищи · последний раз ${formatRelative(stats.lastAt)}`
                   : "Ещё не записывал(а) ни одного приёма пищи"}
+                {lastLogin && ` · вход ${formatRelative(lastLogin)}`}
               </p>
             </LoadingLink>
           );

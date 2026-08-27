@@ -5,9 +5,14 @@ import { isAdminEmail } from "@/lib/isAdmin";
 import { LoadingLink } from "@/components/LoadingLink";
 import { MEAL_TYPE_LABELS } from "@/lib/mealTypes";
 import { cookingModeLabel } from "@/lib/cookingMode";
+import { formatRelative } from "@/lib/relativeDate";
 
 const STATUS_LABELS: Record<string, string> = {
   eaten: "Съедено", photo_logged: "По фото", planned: "Запланировано", skipped: "Пропущено", changed: "Заменено"
+};
+
+const SOURCE_LABELS: Record<string, string> = {
+  home: "Вручную", photo: "По фото", change: "Замена блюда", week_plan: "По плану"
 };
 
 export default async function AdminClientPage({ params }: { params: { id: string } }) {
@@ -23,12 +28,12 @@ export default async function AdminClientPage({ params }: { params: { id: string
     .from("meals").select("*").eq("user_id", params.id).order("date", { ascending: false }).order("id", { ascending: false }).limit(120);
   const { data: reminderSettings } = await admin
     .from("reminder_settings").select("*").eq("user_id", params.id).single();
+  const { data: reminderLog } = await admin
+    .from("meal_reminder_log").select("*").eq("user_id", params.id).order("sent_at", { ascending: false }).limit(10);
 
-  let email = profile.email as string | null;
-  if (!email) {
-    const { data: authUser } = await admin.auth.admin.getUserById(params.id);
-    email = authUser?.user?.email ?? null;
-  }
+  const { data: authUser } = await admin.auth.admin.getUserById(params.id);
+  const email = profile.email ?? authUser?.user?.email ?? null;
+  const lastLogin = authUser?.user?.last_sign_in_at ?? null;
 
   const loggedMeals = (meals ?? []).filter(m => m.status === "eaten" || m.status === "photo_logged");
   const totalLogged = loggedMeals.length;
@@ -39,6 +44,13 @@ export default async function AdminClientPage({ params }: { params: { id: string
   const avgCalsLast7 = last7.length
     ? Math.round(last7.reduce((s, m) => s + (m.calories ?? 0), 0) / last7.length)
     : null;
+
+  const sourceCounts = new Map<string, number>();
+  loggedMeals.forEach(m => sourceCounts.set(m.source ?? "—", (sourceCounts.get(m.source ?? "—") ?? 0) + 1));
+
+  const eveningOn = !!reminderSettings?.enabled;
+  const smsOn = !!reminderSettings?.meal_reminders_enabled;
+  const smsMissingPhone = smsOn && !profile.phone;
 
   return (
     <div className="shell">
@@ -73,14 +85,58 @@ export default async function AdminClientPage({ params }: { params: { id: string
           <div className="listrow"><span>Норма</span><span style={{ fontFamily: "var(--mono)", fontSize: 12.5 }}>{profile.cal_target} ккал · Б{profile.protein_target} Ж{profile.fat_target} У{profile.carb_target}</span></div>
           <div className="listrow"><span>Телефон</span><span>{profile.phone ?? "—"}</span></div>
           <div className="listrow"><span>Часовой пояс</span><span>{profile.timezone ?? "—"}</span></div>
+          <div className="listrow"><span>Регистрация</span><span>{profile.created_at ? new Date(profile.created_at).toLocaleString("ru-RU") : "—"}</span></div>
+          <div className="listrow"><span>Последний вход</span><span>{lastLogin ? formatRelative(lastLogin) : "—"}</span></div>
+        </div>
+
+        <div className="card" style={{ marginBottom: 16 }}>
+          <div className="eyebrow" style={{ marginBottom: 10 }}>Уведомления</div>
           <div className="listrow">
-            <span>Напоминания</span>
-            <span>
-              {reminderSettings?.enabled ? "вечернее · " : ""}
-              {reminderSettings?.meal_reminders_enabled ? "SMS за час" : (!reminderSettings?.enabled ? "выкл" : "")}
+            <span>Вечернее «на завтра»</span>
+            <span style={{ color: eveningOn ? "var(--carbs)" : "var(--ink-soft)", fontWeight: 600 }}>
+              {eveningOn ? `вкл · ${reminderSettings?.send_at ?? "20:00"}` : "выкл"}
             </span>
           </div>
-          <div className="listrow"><span>Регистрация</span><span>{profile.created_at ? new Date(profile.created_at).toLocaleString("ru-RU") : "—"}</span></div>
+          <div className="listrow">
+            <span>SMS за час до приёма</span>
+            <span style={{ color: smsOn ? "var(--carbs)" : "var(--ink-soft)", fontWeight: 600 }}>
+              {smsOn ? "вкл" : "выкл"}
+            </span>
+          </div>
+          {smsMissingPhone && (
+            <p style={{ fontSize: 12, color: "var(--warn)", margin: "8px 0 0" }}>
+              ⚠️ SMS включены, но телефон не указан — напоминания не отправляются.
+            </p>
+          )}
+          {(eveningOn || smsOn) && (
+            <div style={{ marginTop: 10 }}>
+              <p style={{ fontSize: 11.5, color: "var(--ink-soft)", margin: "0 0 6px" }}>Последние отправленные напоминания</p>
+              {reminderLog?.length ? (
+                reminderLog.map(l => (
+                  <div key={l.id} style={{ display: "flex", justifyContent: "space-between", fontSize: 11.5, color: "var(--ink-soft)", padding: "3px 0" }}>
+                    <span>{MEAL_TYPE_LABELS[l.meal_type as keyof typeof MEAL_TYPE_LABELS] ?? l.meal_type} · {l.date}</span>
+                    <span style={{ fontFamily: "var(--mono)" }}>{formatRelative(l.sent_at)}</span>
+                  </div>
+                ))
+              ) : (
+                <p style={{ fontSize: 12, color: "var(--ink-soft)", margin: 0 }}>Пока ничего не отправлялось.</p>
+              )}
+            </div>
+          )}
+        </div>
+
+        <div className="card" style={{ marginBottom: 16 }}>
+          <div className="eyebrow" style={{ marginBottom: 10 }}>Как пользуется</div>
+          {sourceCounts.size ? (
+            [...sourceCounts.entries()].map(([source, count]) => (
+              <div key={source} className="listrow">
+                <span>{SOURCE_LABELS[source] ?? source}</span>
+                <span style={{ fontFamily: "var(--mono)" }}>{count}</span>
+              </div>
+            ))
+          ) : (
+            <p style={{ fontSize: 13, color: "var(--ink-soft)", margin: 0 }}>Активности пока нет.</p>
+          )}
         </div>
 
         <div className="eyebrow" style={{ marginBottom: 8 }}>Питание — последние записи</div>
@@ -99,7 +155,7 @@ export default async function AdminClientPage({ params }: { params: { id: string
                     {m.calories ?? 0} ккал · Б{m.protein ?? 0} Ж{m.fat ?? 0} У{m.carbs ?? 0}
                   </span>
                   <span style={{ fontSize: 11, color: "var(--ink-soft)" }}>
-                    {STATUS_LABELS[m.status] ?? m.status} · {m.source ?? "—"}
+                    {STATUS_LABELS[m.status] ?? m.status} · {SOURCE_LABELS[m.source ?? ""] ?? m.source ?? "—"}
                   </span>
                 </div>
               </div>
