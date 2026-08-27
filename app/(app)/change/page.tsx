@@ -1,5 +1,5 @@
 import { createClient } from "@/lib/supabaseServer";
-import { LoadingLink } from "@/components/LoadingLink";
+import { BackButton } from "@/components/BackButton";
 import { RetryButton } from "@/components/RetryButton";
 import { FoodThumb } from "@/components/FoodThumb";
 import { getDisplayMealType } from "@/lib/getDisplayMealType";
@@ -33,13 +33,14 @@ export default async function ChangePage() {
   const alts = displayType
     ? await suggestJSON<Alt[]>(
         `Ты подбираешь замену блюду в приложении AI Food Coach. Пользователь ленивый и не хочет тратить время на готовку. Каждый раз старайся предлагать разные блюда — избегай одних и тех же типовых вариантов между запросами. Отвечай СТРОГО валидным JSON-массивом без markdown и пояснений, ровно в этом формате: [{"title":"...", "calories":0, "protein":0, "fat":0, "carbs":0, "ingredients":[{"name":"...", "qty":"180 г"}]}] — три варианта. В ingredients укажи каждый компонент блюда с конкретным весом в граммах (или мл/шт с граммовкой в скобках), чтобы калории были проверяемы по составу.`,
-        `Приём пищи: ${mealLabel}. Текущее предложенное блюдо: ${currentMeal?.title ?? "не задано"} (${currentMeal?.calories ?? "?"} ккал, Б${currentMeal?.protein ?? "?"} Ж${currentMeal?.fat ?? "?"} У${currentMeal?.carbs ?? "?"}). Время на готовку: ${COOKING_TIME_LABEL[cookingMode]}. Для разнообразия сегодня ориентируйся на ${randomCuisineHint()} кухню, если это уместно. Предложи 3 альтернативы, которые уместны именно для приёма «${mealLabel.toLowerCase()}» (не предлагай ужинные блюда на завтрак и наоборот), с похожим на текущее блюдо КБЖУ, и подходящие под время на готовку.`
+        `Приём пищи: ${mealLabel}. Текущее предложенное блюдо: ${currentMeal?.title ?? "не задано"} (${currentMeal?.calories ?? "?"} ккал, Б${currentMeal?.protein ?? "?"} Ж${currentMeal?.fat ?? "?"} У${currentMeal?.carbs ?? "?"}). Время на готовку: ${COOKING_TIME_LABEL[cookingMode]}. Для разнообразия сегодня ориентируйся на ${randomCuisineHint()} кухню, если это уместно. Предложи 3 альтернативы, которые уместны именно для приёма «${mealLabel.toLowerCase()}» (не предлагай ужинные блюда на завтрак и наоборот), с похожим на текущее блюдо КБЖУ, и подходящие под время на готовку.`,
+        1200
       )
     : null;
 
   return (
     <div className="sheet">
-      <LoadingLink href="/today" className="btn ghost on-sheet" style={{ marginBottom: 16, display: "inline-block" }}>&larr; Назад</LoadingLink>
+      <BackButton style={{ marginBottom: 16, display: "inline-block" }} />
       <div className="eyebrow" style={{ marginBottom: 6 }}>Замена блюда · {mealLabel}</div>
       <h1 style={{ fontSize: 22, marginBottom: 16, color: "var(--sheet-text)" }}>Похожие по КБЖУ варианты</h1>
 

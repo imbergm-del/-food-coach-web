@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabaseServer";
 import { LoadingLink } from "@/components/LoadingLink";
+import { BackButton } from "@/components/BackButton";
 import { RetryButton } from "@/components/RetryButton";
 import { FoodThumb } from "@/components/FoodThumb";
 import { getDisplayMealType } from "@/lib/getDisplayMealType";
@@ -29,7 +30,7 @@ export default async function HungryPage() {
 
   return (
     <div className="sheet">
-      <LoadingLink href="/today" className="btn ghost on-sheet" style={{ marginBottom: 16, display: "inline-block" }}>&larr; Назад</LoadingLink>
+      <BackButton style={{ marginBottom: 16, display: "inline-block" }} />
       <div className="eyebrow" style={{ marginBottom: 6 }}>Срочный режим · {mealLabel}</div>
       <h1 style={{ fontSize: 22, marginBottom: 18, color: "var(--sheet-text)" }}>Я голоден сейчас</h1>
 

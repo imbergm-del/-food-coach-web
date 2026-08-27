@@ -1,5 +1,5 @@
 import { createClient } from "@/lib/supabaseServer";
-import { LoadingLink } from "@/components/LoadingLink";
+import { BackButton } from "@/components/BackButton";
 import { getDisplayMealType } from "@/lib/getDisplayMealType";
 import { MEAL_TYPE_LABELS } from "@/lib/mealTypes";
 import { MoreMenu } from "./MoreMenu";
@@ -21,7 +21,7 @@ export default async function MorePage() {
 
   return (
     <div className="sheet">
-      <LoadingLink href="/today" className="btn ghost on-sheet" style={{ marginBottom: 16, display: "inline-block" }}>&larr; Назад</LoadingLink>
+      <BackButton style={{ marginBottom: 16, display: "inline-block" }} />
       <div className="eyebrow" style={{ marginBottom: 6 }}>Ещё варианты</div>
       <h1 style={{ fontSize: 22, marginBottom: 16, color: "var(--sheet-text)" }}>Что хотите сделать?</h1>
       <MoreMenu items={items} />
