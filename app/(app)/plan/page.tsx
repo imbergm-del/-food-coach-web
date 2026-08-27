@@ -3,21 +3,10 @@ import { FoodThumb } from "@/components/FoodThumb";
 import { MEAL_TYPE_LABELS } from "@/lib/mealTypes";
 import { generateWeekPlan, addWeekIngredientsToCart } from "./actions";
 import { SubmitButton } from "@/components/SubmitButton";
-import { nowInTz, todayISOInTz } from "@/lib/userTime";
+import { todayISOInTz, addDaysISO } from "@/lib/userTime";
+import { PLAN_HORIZON_DAYS } from "@/lib/planGeneration";
 
-const WEEKDAY_LABELS = ["Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Вс"];
-
-function startOfWeek(d: Date) {
-  const date = new Date(d);
-  const day = (date.getDay() + 6) % 7; // 0 = Monday
-  date.setDate(date.getDate() - day);
-  date.setHours(0, 0, 0, 0);
-  return date;
-}
-
-function toISODate(d: Date) {
-  return d.toISOString().slice(0, 10);
-}
+const WEEKDAY_LABELS = ["Вс", "Пн", "Вт", "Ср", "Чт", "Пт", "Сб"];
 
 export default async function PlanPage() {
   const supabase = createClient();
@@ -25,46 +14,40 @@ export default async function PlanPage() {
   const { data: profile } = await supabase.from("profiles").select("timezone").eq("id", user!.id).single();
   const tz = profile?.timezone;
 
-  const monday = startOfWeek(nowInTz(tz));
-  const sunday = new Date(monday);
-  sunday.setDate(sunday.getDate() + 6);
   const todayISO = todayISOInTz(tz);
+  const lastISO = addDaysISO(todayISO, PLAN_HORIZON_DAYS - 1);
 
   const { data: meals } = await supabase
     .from("meals")
     .select("*")
     .eq("user_id", user!.id)
-    .gte("date", toISODate(monday))
-    .lte("date", toISODate(sunday))
+    .gte("date", todayISO)
+    .lte("date", lastISO)
     .order("id");
 
-  const days = Array.from({ length: 7 }, (_, i) => {
-    const d = new Date(monday);
-    d.setDate(d.getDate() + i);
-    const iso = toISODate(d);
+  const days = Array.from({ length: PLAN_HORIZON_DAYS }, (_, i) => {
+    const iso = addDaysISO(todayISO, i);
+    const weekday = new Date(`${iso}T00:00:00`).getDay();
     return {
       iso,
-      label: WEEKDAY_LABELS[i],
-      dayOfMonth: d.getDate(),
-      isToday: iso === todayISO,
+      label: WEEKDAY_LABELS[weekday],
+      dayOfMonth: Number(iso.slice(8, 10)),
+      isToday: i === 0,
       meals: meals?.filter(m => m.date === iso) ?? []
     };
-  }).filter(day => day.iso >= todayISO);
+  });
 
   return (
     <div>
-      <div className="eyebrow" style={{ marginBottom: 6 }}>Недельный план</div>
-      <h1 style={{ fontSize: 24, marginBottom: 12 }}>Питание на неделю</h1>
+      <div className="eyebrow" style={{ marginBottom: 6 }}>План на 5 дней</div>
+      <h1 style={{ fontSize: 24, marginBottom: 12 }}>Питание на ближайшие дни</h1>
 
       <div style={{ display: "flex", gap: 10, marginBottom: 20 }}>
         <form action={generateWeekPlan} style={{ flex: 1 }}>
-          <input type="hidden" name="weekEnd" value={toISODate(sunday)} />
-          <SubmitButton pendingText="Составляем…">Составить план на неделю</SubmitButton>
+          <SubmitButton pendingText="Составляем…">Составить план</SubmitButton>
         </form>
         <form action={addWeekIngredientsToCart} style={{ flex: 1 }}>
-          <input type="hidden" name="weekStart" value={toISODate(monday)} />
-          <input type="hidden" name="weekEnd" value={toISODate(sunday)} />
-          <SubmitButton className="btn ghost block" pendingText="Добавляем…">Продукты недели в корзину</SubmitButton>
+          <SubmitButton className="btn ghost block" pendingText="Добавляем…">Продукты в корзину</SubmitButton>
         </form>
       </div>
 

@@ -38,17 +38,3 @@ export const MEAL_TIME_DEFAULTS: Record<MealType, { hour: number; minute: number
   snack: { hour: 16, minute: 30 },
   dinner: { hour: 19, minute: 30 }
 };
-
-// По совету тренера: ужин = белок + овощи + полезный жир
-export const DINNER_PROTEINS = {
-  meat: { label: "Мясо", calories: 480, protein: 40, fat: 24, carbs: 14 },
-  fish: { label: "Рыба", calories: 400, protein: 40, fat: 16, carbs: 12 },
-  chicken: { label: "Курица", calories: 420, protein: 42, fat: 16, carbs: 14 }
-} as const;
-export type DinnerProtein = keyof typeof DINNER_PROTEINS;
-
-export const DINNER_FATS = {
-  olive_oil: "оливковым маслом",
-  avocado: "авокадо"
-} as const;
-export type DinnerFat = keyof typeof DINNER_FATS;

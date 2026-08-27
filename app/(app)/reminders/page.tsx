@@ -1,9 +1,11 @@
 import { createClient } from "@/lib/supabaseServer";
 import { LoadingLink } from "@/components/LoadingLink";
-import { PlanTomorrowForm } from "./PlanTomorrowForm";
+import { SubmitButton } from "@/components/SubmitButton";
 import { RecipeDisclosure } from "../today/RecipeDisclosure";
+import { reshuffleTomorrowPlan } from "./actions";
 import { MEAL_TYPE_LABELS, MEAL_SEQUENCE } from "@/lib/mealTypes";
 import { todayISOInTz, addDaysISO } from "@/lib/userTime";
+import { fillMissingPlan, PLAN_HORIZON_DAYS } from "@/lib/planGeneration";
 
 const MAIN_MEALS = MEAL_SEQUENCE.filter(t => t !== "snack");
 
@@ -14,9 +16,14 @@ export default async function RemindersPage() {
   const { data: settings } = await supabase
     .from("reminder_settings").select("send_at").eq("user_id", user!.id).single();
   const { data: profile } = await supabase
-    .from("profiles").select("timezone").eq("id", user!.id).single();
+    .from("profiles").select("timezone, cal_target").eq("id", user!.id).single();
 
-  const tomorrowISO = addDaysISO(todayISOInTz(profile?.timezone), 1);
+  const todayISO = todayISOInTz(profile?.timezone);
+  // Тихо подстраховываемся: если план на завтра ещё ни разу не составляли,
+  // здесь всё равно должны быть настоящие блюда, а не пустой экран.
+  await fillMissingPlan(supabase, user!.id, profile?.cal_target ?? 2200, todayISO, PLAN_HORIZON_DAYS);
+
+  const tomorrowISO = addDaysISO(todayISO, 1);
 
   const { data: plannedMealsRaw } = await supabase
     .from("meals").select("*").eq("user_id", user!.id).eq("date", tomorrowISO);
@@ -72,7 +79,9 @@ export default async function RemindersPage() {
         })
       )}
 
-      <PlanTomorrowForm initiallyOpen={plannedMeals.length === 0} />
+      <form action={reshuffleTomorrowPlan}>
+        <SubmitButton className="btn ghost block" pendingText="Подбираем…">Изменить план на завтра</SubmitButton>
+      </form>
     </div>
   );
 }

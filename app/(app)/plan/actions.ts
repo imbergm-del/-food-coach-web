@@ -3,97 +3,45 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabaseServer";
-import { MEAL_POOL } from "@/lib/mealMenu";
-import { pickMealForDate } from "@/lib/mealRotation";
-import { scaleMealToTarget } from "@/lib/scaleMeal";
+import { regeneratePlan, PLAN_HORIZON_DAYS } from "@/lib/planGeneration";
 import { todayISOInTz } from "@/lib/userTime";
 
-const MAIN_MEALS = ["breakfast", "lunch", "dinner"] as const;
-
-function toISODate(d: Date) {
-  return d.toISOString().slice(0, 10);
-}
-
-// Заполняет завтрак/обед/ужин от сегодняшнего дня до конца недели реальными
-// рецептами с граммовкой. Блюдо на каждый день берётся по календарной дате из
-// подборки на 7 вариантов — так за любые 7 дней подряд ни один завтрак, обед или
-// ужин не повторится, в какую бы неделю план ни составляли. Съеденное и выбранное
-// пользователем вручную (замена, вечерний план) не трогаем; а вот ещё не съеденные
-// автосгенерированные записи — в том числе оставшиеся от старой, менее
-// разнообразной версии плана — пересобираем заново, чтобы повторное нажатие само
-// чинило устаревшие повторы.
-export async function generateWeekPlan(formData: FormData) {
+// Составляет завтрак/обед/ужин на ближайшие 5 дней реальными рецептами с
+// граммовкой. Съеденное и выбранное пользователем вручную не трогает, а ещё не
+// съеденные автосгенерированные записи пересобирает — так повторное нажатие
+// само чинит устаревшие повторы (см. lib/planGeneration.ts).
+export async function generateWeekPlan() {
   const supabase = createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return;
 
   const { data: profile } = await supabase.from("profiles").select("cal_target, timezone").eq("id", user.id).single();
-  const calTarget = profile?.cal_target ?? 2200;
   const todayISO = todayISOInTz(profile?.timezone);
-  const weekEnd = (formData.get("weekEnd") as string) || todayISO;
 
-  const { data: existing } = await supabase
-    .from("meals")
-    .select("id, date, meal_type, status, source")
-    .eq("user_id", user.id)
-    .gte("date", todayISO)
-    .lte("date", weekEnd);
-  const isStaleAutoPlan = (m: { status: string; source: string | null }) => m.status === "planned" && m.source === "week_plan";
-  const settledKeys = new Set(
-    (existing ?? []).filter(m => !isStaleAutoPlan(m)).map(m => `${m.date}|${m.meal_type}`)
-  );
-  const stalePlannedIds = (existing ?? []).filter(isStaleAutoPlan).map(m => m.id);
-
-  if (stalePlannedIds.length) {
-    await supabase.from("meals").delete().in("id", stalePlannedIds);
-  }
-
-  const rows: Record<string, unknown>[] = [];
-  const start = new Date(todayISO);
-  const end = new Date(weekEnd);
-  for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
-    const iso = toISODate(d);
-    for (const mealType of MAIN_MEALS) {
-      if (settledKeys.has(`${iso}|${mealType}`)) continue;
-      const def = scaleMealToTarget(pickMealForDate(MEAL_POOL[mealType], iso), mealType, calTarget);
-      rows.push({
-        user_id: user.id,
-        date: iso,
-        meal_type: mealType,
-        title: def.title,
-        ingredients: def.ingredients,
-        steps: def.steps,
-        calories: def.calories,
-        protein: def.protein,
-        fat: def.fat,
-        carbs: def.carbs,
-        status: "planned",
-        source: "week_plan"
-      });
-    }
-  }
-
-  if (rows.length) await supabase.from("meals").insert(rows);
+  await regeneratePlan(supabase, user.id, profile?.cal_target ?? 2200, todayISO, PLAN_HORIZON_DAYS);
 
   revalidatePath("/plan");
   revalidatePath("/today");
+  revalidatePath("/reminders");
 }
 
-// Собирает все ингредиенты недельного плана в корзину (без дублей).
-export async function addWeekIngredientsToCart(formData: FormData) {
+// Собирает все ингредиенты плана на ближайшие 5 дней в корзину (без дублей).
+export async function addWeekIngredientsToCart() {
   const supabase = createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return;
 
-  const weekStart = formData.get("weekStart") as string;
-  const weekEnd = formData.get("weekEnd") as string;
+  const { data: profile } = await supabase.from("profiles").select("timezone").eq("id", user.id).single();
+  const todayISO = todayISOInTz(profile?.timezone);
+  const endISO = new Date(todayISO);
+  endISO.setDate(endISO.getDate() + PLAN_HORIZON_DAYS - 1);
 
   const { data: meals } = await supabase
     .from("meals")
     .select("ingredients")
     .eq("user_id", user.id)
-    .gte("date", weekStart)
-    .lte("date", weekEnd);
+    .gte("date", todayISO)
+    .lte("date", endISO.toISOString().slice(0, 10));
 
   const seen = new Set<string>();
   const items: { name: string; qty: string }[] = [];
