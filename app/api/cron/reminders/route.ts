@@ -62,10 +62,15 @@ export async function GET(req: Request) {
     if (!res.ok) throw new Error(`${res.status} ${await res.text()}`);
   }
 
-  // true если вставка удалась (ещё не отправляли), false если запись уже есть (дубль)
-  async function markSentOnce(userId: string, date: string, mealType: string) {
-    const { error: insertError } = await supabase.from("meal_reminder_log").insert({ user_id: userId, date, meal_type: mealType });
-    return !insertError;
+  // Отмечаем отправку ТОЛЬКО после реального успеха — иначе неудачная попытка Twilio
+  // (сеть, лимит и т.п.) навсегда блокирует повтор на следующий тик крона.
+  async function alreadySent(userId: string, date: string, mealType: string) {
+    const { data } = await supabase
+      .from("meal_reminder_log").select("id").eq("user_id", userId).eq("date", date).eq("meal_type", mealType).maybeSingle();
+    return !!data;
+  }
+  async function markSent(userId: string, date: string, mealType: string) {
+    await supabase.from("meal_reminder_log").insert({ user_id: userId, date, meal_type: mealType });
   }
 
   let sentSms = 0, sentEmail = 0, failed = 0;
@@ -84,47 +89,48 @@ export async function GET(req: Request) {
     const nowMinutes = now.getHours() * 60 + now.getMinutes();
     const today = todayISOInTz(profile.timezone);
 
-    // 1) Вечерний план на завтра — было и раньше, теперь по локальному времени пользователя
-    if (s.enabled && nowMinutes >= 20 * 60 && nowMinutes < 20 * 60 + 15) {
-      const isNew = await markSentOnce(s.user_id, today, "evening_plan");
-      if (isNew) {
-        const tomorrow = addDaysISO(today, 1);
-        const { data: plannedMeals } = await supabase
-          .from("meals").select("meal_type, title").eq("user_id", s.user_id).eq("date", tomorrow);
-        const planLines = (plannedMeals ?? []).map(
-          m => `${MEAL_TYPE_LABELS[m.meal_type as keyof typeof MEAL_TYPE_LABELS] ?? m.meal_type}: ${m.title}`
-        );
-        const planSummary = planLines.length ? planLines.join("; ") : "план на завтра ещё не составлен — откройте приложение";
+    // 1) Вечерний план на завтра — окно в час (не 15 минут), чтобы дрожание крона
+    // по секундам не сдвигало тик мимо узкой границы, как это уже случалось.
+    if (s.enabled && nowMinutes >= 20 * 60 && nowMinutes < 20 * 60 + 60 && !(await alreadySent(s.user_id, today, "evening_plan"))) {
+      const tomorrow = addDaysISO(today, 1);
+      const { data: plannedMeals } = await supabase
+        .from("meals").select("meal_type, title").eq("user_id", s.user_id).eq("date", tomorrow);
+      const planLines = (plannedMeals ?? []).map(
+        m => `${MEAL_TYPE_LABELS[m.meal_type as keyof typeof MEAL_TYPE_LABELS] ?? m.meal_type}: ${m.title}`
+      );
+      const planSummary = planLines.length ? planLines.join("; ") : "план на завтра ещё не составлен — откройте приложение";
 
-        if (smsConfigured && profile.phone) {
-          try {
-            await sendSms(profile.phone, `AI Food Coach: ваше питание на завтра — ${planSummary}. Подробнее: ${appUrl}/reminders`);
-            sentSms++;
-          } catch (err) {
-            failed++;
-            details.push(`Вечернее SMS → ${profile.phone}: ${err instanceof Error ? err.message : String(err)}`);
-          }
-        } else if (emailConfigured && profile.email) {
-          try {
-            await sendEmail(profile.email, "Ваше питание на завтра готово", `<p>${planSummary}</p><p><a href="${appUrl}/reminders">Открыть напоминание</a></p>`);
-            sentEmail++;
-          } catch (err) {
-            failed++;
-            details.push(`Вечерний email → ${profile.email}: ${err instanceof Error ? err.message : String(err)}`);
-          }
+      if (smsConfigured && profile.phone) {
+        try {
+          await sendSms(profile.phone, `AI Food Coach: ваше питание на завтра — ${planSummary}. Подробнее: ${appUrl}/reminders`);
+          await markSent(s.user_id, today, "evening_plan");
+          sentSms++;
+        } catch (err) {
+          failed++;
+          details.push(`Вечернее SMS → ${profile.phone}: ${err instanceof Error ? err.message : String(err)}`);
+        }
+      } else if (emailConfigured && profile.email) {
+        try {
+          await sendEmail(profile.email, "Ваше питание на завтра готово", `<p>${planSummary}</p><p><a href="${appUrl}/reminders">Открыть напоминание</a></p>`);
+          await markSent(s.user_id, today, "evening_plan");
+          sentEmail++;
+        } catch (err) {
+          failed++;
+          details.push(`Вечерний email → ${profile.email}: ${err instanceof Error ? err.message : String(err)}`);
         }
       }
     }
 
-    // 2) SMS за 30 минут до приёма — новая функция, включается отдельно и только по SMS
+    // 2) SMS за 30 минут до приёма — окно от (время приёма - 30 мин) до самого времени
+    // приёма, а не узкая 15-минутная щель: крон срабатывает примерно каждые 15 минут,
+    // но не секунда в секунду, и узкое окно из-за этого реально пропускало тик.
     if (s.meal_reminders_enabled && smsConfigured && profile.phone) {
       for (const mealType of MEAL_SEQUENCE) {
         const target = schedule[mealType];
-        const reminderMinutes = target.hour * 60 + target.minute - 30;
-        if (nowMinutes < reminderMinutes || nowMinutes >= reminderMinutes + 15) continue;
-
-        const isNew = await markSentOnce(s.user_id, today, mealType);
-        if (!isNew) continue;
+        const mealMinutes = target.hour * 60 + target.minute;
+        const reminderMinutes = mealMinutes - 30;
+        if (nowMinutes < reminderMinutes || nowMinutes >= mealMinutes) continue;
+        if (await alreadySent(s.user_id, today, mealType)) continue;
 
         const { data: mealsToday } = await supabase
           .from("meals").select("title, status").eq("user_id", s.user_id).eq("date", today).eq("meal_type", mealType);
@@ -135,6 +141,7 @@ export async function GET(req: Request) {
 
         try {
           await sendSms(profile.phone, `AI Food Coach: через 30 минут — ${MEAL_TYPE_LABELS[mealType]}: ${title}. Подробнее: ${appUrl}/today`);
+          await markSent(s.user_id, today, mealType);
           sentSms++;
         } catch (err) {
           failed++;
