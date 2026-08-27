@@ -1,14 +1,12 @@
 import { createClient } from "@/lib/supabaseServer";
 import { BackButton } from "@/components/BackButton";
-import { FoodThumb } from "@/components/FoodThumb";
 import { getDisplayMealType } from "@/lib/getDisplayMealType";
 import { MEAL_TYPE_LABELS } from "@/lib/mealTypes";
 import { MEAL_POOL } from "@/lib/mealMenu";
 import { pickMealForDateAndMode } from "@/lib/mealRotation";
 import { scaleMealToTarget } from "@/lib/scaleMeal";
-import { chooseAlternative } from "./actions";
-import { SubmitButton } from "@/components/SubmitButton";
 import { normalizeCookingMode } from "@/lib/cookingMode";
+import { ChangePicker } from "./ChangePicker";
 
 export default async function ChangePage() {
   const supabase = createClient();
@@ -25,18 +23,20 @@ export default async function ChangePage() {
     : { data: null };
   const plannedTitle = mealsForSlot?.find(m => m.status === "planned")?.title;
 
-  // Каждое нажатие «Заменить» даёт следующее блюдо из подборки под текущий режим
-  // готовки, по кругу — так повторные нажатия каждый раз показывают что-то новое.
-  const alt = displayType
-    ? (() => {
-        const pool = MEAL_POOL[displayType].filter(m => m.cookingMode === cookingMode);
-        const usable = pool.length ? pool : MEAL_POOL[displayType];
-        const currentTitle = plannedTitle ?? pickMealForDateAndMode(MEAL_POOL[displayType], mealDate, cookingMode).title;
-        const currentIndex = usable.findIndex(m => m.title === currentTitle);
-        const nextIndex = currentIndex === -1 ? 0 : (currentIndex + 1) % usable.length;
-        return scaleMealToTarget(usable[nextIndex], displayType, calTarget);
-      })()
-    : null;
+  // Вся подборка на этот приём (минимум 5 блюд, без фильтра по режиму готовки —
+  // тут человек уже осознанно перебирает варианты) — «Заменить» листает её на
+  // клиенте, без обращений к серверу, и ничего не сохраняет, пока не нажали
+  // «Выбрать это блюдо».
+  const scaledOptions = displayType
+    ? MEAL_POOL[displayType].map(def => scaleMealToTarget(def, displayType, calTarget))
+    : [];
+
+  const startIndex = (() => {
+    if (!displayType || !scaledOptions.length) return 0;
+    const currentTitle = plannedTitle ?? pickMealForDateAndMode(MEAL_POOL[displayType], mealDate, cookingMode).title;
+    const currentIndex = scaledOptions.findIndex(m => m.title === currentTitle);
+    return currentIndex === -1 ? 0 : (currentIndex + 1) % scaledOptions.length;
+  })();
 
   return (
     <div className="sheet">
@@ -44,50 +44,12 @@ export default async function ChangePage() {
       <div className="eyebrow" style={{ marginBottom: 6 }}>Замена блюда · {mealLabel}</div>
       <h1 style={{ fontSize: 22, marginBottom: 16, color: "var(--sheet-text)" }}>Другой вариант</h1>
 
-      {!displayType || !alt ? (
+      {!displayType || !scaledOptions.length ? (
         <div className="sheet-card" style={{ flexDirection: "column", alignItems: "stretch" }}>
           <p style={{ color: "var(--sheet-muted)", fontSize: 13, margin: 0 }}>Все приёмы на сегодня уже отмечены — заменять нечего.</p>
         </div>
       ) : (
-        <div className="sheet-card" style={{ flexDirection: "column", alignItems: "stretch" }}>
-          <div style={{ display: "flex", gap: 12, alignItems: "flex-start", marginBottom: 12 }}>
-            <FoodThumb color="var(--protein)" bg="var(--protein-bg)" size={48} />
-            <div style={{ flex: 1 }}>
-              <h3 style={{ fontSize: 16, color: "var(--sheet-text)" }}>{alt.title}</h3>
-              <p style={{ fontFamily: "var(--mono)", fontSize: 11, color: "var(--sheet-muted)", margin: "4px 0 0" }}>
-                {alt.calories} ккал · Б {alt.protein} · Ж {alt.fat} · У {alt.carbs}
-              </p>
-            </div>
-          </div>
-          <ul style={{ margin: "0 0 14px", padding: "0 0 0 18px" }}>
-            {alt.ingredients.map(i => (
-              <li key={i.name} style={{ fontSize: 12.5, color: "var(--sheet-muted)", marginBottom: 2 }}>
-                {i.name} — {i.qty}
-              </li>
-            ))}
-          </ul>
-          {alt.steps.length > 0 && (
-            <ol style={{ margin: "0 0 14px", padding: "0 0 0 18px" }}>
-              {alt.steps.map((step, i) => (
-                <li key={i} style={{ fontSize: 12.5, color: "var(--sheet-muted)", marginBottom: 4, lineHeight: 1.5 }}>
-                  {step}
-                </li>
-              ))}
-            </ol>
-          )}
-          <form action={chooseAlternative}>
-            <input type="hidden" name="mealType" value={displayType} />
-            <input type="hidden" name="date" value={mealDate} />
-            <input type="hidden" name="title" value={alt.title} />
-            <input type="hidden" name="calories" value={alt.calories} />
-            <input type="hidden" name="protein" value={alt.protein} />
-            <input type="hidden" name="fat" value={alt.fat} />
-            <input type="hidden" name="carbs" value={alt.carbs} />
-            <input type="hidden" name="ingredients" value={JSON.stringify(alt.ingredients)} />
-            <input type="hidden" name="steps" value={JSON.stringify(alt.steps)} />
-            <SubmitButton>Выбрать это блюдо</SubmitButton>
-          </form>
-        </div>
+        <ChangePicker options={scaledOptions} startIndex={startIndex} mealType={displayType} mealDate={mealDate} />
       )}
     </div>
   );

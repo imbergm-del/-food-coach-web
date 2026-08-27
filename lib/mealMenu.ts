@@ -140,6 +140,13 @@ export const MEAL_POOL: Record<MealType, MealDef[]> = {
       calories: 300, protein: 14, fat: 6, carbs: 48, cookingMode: "15",
       ingredients: [{ name: "Кефир", qty: "250 мл" }, { name: "Ягоды замороженные", qty: "100 г" }, { name: "Банан", qty: "1 шт (120 г)" }],
       steps: ["Взбейте 250 мл кефира, 100 г ягод и банан (120 г) блендером 1 минуту."]
+    },
+    {
+      title: "Хумус с овощами",
+      desc: "Хумус, морковь, огурец",
+      calories: 260, protein: 10, fat: 12, carbs: 30, cookingMode: "5",
+      ingredients: [{ name: "Хумус", qty: "100 г" }, { name: "Морковь", qty: "80 г" }, { name: "Огурец", qty: "80 г" }],
+      steps: ["Нарежьте морковь (80 г) и огурец (80 г) палочками.", "Обмакивайте в 100 г хумуса."]
     }
   ],
   dinner: [
