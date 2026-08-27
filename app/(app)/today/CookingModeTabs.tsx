@@ -4,7 +4,9 @@ import { useTransition } from "react";
 import { setCookingMode } from "./actions";
 import { COOKING_MODES, normalizeCookingMode } from "@/lib/cookingMode";
 
-export function CookingModeTabs({ current }: { current: string }) {
+export function CookingModeTabs({
+  current, mealType, mealDate
+}: { current: string; mealType?: string; mealDate?: string }) {
   const [isPending, startTransition] = useTransition();
   const normalized = normalizeCookingMode(current);
 
@@ -17,7 +19,7 @@ export function CookingModeTabs({ current }: { current: string }) {
             key={m.key}
             className={`tab ${normalized === m.key ? "active" : ""}`}
             disabled={isPending}
-            onClick={() => startTransition(() => setCookingMode(m.key))}
+            onClick={() => startTransition(() => setCookingMode(m.key, mealType, mealDate))}
           >
             {m.label}
           </button>

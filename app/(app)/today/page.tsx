@@ -129,7 +129,7 @@ export default async function TodayPage() {
           Этот приём вы задали вручную — но время на готовку всё ещё можно поменять ниже.
         </p>
       )}
-      <CookingModeTabs current={cookingMode} />
+      <CookingModeTabs current={cookingMode} mealType={displayType} mealDate={mealDate} />
 
       {meal && displayType ? (
         <>

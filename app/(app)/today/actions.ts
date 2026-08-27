@@ -28,11 +28,24 @@ export async function addToCart(formData: FormData) {
   redirect("/cart");
 }
 
-export async function setCookingMode(mode: string) {
+export async function setCookingMode(mode: string, mealType?: string, mealDate?: string) {
   const supabase = createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return;
+
   await supabase.from("profiles").update({ cooking_mode: mode }).eq("id", user.id);
+
+  // Пользователь явно передумал насчёт времени на готовку — старое запланированное
+  // блюдо на этот приём больше не актуально, пусть подберётся заново под новый режим.
+  if (mealType && mealDate) {
+    await supabase.from("meals")
+      .delete()
+      .eq("user_id", user.id)
+      .eq("date", mealDate)
+      .eq("meal_type", mealType)
+      .eq("status", "planned");
+  }
+
   revalidatePath("/today");
 }
 
