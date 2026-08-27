@@ -93,6 +93,7 @@ create table if not exists meal_reminder_log (
 -- колонки в таблицу, которая уже была создана раньше без них):
 alter table profiles add column if not exists timezone text;
 alter table profiles add column if not exists email text;
+alter table profiles add column if not exists phone text;
 alter table profiles add column if not exists breakfast_time time default '08:00';
 alter table profiles add column if not exists lunch_time time default '13:00';
 alter table profiles add column if not exists snack_time time default '16:30';
