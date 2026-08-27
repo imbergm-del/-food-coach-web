@@ -39,7 +39,9 @@ export default async function TodayPage() {
           title: plannedRow.title ?? "Запланированный приём",
           desc: Array.isArray(plannedRow.ingredients) && plannedRow.ingredients.length
             ? plannedRow.ingredients.map((i: { name: string }) => i.name).join(", ")
-            : "Из вашего плана на вечер",
+            : plannedRow.source === "plan"
+              ? "Из вашего плана на вечер"
+              : "Выбрано вами как замена",
           calories: plannedRow.calories ?? 0,
           protein: plannedRow.protein ?? 0,
           fat: plannedRow.fat ?? 0,

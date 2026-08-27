@@ -15,6 +15,7 @@ export async function chooseAlternative(formData: FormData) {
   const protein = Number(formData.get("protein"));
   const fat = Number(formData.get("fat"));
   const carbs = Number(formData.get("carbs"));
+  const ingredients = JSON.parse((formData.get("ingredients") as string) || "[]");
   const today = new Date().toISOString().slice(0, 10);
 
   // Заменяем текущий (ещё не съеденный) вариант этого приёма на выбранную альтернативу
@@ -27,7 +28,7 @@ export async function chooseAlternative(formData: FormData) {
 
   await supabase.from("meals").insert({
     user_id: user.id, date: today, meal_type: mealType, title,
-    ingredients: [], calories, protein, fat, carbs, status: "planned", source: "change"
+    ingredients, calories, protein, fat, carbs, status: "planned", source: "change"
   });
 
   revalidatePath("/today");

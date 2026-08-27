@@ -7,7 +7,7 @@ import { MEALS_BY_MODE } from "@/lib/mealMenu";
 import { suggestJSON } from "@/lib/aiSuggest";
 import { chooseAlternative } from "./actions";
 
-type Alt = { title: string; calories: number; protein: number; fat: number; carbs: number };
+type Alt = { title: string; calories: number; protein: number; fat: number; carbs: number; ingredients: { name: string; qty: string }[] };
 
 const COOKING_TIME_LABEL: Record<string, string> = {
   "0": "нет времени — только готовое, без плиты",
@@ -27,7 +27,7 @@ export default async function ChangePage() {
 
   const alts = displayType
     ? await suggestJSON<Alt[]>(
-        `Ты подбираешь замену блюду в приложении AI Food Coach. Пользователь ленивый и не хочет тратить время на готовку. Отвечай СТРОГО валидным JSON-массивом без markdown и пояснений, ровно в этом формате: [{"title":"...", "calories":0, "protein":0, "fat":0, "carbs":0}] — три варианта.`,
+        `Ты подбираешь замену блюду в приложении AI Food Coach. Пользователь ленивый и не хочет тратить время на готовку. Отвечай СТРОГО валидным JSON-массивом без markdown и пояснений, ровно в этом формате: [{"title":"...", "calories":0, "protein":0, "fat":0, "carbs":0, "ingredients":[{"name":"...", "qty":"180 г"}]}] — три варианта. В ingredients укажи каждый компонент блюда с конкретным весом в граммах (или мл/шт с граммовкой в скобках), чтобы калории были проверяемы по составу.`,
         `Приём пищи: ${mealLabel}. Текущее предложенное блюдо: ${currentMeal?.title ?? "не задано"} (${currentMeal?.calories ?? "?"} ккал, Б${currentMeal?.protein ?? "?"} Ж${currentMeal?.fat ?? "?"} У${currentMeal?.carbs ?? "?"}). Время на готовку: ${COOKING_TIME_LABEL[cookingMode]}. Предложи 3 альтернативы, которые уместны именно для приёма «${mealLabel.toLowerCase()}» (не предлагай ужинные блюда на завтрак и наоборот), с похожим на текущее блюдо КБЖУ, и подходящие под время на готовку.`
       )
     : null;
@@ -52,22 +52,34 @@ export default async function ChangePage() {
         </div>
       ) : (
         alts.map(a => (
-          <div key={a.title} className="sheet-card">
-            <FoodThumb color="var(--protein)" bg="var(--protein-bg)" size={48} />
-            <div style={{ flex: 1 }}>
-              <h3 style={{ fontSize: 15, color: "var(--sheet-text)" }}>{a.title}</h3>
-              <p style={{ fontFamily: "var(--mono)", fontSize: 11, color: "var(--sheet-muted)", margin: "4px 0 0" }}>
-                {a.calories} ккал · Б {a.protein} · Ж {a.fat} · У {a.carbs}
-              </p>
+          <div key={a.title} className="sheet-card" style={{ flexDirection: "column", alignItems: "stretch" }}>
+            <div style={{ display: "flex", gap: 12, alignItems: "flex-start" }}>
+              <FoodThumb color="var(--protein)" bg="var(--protein-bg)" size={48} />
+              <div style={{ flex: 1 }}>
+                <h3 style={{ fontSize: 15, color: "var(--sheet-text)" }}>{a.title}</h3>
+                <p style={{ fontFamily: "var(--mono)", fontSize: 11, color: "var(--sheet-muted)", margin: "4px 0 0" }}>
+                  {a.calories} ккал · Б {a.protein} · Ж {a.fat} · У {a.carbs}
+                </p>
+              </div>
             </div>
-            <form action={chooseAlternative}>
+            {a.ingredients?.length > 0 && (
+              <ul style={{ margin: "10px 0 0", padding: "0 0 0 18px" }}>
+                {a.ingredients.map(i => (
+                  <li key={i.name} style={{ fontSize: 12.5, color: "var(--sheet-muted)", marginBottom: 2 }}>
+                    {i.name} — {i.qty}
+                  </li>
+                ))}
+              </ul>
+            )}
+            <form action={chooseAlternative} style={{ marginTop: 12 }}>
               <input type="hidden" name="mealType" value={displayType} />
               <input type="hidden" name="title" value={a.title} />
               <input type="hidden" name="calories" value={a.calories} />
               <input type="hidden" name="protein" value={a.protein} />
               <input type="hidden" name="fat" value={a.fat} />
               <input type="hidden" name="carbs" value={a.carbs} />
-              <button className="btn" style={{ padding: "8px 14px" }} type="submit">Выбрать</button>
+              <input type="hidden" name="ingredients" value={JSON.stringify(a.ingredients ?? [])} />
+              <button className="btn block" type="submit">Выбрать</button>
             </form>
           </div>
         ))
