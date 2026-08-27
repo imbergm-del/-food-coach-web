@@ -3,11 +3,10 @@ import { LoadingLink } from "@/components/LoadingLink";
 import { BackButton } from "@/components/BackButton";
 import { RetryButton } from "@/components/RetryButton";
 import { FoodThumb } from "@/components/FoodThumb";
-import { getDisplayMealType } from "@/lib/getDisplayMealType";
 import { getNutritionContext } from "@/lib/nutritionContext";
-import { MEAL_TYPE_LABELS } from "@/lib/mealTypes";
 import { suggestJSON } from "@/lib/aiSuggest";
 import { randomCuisineHint } from "@/lib/cuisineHint";
+import { nowInTz } from "@/lib/userTime";
 
 export const maxDuration = 30;
 
@@ -18,28 +17,22 @@ export default async function HungryPage() {
   const { data: { user } } = await supabase.auth.getUser();
   const { data: profile } = await supabase.from("profiles").select("timezone").eq("id", user!.id).single();
 
-  const { type: displayType } = await getDisplayMealType(supabase, user!.id, profile?.timezone);
-  const mealLabel = displayType ? MEAL_TYPE_LABELS[displayType] : "приём пищи";
   const { summary } = await getNutritionContext(supabase, user!.id);
+  const now = nowInTz(profile?.timezone);
+  const timeOfDay = `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
 
-  const options = displayType
-    ? await suggestJSON<Option[]>(
-        `Ты подбираешь срочные варианты еды в приложении AI Food Coach для человека, который голоден прямо сейчас. Каждый раз старайся предлагать разные блюда — избегай одних и тех же типовых вариантов между запросами. Отвечай СТРОГО валидным JSON-массивом без markdown, ровно из 3 элементов в этом порядке и формате: [{"title":"Дома","desc":"...", "ingredients":[{"name":"...","qty":"..."}]}, {"title":"Купить рядом","desc":"..."}, {"title":"Заказать","desc":"...", "ingredients":[{"name":"...","qty":"..."}]}]. desc — 1 короткое предложение с конкретным блюдом.`,
-        `${summary} Сейчас время приёма пищи: ${mealLabel.toLowerCase()}. Для разнообразия сегодня ориентируйся на ${randomCuisineHint()} кухню, если это уместно. Дай 3 срочных варианта именно под ${mealLabel.toLowerCase()} (не предлагай ужинные блюда на завтрак и наоборот): что съесть дома прямо сейчас без готовки, что купить готовое поблизости, и что можно заказать с доставкой — с учётом остатка КБЖУ.`
-      )
-    : null;
+  const options = await suggestJSON<Option[]>(
+    `Ты подбираешь срочные варианты еды в приложении AI Food Coach для человека, который голоден прямо сейчас — неважно, какой у него по расписанию приём пищи. Каждый раз старайся предлагать разные блюда — избегай одних и тех же типовых вариантов между запросами. Отвечай СТРОГО валидным JSON-массивом без markdown, ровно из 3 элементов в этом порядке и формате: [{"title":"Дома","desc":"...", "ingredients":[{"name":"...","qty":"..."}]}, {"title":"Купить рядом","desc":"..."}, {"title":"Заказать","desc":"...", "ingredients":[{"name":"...","qty":"..."}]}]. desc — 1 короткое предложение с конкретным блюдом.`,
+    `${summary} Сейчас ${timeOfDay} по местному времени пользователя. Для разнообразия сегодня ориентируйся на ${randomCuisineHint()} кухню, если это уместно. Дай 3 срочных варианта, уместных именно для этого времени суток: что съесть дома прямо сейчас без готовки, что купить готовое поблизости, и что можно заказать с доставкой — с учётом остатка КБЖУ.`
+  );
 
   return (
     <div className="sheet">
       <BackButton style={{ marginBottom: 16, display: "inline-block" }} />
-      <div className="eyebrow" style={{ marginBottom: 6 }}>Срочный режим · {mealLabel}</div>
+      <div className="eyebrow" style={{ marginBottom: 6 }}>Срочный режим</div>
       <h1 style={{ fontSize: 22, marginBottom: 18, color: "var(--sheet-text)" }}>Я голоден сейчас</h1>
 
-      {!displayType ? (
-        <div className="sheet-card" style={{ flexDirection: "column", alignItems: "stretch" }}>
-          <p style={{ color: "var(--sheet-muted)", fontSize: 13, margin: 0 }}>Все приёмы на сегодня уже отмечены — приятного отдыха от еды 🙂</p>
-        </div>
-      ) : !options ? (
+      {!options ? (
         <div className="sheet-card" style={{ flexDirection: "column", alignItems: "stretch" }}>
           <p style={{ color: "var(--sheet-muted)", fontSize: 13, margin: "0 0 12px" }}>
             {process.env.ANTHROPIC_API_KEY
