@@ -116,11 +116,11 @@ export async function GET(req: Request) {
       }
     }
 
-    // 2) SMS за час до приёма — новая функция, включается отдельно и только по SMS
+    // 2) SMS за 30 минут до приёма — новая функция, включается отдельно и только по SMS
     if (s.meal_reminders_enabled && smsConfigured && profile.phone) {
       for (const mealType of MEAL_SEQUENCE) {
         const target = schedule[mealType];
-        const reminderMinutes = target.hour * 60 + target.minute - 60;
+        const reminderMinutes = target.hour * 60 + target.minute - 30;
         if (nowMinutes < reminderMinutes || nowMinutes >= reminderMinutes + 15) continue;
 
         const isNew = await markSentOnce(s.user_id, today, mealType);
@@ -134,11 +134,11 @@ export async function GET(req: Request) {
         }
 
         try {
-          await sendSms(profile.phone, `AI Food Coach: через час — ${MEAL_TYPE_LABELS[mealType]}: ${title}. Подробнее: ${appUrl}/today`);
+          await sendSms(profile.phone, `AI Food Coach: через 30 минут — ${MEAL_TYPE_LABELS[mealType]}: ${title}. Подробнее: ${appUrl}/today`);
           sentSms++;
         } catch (err) {
           failed++;
-          details.push(`SMS за час (${mealType}) → ${profile.phone}: ${err instanceof Error ? err.message : String(err)}`);
+          details.push(`SMS за 30 минут (${mealType}) → ${profile.phone}: ${err instanceof Error ? err.message : String(err)}`);
         }
       }
     }

@@ -98,7 +98,7 @@ export default async function AdminClientPage({ params }: { params: { id: string
             </span>
           </div>
           <div className="listrow">
-            <span>SMS за час до приёма</span>
+            <span>SMS за 30 минут до приёма</span>
             <span style={{ color: smsOn ? "var(--carbs)" : "var(--ink-soft)", fontWeight: 600 }}>
               {smsOn ? "вкл" : "выкл"}
             </span>

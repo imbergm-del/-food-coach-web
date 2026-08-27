@@ -38,7 +38,7 @@ export default async function SettingsPage() {
       <div className="card" style={{ marginBottom: 16 }}>
         <h3 style={{ fontSize: 15, marginBottom: 4 }}>Расписание приёмов пищи</h3>
         <p style={{ fontSize: 12.5, color: "var(--ink-soft)", margin: "0 0 14px" }}>
-          На этом времени завязано, какой приём показывается на «Сегодня», и когда приходит SMS за час до еды.
+          На этом времени завязано, какой приём показывается на «Сегодня», и когда приходит SMS за 30 минут до еды.
         </p>
         <MealScheduleForm schedule={schedule} />
       </div>
@@ -53,7 +53,7 @@ export default async function SettingsPage() {
 
       <div className="card" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
         <div>
-          <h3 style={{ fontSize: 15 }}>SMS за час до еды</h3>
+          <h3 style={{ fontSize: 15 }}>SMS за 30 минут до еды</h3>
           <p style={{ fontSize: 12.5, color: "var(--ink-soft)", margin: "4px 0 0" }}>Короткое напоминание перед завтраком, обедом, перекусом и ужином</p>
         </div>
         <MealRemindersToggle initialEnabled={settings?.meal_reminders_enabled ?? false} />

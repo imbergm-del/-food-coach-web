@@ -74,7 +74,7 @@ create table if not exists fridge_items (
 create table if not exists reminder_settings (
   user_id uuid primary key references auth.users(id) on delete cascade,
   enabled boolean default true,
-  meal_reminders_enabled boolean default false,  -- SMS за час до каждого приёма
+  meal_reminders_enabled boolean default false,  -- SMS за 30 минут до каждого приёма
   send_at time default '20:00'
 );
 
