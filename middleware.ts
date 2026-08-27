@@ -2,6 +2,11 @@ import { createServerClient, type CookieOptions } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import { isAdminEmail } from "@/lib/isAdmin";
 
+// Vercel убивает Edge-функцию через ~25с. Если Supabase Auth подвисает,
+// без этого таймаута middleware съедает весь бюджет сам и весь сайт отдаёт 504
+// на каждом маршруте — вместо этого после AUTH_TIMEOUT_MS считаем сессию неизвестной.
+const AUTH_TIMEOUT_MS = 8000;
+
 export async function middleware(request: NextRequest) {
   let response = NextResponse.next({ request });
 
@@ -23,8 +28,6 @@ export async function middleware(request: NextRequest) {
     }
   );
 
-  const { data: { user } } = await supabase.auth.getUser();
-
   const isAppRoute =
     request.nextUrl.pathname.startsWith("/today") ||
     request.nextUrl.pathname.startsWith("/plan") ||
@@ -33,6 +36,18 @@ export async function middleware(request: NextRequest) {
     request.nextUrl.pathname.startsWith("/profile") ||
     request.nextUrl.pathname.startsWith("/onboarding") ||
     request.nextUrl.pathname.startsWith("/admin");
+
+  let user = null;
+  try {
+    const timeout = new Promise<never>((_, reject) => {
+      setTimeout(() => reject(new Error("auth timeout")), AUTH_TIMEOUT_MS);
+    });
+    const result = await Promise.race([supabase.auth.getUser(), timeout]);
+    user = result.data.user;
+  } catch {
+    if (isAppRoute) return NextResponse.redirect(new URL("/login", request.url));
+    return response;
+  }
 
   if (isAppRoute && !user) {
     return NextResponse.redirect(new URL("/login", request.url));
