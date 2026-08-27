@@ -3,31 +3,33 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabaseServer";
-import { currentMealType, getMealSchedule } from "@/lib/mealTypes";
-import { todayISOInTz } from "@/lib/userTime";
 
 export async function logPhotoMeal(formData: FormData) {
   const supabase = createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return;
 
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("timezone, breakfast_time, lunch_time, snack_time, dinner_time")
-    .eq("id", user.id).single();
-
+  const mealType = formData.get("mealType") as string;
+  const date = formData.get("date") as string;
   const title = formData.get("title") as string;
   const ingredients = JSON.parse((formData.get("ingredients") as string) || "[]");
   const calories = Number(formData.get("calories"));
   const protein = Number(formData.get("protein"));
   const fat = Number(formData.get("fat"));
   const carbs = Number(formData.get("carbs"));
-  const today = todayISOInTz(profile?.timezone);
+
+  // Фото заменяет текущий запланированный приём этого слота, а не добавляется отдельно
+  await supabase.from("meals")
+    .delete()
+    .eq("user_id", user.id)
+    .eq("date", date)
+    .eq("meal_type", mealType)
+    .eq("status", "planned");
 
   await supabase.from("meals").insert({
     user_id: user.id,
-    date: today,
-    meal_type: currentMealType(profile?.timezone, getMealSchedule(profile)),
+    date,
+    meal_type: mealType,
     title,
     ingredients,
     calories,

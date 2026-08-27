@@ -1,5 +1,4 @@
 import { createClient } from "@/lib/supabaseServer";
-import { LoadingLink } from "@/components/LoadingLink";
 import { BackButton } from "@/components/BackButton";
 import { RetryButton } from "@/components/RetryButton";
 import { FoodThumb } from "@/components/FoodThumb";
@@ -48,7 +47,22 @@ export default async function HungryPage() {
             <div style={{ flex: 1 }}>
               <h3 style={{ fontSize: 15, marginBottom: 4 }}>{o.title}</h3>
               <p style={{ fontSize: 12.5, color: "var(--ink-soft)", margin: 0 }}>{o.desc}</p>
-              {i === 2 && <LoadingLink href="/cart" className="btn" style={{ marginTop: 10, padding: "8px 14px", display: "inline-block" }}>Заказать продукты</LoadingLink>}
+              {i === 2 && (
+                <div style={{ display: "flex", gap: 8, marginTop: 10 }}>
+                  <a
+                    href={`https://www.doordash.com/search/store/${encodeURIComponent(o.desc)}/`}
+                    target="_blank" rel="noopener noreferrer" className="btn ghost" style={{ padding: "8px 14px" }}
+                  >
+                    DoorDash
+                  </a>
+                  <a
+                    href={`https://www.ubereats.com/search?q=${encodeURIComponent(o.desc)}`}
+                    target="_blank" rel="noopener noreferrer" className="btn ghost" style={{ padding: "8px 14px" }}
+                  >
+                    Uber Eats
+                  </a>
+                </div>
+              )}
             </div>
           </div>
         ))

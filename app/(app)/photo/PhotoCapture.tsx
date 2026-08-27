@@ -15,7 +15,7 @@ type Result = {
   carbs: number;
 };
 
-export function PhotoCapture() {
+export function PhotoCapture({ mealType, mealDate }: { mealType: string; mealDate: string }) {
   const [status, setStatus] = useState<"idle" | "analyzing" | "result" | "error">("idle");
   const [preview, setPreview] = useState<string | null>(null);
   const [result, setResult] = useState<Result | null>(null);
@@ -122,6 +122,8 @@ export function PhotoCapture() {
         </div>
         <div style={{ display: "flex", gap: 10, marginTop: 16 }}>
           <form action={logPhotoMeal} style={{ flex: 1 }}>
+            <input type="hidden" name="mealType" value={mealType} />
+            <input type="hidden" name="date" value={mealDate} />
             <input type="hidden" name="title" value={result.title} />
             <input type="hidden" name="ingredients" value={JSON.stringify(result.ingredients)} />
             <input type="hidden" name="calories" value={result.calories} />
