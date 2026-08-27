@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabaseAdmin";
-import { MEAL_TYPE_LABELS, MEAL_SEQUENCE, MEAL_TIME_DEFAULTS, type MealType } from "@/lib/mealTypes";
+import { MEAL_TYPE_LABELS, MEAL_SEQUENCE, getMealSchedule, type MealType } from "@/lib/mealTypes";
 import { MEAL_POOL } from "@/lib/mealMenu";
 import { pickMealForDate } from "@/lib/mealRotation";
 import { scaleMealToTarget } from "@/lib/scaleMeal";
@@ -73,8 +73,12 @@ export async function GET(req: Request) {
 
   for (const s of settings) {
     const { data: profile } = await supabase
-      .from("profiles").select("phone, email, timezone, cooking_mode, cal_target").eq("id", s.user_id).single();
+      .from("profiles")
+      .select("phone, email, timezone, cooking_mode, cal_target, breakfast_time, lunch_time, snack_time, dinner_time")
+      .eq("id", s.user_id).single();
     if (!profile) continue;
+
+    const schedule = getMealSchedule(profile);
 
     const now = nowInTz(profile.timezone);
     const nowMinutes = now.getHours() * 60 + now.getMinutes();
@@ -115,7 +119,7 @@ export async function GET(req: Request) {
     // 2) SMS за час до приёма — новая функция, включается отдельно и только по SMS
     if (s.meal_reminders_enabled && smsConfigured && profile.phone) {
       for (const mealType of MEAL_SEQUENCE) {
-        const target = MEAL_TIME_DEFAULTS[mealType];
+        const target = schedule[mealType];
         const reminderMinutes = target.hour * 60 + target.minute - 60;
         if (nowMinutes < reminderMinutes || nowMinutes >= reminderMinutes + 15) continue;
 

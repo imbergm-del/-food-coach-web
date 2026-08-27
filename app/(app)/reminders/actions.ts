@@ -49,6 +49,22 @@ export async function saveName(formData: FormData) {
   revalidatePath("/today");
 }
 
+export async function saveMealSchedule(formData: FormData) {
+  const supabase = createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return;
+
+  await supabase.from("profiles").update({
+    breakfast_time: (formData.get("breakfast_time") as string) || null,
+    lunch_time: (formData.get("lunch_time") as string) || null,
+    snack_time: (formData.get("snack_time") as string) || null,
+    dinner_time: (formData.get("dinner_time") as string) || null
+  }).eq("id", user.id);
+
+  revalidatePath("/settings");
+  revalidatePath("/today");
+}
+
 // Подбирает другие блюда на завтрак/обед/ужин на завтра — каждый раз следующие
 // по кругу в подборке под текущий режим готовки, а не то же самое. Никаких форм:
 // одна кнопка «Изменить план на завтра».

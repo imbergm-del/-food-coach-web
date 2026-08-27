@@ -3,7 +3,8 @@ import { BackButton } from "@/components/BackButton";
 import { SubmitButton } from "@/components/SubmitButton";
 import { ReminderToggle } from "../reminders/ReminderToggle";
 import { MealRemindersToggle } from "../reminders/MealRemindersToggle";
-import { savePhoneNumber, saveName } from "../reminders/actions";
+import { savePhoneNumber, saveName, saveMealSchedule } from "../reminders/actions";
+import { MEAL_TYPE_LABELS, MEAL_SEQUENCE, getMealSchedule } from "@/lib/mealTypes";
 
 export default async function SettingsPage() {
   const supabase = createClient();
@@ -12,9 +13,14 @@ export default async function SettingsPage() {
   const { data: settings } = await supabase
     .from("reminder_settings").select("*").eq("user_id", user!.id).single();
   const { data: profile } = await supabase
-    .from("profiles").select("name, phone").eq("id", user!.id).single();
+    .from("profiles")
+    .select("name, phone, breakfast_time, lunch_time, snack_time, dinner_time")
+    .eq("id", user!.id).single();
 
   const sendAt = settings?.send_at?.slice(0, 5) ?? "20:00";
+  const schedule = getMealSchedule(profile);
+  const timeValue = (t: { hour: number; minute: number }) =>
+    `${String(t.hour).padStart(2, "0")}:${String(t.minute).padStart(2, "0")}`;
 
   return (
     <div>
@@ -36,6 +42,28 @@ export default async function SettingsPage() {
             }}
           />
           <SubmitButton className="btn" style={{ width: "auto" }} pendingText="Сохраняем…">Сохранить</SubmitButton>
+        </form>
+      </div>
+
+      <div className="card" style={{ marginBottom: 16 }}>
+        <h3 style={{ fontSize: 15, marginBottom: 4 }}>Расписание приёмов пищи</h3>
+        <p style={{ fontSize: 12.5, color: "var(--ink-soft)", margin: "0 0 14px" }}>
+          На этом времени завязано, какой приём показывается на «Сегодня», и когда приходит SMS за час до еды.
+        </p>
+        <form action={saveMealSchedule}>
+          {MEAL_SEQUENCE.map(mealType => (
+            <div key={mealType} className="listrow" style={{ padding: "8px 0" }}>
+              <span style={{ fontSize: 13.5 }}>{MEAL_TYPE_LABELS[mealType]}</span>
+              <input
+                name={`${mealType}_time`} type="time" defaultValue={timeValue(schedule[mealType])}
+                style={{
+                  border: "1px solid var(--line-strong)", borderRadius: 10, padding: "8px 10px",
+                  fontFamily: "var(--mono)", fontSize: 14, background: "var(--card)", color: "var(--ink)"
+                }}
+              />
+            </div>
+          ))}
+          <SubmitButton className="btn" style={{ width: "auto", marginTop: 10 }} pendingText="Сохраняем…">Сохранить</SubmitButton>
         </form>
       </div>
 

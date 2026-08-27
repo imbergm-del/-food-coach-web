@@ -2,16 +2,19 @@ import { createClient } from "@/lib/supabaseServer";
 import { FoodThumb } from "@/components/FoodThumb";
 import { LoadingLink } from "@/components/LoadingLink";
 import { LogTextForm } from "./LogTextForm";
-import { MEAL_TYPE_LABELS, currentMealType } from "@/lib/mealTypes";
+import { MEAL_TYPE_LABELS, currentMealType, getMealSchedule } from "@/lib/mealTypes";
 import { todayISOInTz } from "@/lib/userTime";
 
 export default async function LogPage() {
   const supabase = createClient();
   const { data: { user } } = await supabase.auth.getUser();
-  const { data: profile } = await supabase.from("profiles").select("timezone").eq("id", user!.id).single();
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("timezone, breakfast_time, lunch_time, snack_time, dinner_time")
+    .eq("id", user!.id).single();
 
   const today = todayISOInTz(profile?.timezone);
-  const mealType = currentMealType(profile?.timezone);
+  const mealType = currentMealType(profile?.timezone, getMealSchedule(profile));
 
   const { data: loggedMeals } = await supabase
     .from("meals").select("*").eq("user_id", user!.id).eq("date", today)

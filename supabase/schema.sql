@@ -16,6 +16,10 @@ create table if not exists profiles (
   fat_target int default 70,
   carb_target int default 200,
   cal_target int default 2000,
+  breakfast_time time default '08:00',  -- личное расписание приёмов пищи — на нём завязано
+  lunch_time time default '13:00',      -- переключение "следующего приёма" на /today и SMS-напоминания
+  snack_time time default '16:30',
+  dinner_time time default '19:30',
   created_at timestamptz default now()
 );
 
@@ -87,6 +91,10 @@ create table if not exists meal_reminder_log (
 -- колонки в таблицу, которая уже была создана раньше без них):
 alter table profiles add column if not exists timezone text;
 alter table profiles add column if not exists email text;
+alter table profiles add column if not exists breakfast_time time default '08:00';
+alter table profiles add column if not exists lunch_time time default '13:00';
+alter table profiles add column if not exists snack_time time default '16:30';
+alter table profiles add column if not exists dinner_time time default '19:30';
 alter table reminder_settings add column if not exists meal_reminders_enabled boolean default false;
 alter table meals add column if not exists steps jsonb default '[]';
 

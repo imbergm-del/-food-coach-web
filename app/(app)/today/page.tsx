@@ -6,7 +6,7 @@ import { MacroDial } from "@/components/MacroDial";
 import { FoodThumb } from "@/components/FoodThumb";
 import { RecipeDisclosure } from "./RecipeDisclosure";
 import { SubmitButton } from "@/components/SubmitButton";
-import { MEAL_TYPE_LABELS } from "@/lib/mealTypes";
+import { MEAL_TYPE_LABELS, getMealSchedule } from "@/lib/mealTypes";
 import { MEAL_POOL, type MealDef } from "@/lib/mealMenu";
 import { pickMealForDateAndMode } from "@/lib/mealRotation";
 import { getDisplayMealType } from "@/lib/getDisplayMealType";
@@ -42,7 +42,8 @@ export default async function TodayPage() {
     .from("meals").select("*").eq("user_id", user!.id).eq("date", today).order("id");
 
   const cookingMode = normalizeCookingMode(profile?.cooking_mode);
-  const { type: displayType, date: mealDate } = await getDisplayMealType(supabase, user!.id, tz);
+  const mealSchedule = getMealSchedule(profile);
+  const { type: displayType, date: mealDate } = await getDisplayMealType(supabase, user!.id, tz, mealSchedule);
   const isTomorrow = mealDate !== today;
 
   const mealDateMeals = isTomorrow
