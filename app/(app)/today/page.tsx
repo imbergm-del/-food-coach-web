@@ -121,6 +121,17 @@ export default async function TodayPage() {
                 </span>
               ))}
             </div>
+            {meal.ingredients.length > 0 && (
+              <div style={{ marginBottom: 16 }}>
+                <div className="eyebrow" style={{ marginBottom: 6, fontSize: 10 }}>Ингредиенты</div>
+                {meal.ingredients.map(i => (
+                  <div key={i.name} className="listrow" style={{ padding: "7px 0" }}>
+                    <span style={{ fontSize: 14 }}>{i.name}</span>
+                    <span style={{ fontFamily: "var(--mono)", fontSize: 12, color: "var(--ink-soft)" }}>{i.qty}</span>
+                  </div>
+                ))}
+              </div>
+            )}
             <RecipeDisclosure steps={meal.steps} />
             <div style={{ display: "flex", gap: 10 }}>
               <form action={logMealEaten} style={{ flex: 1 }}>
