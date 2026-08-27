@@ -9,7 +9,7 @@ import { SubmitButton } from "@/components/SubmitButton";
 import { MEAL_TYPE_LABELS } from "@/lib/mealTypes";
 import { MEALS_BY_MODE, type MealDef } from "@/lib/mealMenu";
 import { getDisplayMealType } from "@/lib/getDisplayMealType";
-import { COOKING_MODES, normalizeCookingMode } from "@/lib/cookingMode";
+import { normalizeCookingMode } from "@/lib/cookingMode";
 import { scaleMealToTarget } from "@/lib/scaleMeal";
 
 function timeGreeting() {
@@ -39,7 +39,6 @@ export default async function TodayPage() {
 
   const cookingMode = normalizeCookingMode(profile?.cooking_mode);
   const menu = MEALS_BY_MODE[cookingMode];
-  const timeLabel = COOKING_MODES.find(m => m.key === cookingMode)!.label.toUpperCase();
   const { type: displayType, date: mealDate } = await getDisplayMealType(supabase, user!.id);
   const isTomorrow = mealDate !== today;
 
@@ -137,10 +136,7 @@ export default async function TodayPage() {
           </div>
           <div className="card" style={{ marginBottom: 16, borderLeft: "5px solid var(--protein)" }}>
             <div className="mealtop" style={{ marginBottom: 12 }}>
-              <div className="thumbwrap">
-                <FoodThumb color="var(--protein)" bg="var(--protein-bg)" photoUrl={meal.photoUrl} alt={meal.title} />
-                <span className="timepill">{timeLabel}</span>
-              </div>
+              <FoodThumb color="var(--protein)" bg="var(--protein-bg)" photoUrl={meal.photoUrl} alt={meal.title} />
               <div>
                 <span className="mealbadge">{meal.badge}</span>
                 <h3 style={{ fontSize: 20, marginBottom: 6 }}>{meal.title}</h3>

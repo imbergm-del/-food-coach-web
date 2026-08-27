@@ -15,8 +15,7 @@ export default async function MorePage() {
     { title: "Заменить блюдо", desc: `Похожие варианты по КБЖУ${forMeal}`, href: "/change", color: "var(--protein)", bg: "var(--protein-bg)" },
     { title: "Сфотографировать еду", desc: "Распознать по фото", href: "/photo", color: "var(--fat)", bg: "var(--fat-bg)" },
     { title: "Я голоден сейчас", desc: `Срочные варианты${forMeal}`, href: "/hungry", color: "var(--warn)", bg: "var(--protein-bg)" },
-    { title: "Ем вне дома", desc: `Подбор блюда в ресторане${forMeal}`, href: "/restaurant", color: "var(--water)", bg: "var(--water-bg)" },
-    { title: "Мой холодильник", desc: "Что есть дома", href: "/cart?tab=fridge", color: "var(--carbs)", bg: "var(--carbs-bg)" }
+    { title: "Ем вне дома", desc: `Подбор блюда в ресторане${forMeal}`, href: "/restaurant", color: "var(--water)", bg: "var(--water-bg)" }
   ];
 
   return (

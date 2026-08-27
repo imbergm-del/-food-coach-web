@@ -70,6 +70,7 @@ p { font-size: 15px; line-height: 1.5; }
   cursor: pointer; white-space: nowrap; text-decoration: none;
 }
 .tab.active { background: var(--ink); color: var(--paper); border-color: var(--ink); box-shadow: 0 4px 12px -6px rgba(32,43,31,.5); }
+.tabs.segmented .tab { flex: 1; text-align: center; }
 
 .macrolabel { font-family: var(--mono); font-size: 12px; font-weight: 500; color: var(--ink-soft); display: flex; justify-content: space-between; margin-bottom: 5px; }
 .bar { height: 7px; border-radius: 4px; background: var(--paper2); overflow: hidden; }
@@ -100,12 +101,6 @@ p { font-size: 15px; line-height: 1.5; }
 .macrorows { flex: 1; display: flex; flex-direction: column; gap: 12px; min-width: 0; }
 
 .mealtop { display: flex; gap: 13px; }
-.thumbwrap { position: relative; flex-shrink: 0; }
-.timepill {
-  position: absolute; bottom: -6px; left: -6px; background: var(--ink); color: var(--paper);
-  font-family: var(--mono); font-size: 9px; font-weight: 500; padding: 3px 7px; border-radius: 999px;
-  letter-spacing: .03em;
-}
 .mealbadge {
   display: inline-block; font-family: var(--mono); font-size: 9.5px; font-weight: 500; letter-spacing: .05em;
   text-transform: uppercase; color: var(--ink-soft); border: 1px solid var(--line-strong); border-radius: 999px;

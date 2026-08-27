@@ -13,7 +13,7 @@ export function CookingModeTabs({
   return (
     <div>
       <div className="eyebrow" style={{ marginBottom: 8 }}>Сколько времени есть на еду</div>
-      <div className="tabs">
+      <div className="tabs segmented">
         {COOKING_MODES.map(m => (
           <button
             key={m.key}
