@@ -11,14 +11,17 @@ function timeValue(t: { hour: number; minute: number }) {
 export function MealScheduleForm({ schedule }: { schedule: MealSchedule }) {
   const [pending, startTransition] = useTransition();
   const [saved, setSaved] = useState(false);
+  const [error, setError] = useState("");
 
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
     setSaved(false);
+    setError("");
     startTransition(async () => {
-      await saveMealSchedule(formData);
-      setSaved(true);
+      const result = await saveMealSchedule(formData);
+      if (result.ok) setSaved(true);
+      else setError(result.error || "Не удалось сохранить. Попробуйте ещё раз.");
     });
   }
 
@@ -29,7 +32,7 @@ export function MealScheduleForm({ schedule }: { schedule: MealSchedule }) {
           <span style={{ fontSize: 13.5 }}>{MEAL_TYPE_LABELS[mealType]}</span>
           <input
             name={`${mealType}_time`} type="time" defaultValue={timeValue(schedule[mealType])}
-            onChange={() => setSaved(false)}
+            onChange={() => { setSaved(false); setError(""); }}
             style={{
               border: "1px solid var(--line-strong)", borderRadius: 10, padding: "8px 10px",
               fontFamily: "var(--mono)", fontSize: 14, background: "var(--card)", color: "var(--ink)"
@@ -45,7 +48,10 @@ export function MealScheduleForm({ schedule }: { schedule: MealSchedule }) {
             </span>
           ) : "Сохранить"}
         </button>
-        {saved && !pending && (
+        {error && (
+          <span style={{ fontSize: 13, fontWeight: 600, color: "var(--warn)" }}>{error}</span>
+        )}
+        {saved && !pending && !error && (
           <span style={{ fontSize: 13, fontWeight: 600, color: "var(--carbs)" }}>Сохранено ✓</span>
         )}
       </div>
