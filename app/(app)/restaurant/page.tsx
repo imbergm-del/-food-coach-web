@@ -54,23 +54,9 @@ export default async function RestaurantPage() {
             <div className="eyebrow" style={{ marginBottom: 6 }}>Лучший выбор сейчас</div>
             <h3 style={{ fontSize: 16, marginBottom: 6 }}>{pick.title}</h3>
             <p style={{ fontSize: 12.5, color: "var(--ink-soft)", margin: "0 0 8px" }}>{pick.desc}</p>
-            <p style={{ fontFamily: "var(--mono)", fontSize: 11.5, color: "var(--ink-soft)", margin: "0 0 14px" }}>
+            <p style={{ fontFamily: "var(--mono)", fontSize: 11.5, color: "var(--ink-soft)", margin: 0 }}>
               {pick.calories} ккал · Б {pick.protein} · Ж {pick.fat} · У {pick.carbs}
             </p>
-            <div style={{ display: "flex", gap: 8 }}>
-              <a
-                href={`https://www.doordash.com/search/store/${encodeURIComponent(pick.title)}/`}
-                target="_blank" rel="noopener noreferrer" className="btn ghost" style={{ flex: 1, textAlign: "center" }}
-              >
-                DoorDash
-              </a>
-              <a
-                href={`https://www.ubereats.com/search?q=${encodeURIComponent(pick.title)}`}
-                target="_blank" rel="noopener noreferrer" className="btn ghost" style={{ flex: 1, textAlign: "center" }}
-              >
-                Uber Eats
-              </a>
-            </div>
           </div>
         </div>
       )}
