@@ -9,6 +9,7 @@ import { SubmitButton } from "@/components/SubmitButton";
 import { MEAL_TYPE_LABELS } from "@/lib/mealTypes";
 import { MEALS_BY_MODE, type MealDef } from "@/lib/mealMenu";
 import { getDisplayMealType } from "@/lib/getDisplayMealType";
+import { normalizeCookingMode } from "@/lib/cookingMode";
 
 function timeGreeting() {
   const hour = new Date().getHours();
@@ -31,8 +32,8 @@ export default async function TodayPage() {
   const { data: meals } = await supabase
     .from("meals").select("*").eq("user_id", user!.id).eq("date", today).order("id");
 
-  const cookingMode = profile?.cooking_mode ?? "0";
-  const menu = MEALS_BY_MODE[cookingMode] ?? MEALS_BY_MODE["0"];
+  const cookingMode = normalizeCookingMode(profile?.cooking_mode);
+  const menu = MEALS_BY_MODE[cookingMode];
   const { type: displayType, date: mealDate } = await getDisplayMealType(supabase, user!.id);
   const isTomorrow = mealDate !== today;
 
@@ -111,7 +112,13 @@ export default async function TodayPage() {
         </div>
       </div>
 
-      <CookingModeTabs current={cookingMode} />
+      {plannedRow ? (
+        <p style={{ fontSize: 12.5, color: "var(--ink-soft)", margin: "0 0 16px" }}>
+          Этот приём вы задали вручную — время на готовку тут ни при чём.
+        </p>
+      ) : (
+        <CookingModeTabs current={cookingMode} />
+      )}
 
       {meal && displayType ? (
         <>

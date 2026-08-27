@@ -7,13 +7,13 @@ import { MEALS_BY_MODE } from "@/lib/mealMenu";
 import { suggestJSON } from "@/lib/aiSuggest";
 import { chooseAlternative } from "./actions";
 import { SubmitButton } from "@/components/SubmitButton";
+import { normalizeCookingMode } from "@/lib/cookingMode";
 
 type Alt = { title: string; calories: number; protein: number; fat: number; carbs: number; ingredients: { name: string; qty: string }[] };
 
 const COOKING_TIME_LABEL: Record<string, string> = {
-  "0": "нет времени — только готовое, без плиты",
   "5": "5 минут на сборку",
-  "15": "15–20 минут, есть плита/духовка"
+  "15": "10–15 минут, есть плита/духовка"
 };
 
 export default async function ChangePage() {
@@ -23,7 +23,7 @@ export default async function ChangePage() {
 
   const { type: displayType, date: mealDate } = await getDisplayMealType(supabase, user!.id);
   const mealLabel = displayType ? MEAL_TYPE_LABELS[displayType] : "приём пищи";
-  const cookingMode = profile?.cooking_mode ?? "0";
+  const cookingMode = normalizeCookingMode(profile?.cooking_mode);
   const currentMeal = displayType ? MEALS_BY_MODE[cookingMode]?.[displayType] : undefined;
 
   const alts = displayType

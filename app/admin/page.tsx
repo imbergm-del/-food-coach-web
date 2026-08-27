@@ -3,8 +3,7 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabaseServer";
 import { createAdminClient } from "@/lib/supabaseAdmin";
 import { isAdminEmail } from "@/lib/isAdmin";
-
-const COOKING_MODE_LABELS: Record<string, string> = { "0": "0 мин", "5": "5 мин", "15": "15–20 мин" };
+import { cookingModeLabel } from "@/lib/cookingMode";
 
 export default async function AdminPage() {
   const supabase = createClient();
@@ -81,7 +80,7 @@ export default async function AdminPage() {
                       {p.created_at ? new Date(p.created_at).toLocaleDateString("ru-RU") : "—"}
                     </td>
                     <td style={{ padding: "8px 10px" }}>{p.age != null ? "✓" : "—"}</td>
-                    <td style={{ padding: "8px 10px" }}>{COOKING_MODE_LABELS[p.cooking_mode] ?? p.cooking_mode}</td>
+                    <td style={{ padding: "8px 10px" }}>{cookingModeLabel(p.cooking_mode)}</td>
                     <td style={{ padding: "8px 10px", fontFamily: "var(--mono)" }}>{stats?.count ?? 0}</td>
                     <td style={{ padding: "8px 10px", fontFamily: "var(--mono)", fontSize: 11.5, color: "var(--ink-soft)" }}>
                       {stats?.lastAt ? new Date(stats.lastAt).toLocaleString("ru-RU") : "—"}

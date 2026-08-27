@@ -9,7 +9,7 @@ create table if not exists profiles (
   height_cm numeric,
   workouts_per_week int default 0,
   phone text,
-  cooking_mode text default '0',
+  cooking_mode text default '5',
   theme text default 'field',
   protein_target int default 120,
   fat_target int default 70,
