@@ -5,6 +5,12 @@ export const MEAL_TYPE_LABELS: Record<MealType, string> = {
   breakfast: "Завтрак", lunch: "Обед", snack: "Перекус", dinner: "Ужин"
 };
 
+// Доля суточной нормы калорий на каждый приём — используется, чтобы подгонять
+// рецепты под личную норму пользователя, а не показывать фиксированные цифры всем.
+export const MEAL_CALORIE_SHARE: Record<MealType, number> = {
+  breakfast: 0.25, lunch: 0.35, snack: 0.15, dinner: 0.25
+};
+
 export function currentMealType(): MealType {
   const hour = new Date().getHours();
   if (hour < 11) return "breakfast";

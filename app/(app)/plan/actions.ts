@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabaseServer";
 import { MEALS_BY_MODE } from "@/lib/mealMenu";
+import { scaleMealToTarget } from "@/lib/scaleMeal";
 
 const MAIN_MEALS = ["breakfast", "lunch", "dinner"] as const;
 
@@ -21,6 +22,9 @@ export async function generateWeekPlan(formData: FormData) {
 
   const weekEnd = (formData.get("weekEnd") as string) || toISODate(new Date());
   const todayISO = toISODate(new Date());
+
+  const { data: profile } = await supabase.from("profiles").select("cal_target").eq("id", user.id).single();
+  const calTarget = profile?.cal_target ?? 2200;
 
   const { data: existing } = await supabase
     .from("meals")
@@ -40,7 +44,7 @@ export async function generateWeekPlan(formData: FormData) {
     for (const mealType of MAIN_MEALS) {
       const key = `${iso}|${mealType}`;
       if (existingKeys.has(key)) continue;
-      const def = MEALS_BY_MODE[mode][mealType];
+      const def = scaleMealToTarget(MEALS_BY_MODE[mode][mealType], mealType, calTarget);
       rows.push({
         user_id: user.id,
         date: iso,
@@ -52,7 +56,7 @@ export async function generateWeekPlan(formData: FormData) {
         fat: def.fat,
         carbs: def.carbs,
         status: "planned",
-        source: "plan"
+        source: "week_plan"
       });
     }
   }

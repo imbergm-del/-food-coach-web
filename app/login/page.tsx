@@ -39,7 +39,12 @@ export default function LoginPage() {
       setError(friendlyAuthError(error.message));
       return;
     }
-    router.push("/onboarding");
+
+    const { data: { user } } = await supabase.auth.getUser();
+    const { data: profile } = user
+      ? await supabase.from("profiles").select("age").eq("id", user.id).single()
+      : { data: null };
+    router.push(profile?.age == null ? "/onboarding" : "/today");
     router.refresh();
   }
 

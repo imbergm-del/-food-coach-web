@@ -10,6 +10,7 @@ import { MEAL_TYPE_LABELS } from "@/lib/mealTypes";
 import { MEALS_BY_MODE, type MealDef } from "@/lib/mealMenu";
 import { getDisplayMealType } from "@/lib/getDisplayMealType";
 import { normalizeCookingMode } from "@/lib/cookingMode";
+import { scaleMealToTarget } from "@/lib/scaleMeal";
 
 function timeGreeting() {
   const hour = new Date().getHours();
@@ -21,6 +22,10 @@ function timeGreeting() {
 
 function dateLabel() {
   return new Date().toLocaleDateString("ru-RU", { weekday: "short", day: "numeric", month: "long" }).toUpperCase();
+}
+
+function formatDateLabel(iso: string) {
+  return new Date(`${iso}T00:00:00`).toLocaleDateString("ru-RU", { weekday: "short", day: "numeric", month: "long" });
 }
 
 export default async function TodayPage() {
@@ -52,7 +57,9 @@ export default async function TodayPage() {
             ? plannedRow.ingredients.map((i: { name: string }) => i.name).join(", ")
             : plannedRow.source === "plan"
               ? "Из вашего плана на вечер"
-              : "Выбрано вами как замена",
+              : plannedRow.source === "week_plan"
+                ? "Из плана на неделю"
+                : "Выбрано вами как замена",
           calories: plannedRow.calories ?? 0,
           protein: plannedRow.protein ?? 0,
           fat: plannedRow.fat ?? 0,
@@ -61,7 +68,7 @@ export default async function TodayPage() {
           steps: [],
           plannedMealId: plannedRow.id
         }
-      : menu[displayType];
+      : scaleMealToTarget(menu[displayType], displayType, profile?.cal_target ?? 2200);
 
   const p = profile ?? { protein_target: 125, fat_target: 72, carb_target: 210, cal_target: 2200, name: "друг" };
   const usedProtein = meals?.reduce((s, m) => s + (m.status === "eaten" || m.status === "photo_logged" ? m.protein ?? 0 : 0), 0) ?? 0;
@@ -82,6 +89,11 @@ export default async function TodayPage() {
       <p style={{ fontSize: 13, color: "var(--ink-soft)", margin: "0 0 16px" }}>
         Норма на день: {p.cal_target} ккал · Б {p.protein_target} · Ж {p.fat_target} · У {p.carb_target}
       </p>
+      {isTomorrow && (
+        <p style={{ fontSize: 12.5, color: "var(--protein)", fontWeight: 700, margin: "-8px 0 16px" }}>
+          Поздний час — приёмы на сегодня позади, дальше речь про завтра, {formatDateLabel(mealDate)}.
+        </p>
+      )}
 
       <div
         className="card"
@@ -112,13 +124,12 @@ export default async function TodayPage() {
         </div>
       </div>
 
-      {plannedRow ? (
-        <p style={{ fontSize: 12.5, color: "var(--ink-soft)", margin: "0 0 16px" }}>
-          Этот приём вы задали вручную — время на готовку тут ни при чём.
+      {plannedRow && plannedRow.source !== "week_plan" && (
+        <p style={{ fontSize: 12.5, color: "var(--ink-soft)", margin: "0 0 10px" }}>
+          Этот приём вы задали вручную — но время на готовку всё ещё можно поменять ниже.
         </p>
-      ) : (
-        <CookingModeTabs current={cookingMode} />
       )}
+      <CookingModeTabs current={cookingMode} />
 
       {meal && displayType ? (
         <>
