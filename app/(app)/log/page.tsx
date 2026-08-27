@@ -1,32 +1,54 @@
+import { createClient } from "@/lib/supabaseServer";
 import { FoodThumb } from "@/components/FoodThumb";
 import { LoadingLink } from "@/components/LoadingLink";
+import { LogTextForm } from "./LogTextForm";
+import { MEAL_TYPE_LABELS, currentMealType } from "@/lib/mealTypes";
+import { todayISOInTz } from "@/lib/userTime";
 
-export default function LogPage() {
+export default async function LogPage() {
+  const supabase = createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  const { data: profile } = await supabase.from("profiles").select("timezone").eq("id", user!.id).single();
+
+  const today = todayISOInTz(profile?.timezone);
+  const mealType = currentMealType(profile?.timezone);
+
+  const { data: loggedMeals } = await supabase
+    .from("meals").select("*").eq("user_id", user!.id).eq("date", today)
+    .in("status", ["eaten", "photo_logged"]).order("id");
+
   return (
     <div>
       <div className="eyebrow" style={{ marginBottom: 6 }}>Записать еду</div>
       <h1 style={{ fontSize: 24, marginBottom: 18 }}>Что вы съели?</h1>
-      <div className="card" style={{ marginBottom: 14 }}>
-        <p style={{ fontSize: 13, color: "var(--ink-soft)", margin: "0 0 10px" }}>Опишите словами</p>
-        <div style={{ border: "1px solid var(--line-strong)", borderRadius: 10, padding: "10px 12px", fontSize: 13.5, color: "var(--ink-soft)", marginBottom: 12 }}>
-          2 яйца, тост и капучино
-        </div>
-        <button className="btn block">Разобрать с ИИ</button>
-      </div>
-      <div style={{ display: "flex", gap: 10, marginBottom: 16 }}>
-        <LoadingLink href="/photo" className="btn ghost block" style={{ textAlign: "center" }}>Сфотографировать</LoadingLink>
-        <button className="btn ghost block">Голосом</button>
-      </div>
+
+      <LogTextForm mealType={mealType} />
+
+      <LoadingLink href="/photo" className="btn ghost block" style={{ textAlign: "center", marginBottom: 16 }}>
+        Сфотографировать
+      </LoadingLink>
+
       <div className="eyebrow" style={{ marginBottom: 8 }}>Сегодня записано</div>
       <div className="card">
-        <div className="listrow">
-          <span style={{ display: "flex", alignItems: "center" }}><FoodThumb color="var(--carbs)" bg="var(--carbs-bg)" size={36} /><span style={{ marginLeft: 10 }}>Завтрак — йогурт с ягодами</span></span>
-          <span className="macrolabel">32 г белка</span>
-        </div>
-        <div className="listrow">
-          <span style={{ display: "flex", alignItems: "center" }}><FoodThumb color="var(--protein)" bg="var(--protein-bg)" size={36} /><span style={{ marginLeft: 10 }}>Обед — курица с рисом</span></span>
-          <span className="macrolabel">42 г белка</span>
-        </div>
+        {loggedMeals?.length ? (
+          loggedMeals.map(m => (
+            <div key={m.id} className="listrow">
+              <span style={{ display: "flex", alignItems: "center" }}>
+                <FoodThumb
+                  color={m.status === "photo_logged" ? "var(--fat)" : "var(--protein)"}
+                  bg={m.status === "photo_logged" ? "var(--fat-bg)" : "var(--protein-bg)"}
+                  size={36}
+                />
+                <span style={{ marginLeft: 10 }}>
+                  {MEAL_TYPE_LABELS[m.meal_type as keyof typeof MEAL_TYPE_LABELS] ?? m.meal_type} — {m.title ?? "без названия"}
+                </span>
+              </span>
+              <span className="macrolabel">{m.protein ?? 0} г белка</span>
+            </div>
+          ))
+        ) : (
+          <p style={{ fontSize: 13, color: "var(--ink-soft)", margin: 0 }}>Сегодня пока ничего не записано.</p>
+        )}
       </div>
     </div>
   );
