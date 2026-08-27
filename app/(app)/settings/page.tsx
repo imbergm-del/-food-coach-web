@@ -1,11 +1,11 @@
 import { createClient } from "@/lib/supabaseServer";
 import { BackButton } from "@/components/BackButton";
-import { SubmitButton } from "@/components/SubmitButton";
 import { ReminderToggle } from "../reminders/ReminderToggle";
 import { MealRemindersToggle } from "../reminders/MealRemindersToggle";
 import { savePhoneNumber, saveName } from "../reminders/actions";
 import { getMealSchedule } from "@/lib/mealTypes";
 import { MealScheduleForm } from "./MealScheduleForm";
+import { SavedField } from "./SavedField";
 
 export default async function SettingsPage() {
   const supabase = createClient();
@@ -32,16 +32,7 @@ export default async function SettingsPage() {
         <p style={{ fontSize: 12.5, color: "var(--ink-soft)", margin: "0 0 14px" }}>
           Приложение поздоровается по имени на экране «Сегодня».
         </p>
-        <form action={saveName} style={{ display: "flex", gap: 8 }}>
-          <input
-            name="name" type="text" defaultValue={profile?.name ?? ""} placeholder="Например, Майк"
-            style={{
-              flex: 1, border: "1px solid var(--line-strong)", borderRadius: 12, padding: "11px 14px",
-              fontFamily: "var(--sans)", fontSize: 14, background: "var(--card)", color: "var(--ink)"
-            }}
-          />
-          <SubmitButton className="btn" style={{ width: "auto" }} pendingText="Сохраняем…">Сохранить</SubmitButton>
-        </form>
+        <SavedField action={saveName} fieldName="name" initialValue={profile?.name ?? ""} placeholder="Например, Майк" />
       </div>
 
       <div className="card" style={{ marginBottom: 16 }}>
@@ -73,16 +64,7 @@ export default async function SettingsPage() {
         <p style={{ fontSize: 12.5, color: "var(--ink-soft)", margin: "0 0 14px" }}>
           Укажите номер — оба напоминания выше придут текстовым сообщением на телефон, а не на почту.
         </p>
-        <form action={savePhoneNumber} style={{ display: "flex", gap: 8 }}>
-          <input
-            name="phone" type="tel" defaultValue={profile?.phone ?? ""} placeholder="+1 555 123 4567"
-            style={{
-              flex: 1, border: "1px solid var(--line-strong)", borderRadius: 12, padding: "11px 14px",
-              fontFamily: "var(--mono)", fontSize: 14, background: "var(--card)", color: "var(--ink)"
-            }}
-          />
-          <SubmitButton className="btn" style={{ width: "auto" }} pendingText="Сохраняем…">Сохранить</SubmitButton>
-        </form>
+        <SavedField action={savePhoneNumber} fieldName="phone" initialValue={profile?.phone ?? ""} placeholder="+1 555 123 4567" type="tel" />
       </div>
     </div>
   );
