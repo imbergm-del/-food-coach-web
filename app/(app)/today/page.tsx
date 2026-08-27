@@ -9,7 +9,7 @@ import { SubmitButton } from "@/components/SubmitButton";
 import { MEAL_TYPE_LABELS } from "@/lib/mealTypes";
 import { MEALS_BY_MODE, type MealDef } from "@/lib/mealMenu";
 import { getDisplayMealType } from "@/lib/getDisplayMealType";
-import { normalizeCookingMode } from "@/lib/cookingMode";
+import { COOKING_MODES, normalizeCookingMode } from "@/lib/cookingMode";
 import { scaleMealToTarget } from "@/lib/scaleMeal";
 
 function timeGreeting() {
@@ -39,6 +39,7 @@ export default async function TodayPage() {
 
   const cookingMode = normalizeCookingMode(profile?.cooking_mode);
   const menu = MEALS_BY_MODE[cookingMode];
+  const timeLabel = COOKING_MODES.find(m => m.key === cookingMode)!.label.toUpperCase();
   const { type: displayType, date: mealDate } = await getDisplayMealType(supabase, user!.id);
   const isTomorrow = mealDate !== today;
 
@@ -48,7 +49,12 @@ export default async function TodayPage() {
 
   // Если этот приём был спланирован вечером заранее (см. «Напоминания»), покажем его вместо общей подсказки
   const plannedRow = displayType ? mealDateMeals?.find(m => m.meal_type === displayType && m.status === "planned") : undefined;
-  const meal: (MealDef & { plannedMealId?: number }) | null = !displayType
+  const plannedBadge =
+    plannedRow?.source === "plan" ? "Ваш план на вечер"
+    : plannedRow?.source === "week_plan" ? "План на неделю"
+    : plannedRow?.source === "change" ? "Ваш выбор"
+    : "Из плана";
+  const meal: (MealDef & { plannedMealId?: number; badge: string }) | null = !displayType
     ? null
     : plannedRow
       ? {
@@ -66,9 +72,10 @@ export default async function TodayPage() {
           carbs: plannedRow.carbs ?? 0,
           ingredients: plannedRow.ingredients ?? [],
           steps: [],
-          plannedMealId: plannedRow.id
+          plannedMealId: plannedRow.id,
+          badge: plannedBadge
         }
-      : scaleMealToTarget(menu[displayType], displayType, profile?.cal_target ?? 2200);
+      : { ...scaleMealToTarget(menu[displayType], displayType, profile?.cal_target ?? 2200), badge: "Рецепт под ваш режим" };
 
   const p = profile ?? { protein_target: 125, fat_target: 72, carb_target: 210, cal_target: 2200, name: "друг" };
   const usedProtein = meals?.reduce((s, m) => s + (m.status === "eaten" || m.status === "photo_logged" ? m.protein ?? 0 : 0), 0) ?? 0;
@@ -86,39 +93,31 @@ export default async function TodayPage() {
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.6}><circle cx="12" cy="12" r="3.2" /><path d="M19.4 13.5a7.6 7.6 0 0 0 0-3l1.9-1.5-2-3.4-2.3.7a7.6 7.6 0 0 0-2.6-1.5L14 2.5h-4l-.4 2.3a7.6 7.6 0 0 0-2.6 1.5l-2.3-.7-2 3.4L4.6 10.5a7.6 7.6 0 0 0 0 3l-1.9 1.5 2 3.4 2.3-.7a7.6 7.6 0 0 0 2.6 1.5l.4 2.3h4l.4-2.3a7.6 7.6 0 0 0 2.6-1.5l2.3.7 2-3.4-1.9-1.5Z" /></svg>
         </LoadingLink>
       </div>
-      <p style={{ fontSize: 13, color: "var(--ink-soft)", margin: "0 0 16px" }}>
-        Норма на день: {p.cal_target} ккал · Б {p.protein_target} · Ж {p.fat_target} · У {p.carb_target}
-      </p>
+      <div className="chiprow">
+        <span className="chip cal">🔥 <b>{p.cal_target}</b>&nbsp;ккал</span>
+        <span className="chip protein"><b>{p.protein_target}</b>&nbsp;г Б</span>
+        <span className="chip fat"><b>{p.fat_target}</b>&nbsp;г Ж</span>
+        <span className="chip carbs"><b>{p.carb_target}</b>&nbsp;г У</span>
+      </div>
       {isTomorrow && (
         <p style={{ fontSize: 12.5, color: "var(--protein)", fontWeight: 700, margin: "-8px 0 16px" }}>
           Поздний час — приёмы на сегодня позади, дальше речь про завтра, {formatDateLabel(mealDate)}.
         </p>
       )}
 
-      <div
-        className="card"
-        style={{
-          display: "flex", flexDirection: "column", alignItems: "center", marginBottom: 16,
-          background: "radial-gradient(120% 100% at 50% 0%, var(--protein-bg) 0%, var(--card) 68%)"
-        }}
-      >
-        <MacroDial
-          proteinPct={usedProtein / p.protein_target}
-          fatPct={usedFat / p.fat_target}
-          carbsPct={usedCarbs / p.carb_target}
-          caloriesLeft={caloriesLeft}
-        />
-        <div style={{ display: "flex", width: "100%", marginTop: 18, gap: 8 }}>
+      <div className="card ringcard" style={{ marginBottom: 16 }}>
+        <MacroDial usedCals={usedCals} calTarget={p.cal_target} caloriesLeft={caloriesLeft} />
+        <div className="macrorows">
           {([
-            ["Белок", usedProtein, p.protein_target, "var(--protein)", "var(--protein-bg)"],
-            ["Жиры", usedFat, p.fat_target, "var(--fat-ink)", "var(--fat-bg)"],
-            ["Углеводы", usedCarbs, p.carb_target, "var(--carbs)", "var(--carbs-bg)"]
-          ] as [string, number, number, string, string][]).map(([label, used, target, color, bg]) => (
-            <div key={label} style={{ flex: 1, textAlign: "center", background: bg, borderRadius: 14, padding: "10px 4px" }}>
-              <div style={{ fontFamily: "var(--mono)", fontSize: 17, fontWeight: 700, color }}>
-                {used}<span style={{ fontSize: 12, fontWeight: 500, opacity: 0.75 }}>/{target}</span>
+            ["Белки", usedProtein, p.protein_target, "protein"],
+            ["Жиры", usedFat, p.fat_target, "fat"],
+            ["Углеводы", usedCarbs, p.carb_target, "carbs"]
+          ] as [string, number, number, string][]).map(([label, used, target, colorClass]) => (
+            <div key={label}>
+              <div className="macrolabel"><span>{label}</span><span><b style={{ color: "var(--ink)" }}>{used}</b>&nbsp;/&nbsp;{target} г</span></div>
+              <div className="bar">
+                <div style={{ width: `${Math.min(100, target > 0 ? (used / target) * 100 : 0)}%`, background: `var(--${colorClass})` }} />
               </div>
-              <div style={{ fontSize: 9.5, fontWeight: 600, letterSpacing: ".04em", textTransform: "uppercase", color, opacity: 0.85, marginTop: 3 }}>{label}</div>
             </div>
           ))}
         </div>
@@ -137,9 +136,13 @@ export default async function TodayPage() {
             Следующий приём{isTomorrow ? " · Завтра" : ""} · {MEAL_TYPE_LABELS[displayType]}
           </div>
           <div className="card" style={{ marginBottom: 16, borderLeft: "5px solid var(--protein)" }}>
-            <div style={{ display: "flex", gap: 14, alignItems: "flex-start", marginBottom: 12 }}>
-              <FoodThumb color="var(--protein)" bg="var(--protein-bg)" photoUrl={meal.photoUrl} alt={meal.title} />
+            <div className="mealtop" style={{ marginBottom: 12 }}>
+              <div className="thumbwrap">
+                <FoodThumb color="var(--protein)" bg="var(--protein-bg)" photoUrl={meal.photoUrl} alt={meal.title} />
+                <span className="timepill">{timeLabel}</span>
+              </div>
               <div>
+                <span className="mealbadge">{meal.badge}</span>
                 <h3 style={{ fontSize: 20, marginBottom: 6 }}>{meal.title}</h3>
                 <p style={{ fontSize: 14.5, color: "var(--ink-soft)", margin: 0 }}>{meal.desc}</p>
               </div>
@@ -157,7 +160,7 @@ export default async function TodayPage() {
               ))}
             </div>
             <RecipeDisclosure ingredients={meal.ingredients} steps={meal.steps} />
-            <div style={{ display: "flex", gap: 10 }}>
+            <div className="actionrow" style={{ marginBottom: 10 }}>
               <form action={logMealEaten} style={{ flex: 1 }}>
                 {meal.plannedMealId && <input type="hidden" name="mealId" value={meal.plannedMealId} />}
                 <input type="hidden" name="title" value={meal.title} />
@@ -168,10 +171,12 @@ export default async function TodayPage() {
                 <input type="hidden" name="protein" value={meal.protein} />
                 <input type="hidden" name="fat" value={meal.fat} />
                 <input type="hidden" name="carbs" value={meal.carbs} />
-                <SubmitButton>Съел(а)</SubmitButton>
+                <SubmitButton className="actbtn" pendingText="…">Съел</SubmitButton>
               </form>
-              <LoadingLink href="/more" className="btn ghost" style={{ flex: 1, textAlign: "center" }}>Другое &#8943;</LoadingLink>
+              <LoadingLink href="/change" className="actbtn ghost">Заменить</LoadingLink>
+              <LoadingLink href="/photo" className="actbtn ghost">Фото</LoadingLink>
             </div>
+            <LoadingLink href="/more" className="btn ghost block" style={{ textAlign: "center" }}>Другое &#8943;</LoadingLink>
           </div>
         </>
       ) : (

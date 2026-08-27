@@ -35,7 +35,7 @@ export function BottomNav() {
             type="button"
             onClick={() => go(item.href)}
             disabled={isPending}
-            className={`navbtn ${active ? "active" : ""}`}
+            className={`navbtn ${item.key === "log" ? "mid" : ""} ${active ? "active" : ""}`}
             style={{ background: "none", border: "none", font: "inherit", opacity: isPending && !loading ? 0.4 : 1 }}
           >
             <span className="navicon">{loading ? <span className="spinner" /> : NavIcons[item.key]}</span>

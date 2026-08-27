@@ -1,5 +1,33 @@
 import Anthropic from "@anthropic-ai/sdk";
 
+// Если ответ модели обрезался посреди JSON-массива (не хватило max_tokens),
+// вытаскиваем все полностью пришедшие объекты верхнего уровня вместо того,
+// чтобы терять всю подборку из-за одного недописанного элемента в хвосте.
+function salvagePartialArray(raw: string): unknown[] | null {
+  if (!raw.trim().startsWith("[")) return null;
+  const items: unknown[] = [];
+  let depth = 0;
+  let start = -1;
+  for (let i = 0; i < raw.length; i++) {
+    const ch = raw[i];
+    if (ch === "{") {
+      if (depth === 0) start = i;
+      depth++;
+    } else if (ch === "}") {
+      depth--;
+      if (depth === 0 && start >= 0) {
+        try {
+          items.push(JSON.parse(raw.slice(start, i + 1)));
+        } catch {
+          // хвостовой объект тоже обрезан — пропускаем его, остальное уже спасли
+        }
+        start = -1;
+      }
+    }
+  }
+  return items.length ? items : null;
+}
+
 // Generic helper for server components that need a structured (JSON) suggestion
 // from the model. Returns null if unconfigured or on any failure — callers show
 // a fallback message instead of crashing the page. Retries once on failure/timeout,
@@ -27,7 +55,13 @@ export async function suggestJSON<T>(
 
     const match = text.match(/[[{][\s\S]*[\]}]/) ?? text.match(/\{[\s\S]*\}/);
     if (!match) throw new Error("No JSON found in model response");
-    return JSON.parse(match[0]) as T;
+    try {
+      return JSON.parse(match[0]) as T;
+    } catch (parseErr) {
+      const salvaged = salvagePartialArray(match[0]);
+      if (salvaged) return salvaged as T;
+      throw parseErr;
+    }
   };
 
   try {
