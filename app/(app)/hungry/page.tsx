@@ -12,7 +12,7 @@ export default async function HungryPage() {
   const supabase = createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
-  const displayType = await getDisplayMealType(supabase, user!.id);
+  const { type: displayType } = await getDisplayMealType(supabase, user!.id);
   const mealLabel = displayType ? MEAL_TYPE_LABELS[displayType] : "приём пищи";
   const { summary } = await getNutritionContext(supabase, user!.id);
 

@@ -1,14 +1,17 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { MEAL_SEQUENCE, currentMealType, type MealType } from "@/lib/mealTypes";
+import { MEAL_SEQUENCE, currentMealType, currentMealDate, type MealType } from "@/lib/mealTypes";
 
-// Тот же приём, что показывается на «Сегодня»: текущий по времени, если он ещё
-// не отмечен, иначе первый неотмеченный по порядку за день.
-export async function getDisplayMealType(supabase: SupabaseClient, userId: string): Promise<MealType | undefined> {
-  const today = new Date().toISOString().slice(0, 10);
+// Приём, который сейчас показывается как «следующий»: текущий по времени, если он ещё
+// не отмечен, иначе первый неотмеченный по порядку. После 20:00 date уже завтрашняя.
+export async function getDisplayMealType(
+  supabase: SupabaseClient, userId: string
+): Promise<{ type: MealType | undefined; date: string }> {
+  const date = currentMealDate();
   const { data: meals } = await supabase
-    .from("meals").select("meal_type, status").eq("user_id", userId).eq("date", today);
+    .from("meals").select("meal_type, status").eq("user_id", userId).eq("date", date);
 
   const loggedTypes = new Set((meals ?? []).filter(m => m.status !== "planned").map(m => m.meal_type));
   const clockType = currentMealType();
-  return !loggedTypes.has(clockType) ? clockType : MEAL_SEQUENCE.find(t => !loggedTypes.has(t));
+  const type = !loggedTypes.has(clockType) ? clockType : MEAL_SEQUENCE.find(t => !loggedTypes.has(t));
+  return { type, date };
 }

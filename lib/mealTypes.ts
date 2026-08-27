@@ -10,7 +10,16 @@ export function currentMealType(): MealType {
   if (hour < 11) return "breakfast";
   if (hour < 16) return "lunch";
   if (hour < 19) return "snack";
-  return "dinner";
+  if (hour < 20) return "dinner";
+  return "breakfast"; // после 20:00 — переходим к завтраку на завтра
+}
+
+// Дата, на которую подбирается «следующий приём»: обычно сегодня,
+// но после 20:00 (когда ужин уже позади) — уже завтра.
+export function currentMealDate(): string {
+  const now = new Date();
+  if (now.getHours() >= 20) now.setDate(now.getDate() + 1);
+  return now.toISOString().slice(0, 10);
 }
 
 // По совету тренера: ужин = белок + овощи + полезный жир

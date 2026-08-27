@@ -7,7 +7,7 @@ import { MEAL_TYPE_LABELS } from "@/lib/mealTypes";
 export default async function MorePage() {
   const supabase = createClient();
   const { data: { user } } = await supabase.auth.getUser();
-  const displayType = await getDisplayMealType(supabase, user!.id);
+  const { type: displayType } = await getDisplayMealType(supabase, user!.id);
   const mealLabel = displayType ? MEAL_TYPE_LABELS[displayType] : null;
   const forMeal = mealLabel ? ` · ${mealLabel.toLowerCase()}` : "";
 

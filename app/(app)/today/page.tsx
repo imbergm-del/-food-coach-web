@@ -17,6 +17,10 @@ function timeGreeting() {
   return "Добрый вечер";
 }
 
+function dateLabel() {
+  return new Date().toLocaleDateString("ru-RU", { weekday: "short", day: "numeric", month: "long" }).toUpperCase();
+}
+
 export default async function TodayPage() {
   const supabase = createClient();
   const { data: { user } } = await supabase.auth.getUser();
@@ -28,10 +32,15 @@ export default async function TodayPage() {
 
   const cookingMode = profile?.cooking_mode ?? "0";
   const menu = MEALS_BY_MODE[cookingMode] ?? MEALS_BY_MODE["0"];
-  const displayType = await getDisplayMealType(supabase, user!.id);
+  const { type: displayType, date: mealDate } = await getDisplayMealType(supabase, user!.id);
+  const isTomorrow = mealDate !== today;
+
+  const mealDateMeals = isTomorrow
+    ? (await supabase.from("meals").select("*").eq("user_id", user!.id).eq("date", mealDate).order("id")).data
+    : meals;
 
   // Если этот приём был спланирован вечером заранее (см. «Напоминания»), покажем его вместо общей подсказки
-  const plannedRow = displayType ? meals?.find(m => m.meal_type === displayType && m.status === "planned") : undefined;
+  const plannedRow = displayType ? mealDateMeals?.find(m => m.meal_type === displayType && m.status === "planned") : undefined;
   const meal: (MealDef & { plannedMealId?: number }) | null = !displayType
     ? null
     : plannedRow
@@ -61,13 +70,16 @@ export default async function TodayPage() {
 
   return (
     <div>
-      <div className="eyebrow">СЕГОДНЯ</div>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", margin: "6px 0 22px" }}>
+      <div className="eyebrow" style={{ fontWeight: 800 }}>СЕГОДНЯ · {dateLabel()}</div>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", margin: "6px 0 10px" }}>
         <h1 style={{ fontSize: 30 }}>{timeGreeting()}, {p.name ?? "друг"}</h1>
         <Link href="/profile" className="btn ghost" style={{ padding: "8px 10px", borderRadius: "50%" }} aria-label="Профиль">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.6}><circle cx="12" cy="12" r="3.2" /><path d="M19.4 13.5a7.6 7.6 0 0 0 0-3l1.9-1.5-2-3.4-2.3.7a7.6 7.6 0 0 0-2.6-1.5L14 2.5h-4l-.4 2.3a7.6 7.6 0 0 0-2.6 1.5l-2.3-.7-2 3.4L4.6 10.5a7.6 7.6 0 0 0 0 3l-1.9 1.5 2 3.4 2.3-.7a7.6 7.6 0 0 0 2.6 1.5l.4 2.3h4l.4-2.3a7.6 7.6 0 0 0 2.6-1.5l2.3.7 2-3.4-1.9-1.5Z" /></svg>
         </Link>
       </div>
+      <p style={{ fontSize: 13, color: "var(--ink-soft)", margin: "0 0 16px" }}>
+        Норма на день: {p.cal_target} ккал · Б {p.protein_target} · Ж {p.fat_target} · У {p.carb_target}
+      </p>
 
       <div
         className="card"
@@ -102,7 +114,9 @@ export default async function TodayPage() {
 
       {meal && displayType ? (
         <>
-          <div className="eyebrow" style={{ marginBottom: 8 }}>Следующий приём · {MEAL_TYPE_LABELS[displayType]}</div>
+          <div className="eyebrow" style={{ marginBottom: 8 }}>
+            Следующий приём{isTomorrow ? " · Завтра" : ""} · {MEAL_TYPE_LABELS[displayType]}
+          </div>
           <div className="card" style={{ marginBottom: 16, borderLeft: "5px solid var(--protein)" }}>
             <div style={{ display: "flex", gap: 14, alignItems: "flex-start", marginBottom: 12 }}>
               <FoodThumb color="var(--protein)" bg="var(--protein-bg)" photoUrl={meal.photoUrl} alt={meal.title} />
@@ -129,6 +143,7 @@ export default async function TodayPage() {
                 {meal.plannedMealId && <input type="hidden" name="mealId" value={meal.plannedMealId} />}
                 <input type="hidden" name="title" value={meal.title} />
                 <input type="hidden" name="mealType" value={displayType} />
+                <input type="hidden" name="date" value={mealDate} />
                 <input type="hidden" name="ingredients" value={JSON.stringify(meal.ingredients)} />
                 <input type="hidden" name="calories" value={meal.calories} />
                 <input type="hidden" name="protein" value={meal.protein} />
@@ -142,8 +157,8 @@ export default async function TodayPage() {
         </>
       ) : (
         <div className="card" style={{ marginBottom: 16 }}>
-          <h3 style={{ fontSize: 18, marginBottom: 6 }}>Все приёмы на сегодня отмечены ✓</h3>
-          <p style={{ fontSize: 14, color: "var(--ink-soft)", margin: 0 }}>Загляните завтра — новый план появится с утра.</p>
+          <h3 style={{ fontSize: 18, marginBottom: 6 }}>Все приёмы отмечены ✓</h3>
+          <p style={{ fontSize: 14, color: "var(--ink-soft)", margin: 0 }}>Загляните позже — план продолжится дальше по приёмам.</p>
         </div>
       )}
 

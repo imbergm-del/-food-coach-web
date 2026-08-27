@@ -20,7 +20,7 @@ export default async function ChangePage() {
   const { data: { user } } = await supabase.auth.getUser();
   const { data: profile } = await supabase.from("profiles").select("*").eq("id", user!.id).single();
 
-  const displayType = await getDisplayMealType(supabase, user!.id);
+  const { type: displayType, date: mealDate } = await getDisplayMealType(supabase, user!.id);
   const mealLabel = displayType ? MEAL_TYPE_LABELS[displayType] : "приём пищи";
   const cookingMode = profile?.cooking_mode ?? "0";
   const currentMeal = displayType ? MEALS_BY_MODE[cookingMode]?.[displayType] : undefined;
@@ -73,6 +73,7 @@ export default async function ChangePage() {
             )}
             <form action={chooseAlternative} style={{ marginTop: 12 }}>
               <input type="hidden" name="mealType" value={displayType} />
+              <input type="hidden" name="date" value={mealDate} />
               <input type="hidden" name="title" value={a.title} />
               <input type="hidden" name="calories" value={a.calories} />
               <input type="hidden" name="protein" value={a.protein} />

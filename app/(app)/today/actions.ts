@@ -58,11 +58,11 @@ export async function logMealEaten(formData: FormData) {
   const protein = Number(formData.get("protein"));
   const fat = Number(formData.get("fat"));
   const carbs = Number(formData.get("carbs"));
-  const today = new Date().toISOString().slice(0, 10);
+  const date = (formData.get("date") as string) || new Date().toISOString().slice(0, 10);
 
   await supabase.from("meals").insert({
     user_id: user.id,
-    date: today,
+    date,
     meal_type: MEAL_SEQUENCE.includes(mealType) ? mealType : "snack",
     title,
     ingredients,
