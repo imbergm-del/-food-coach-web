@@ -6,6 +6,7 @@ import { MEAL_TYPE_LABELS } from "@/lib/mealTypes";
 import { MEALS_BY_MODE } from "@/lib/mealMenu";
 import { suggestJSON } from "@/lib/aiSuggest";
 import { chooseAlternative } from "./actions";
+import { SubmitButton } from "@/components/SubmitButton";
 
 type Alt = { title: string; calories: number; protein: number; fat: number; carbs: number; ingredients: { name: string; qty: string }[] };
 
@@ -80,7 +81,7 @@ export default async function ChangePage() {
               <input type="hidden" name="fat" value={a.fat} />
               <input type="hidden" name="carbs" value={a.carbs} />
               <input type="hidden" name="ingredients" value={JSON.stringify(a.ingredients ?? [])} />
-              <button className="btn block" type="submit">Выбрать</button>
+              <SubmitButton>Выбрать</SubmitButton>
             </form>
           </div>
         ))

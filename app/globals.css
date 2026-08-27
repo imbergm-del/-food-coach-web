@@ -44,6 +44,12 @@ p { font-size: 15px; line-height: 1.5; }
 .btn.on-sheet { color: var(--sheet-text); border-color: rgba(241,238,229,.3); background: transparent; box-shadow: none; }
 .btn:disabled { opacity: .5; cursor: default; box-shadow: none; }
 
+@keyframes spin { to { transform: rotate(360deg); } }
+.spinner {
+  width: 14px; height: 14px; border: 2px solid currentColor; border-top-color: transparent;
+  border-radius: 50%; animation: spin .6s linear infinite; flex-shrink: 0;
+}
+
 .field { margin-bottom: 16px; }
 .field label { display: block; font-size: 13px; font-weight: 500; color: var(--ink-soft); margin-bottom: 6px; }
 .field input {

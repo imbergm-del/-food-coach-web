@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabaseServer";
 import { checkoutCart, removeCartItem } from "./actions";
+import { SubmitButton } from "@/components/SubmitButton";
 
 export default async function CartPage({ searchParams }: { searchParams: { tab?: string } }) {
   const activeTab = searchParams.tab === "fridge" ? "fridge" : "list";
@@ -36,7 +37,7 @@ export default async function CartPage({ searchParams }: { searchParams: { tab?:
                   <span style={{ fontFamily: "var(--mono)", fontSize: 11 }}>{c.quantity}</span>
                   <form action={removeCartItem}>
                     <input type="hidden" name="id" value={c.id} />
-                    <button className="btn ghost" style={{ padding: "4px 9px" }} type="submit">×</button>
+                    <SubmitButton className="btn ghost" style={{ padding: "4px 9px" }} pendingText="">×</SubmitButton>
                   </form>
                 </span>
               </div>
@@ -49,7 +50,7 @@ export default async function CartPage({ searchParams }: { searchParams: { tab?:
 
           {!!cartItems?.length && (
             <form action={checkoutCart} style={{ marginBottom: 20 }}>
-              <button className="btn block" type="submit">Добавить всё в список покупок</button>
+              <SubmitButton>Добавить всё в список покупок</SubmitButton>
             </form>
           )}
 

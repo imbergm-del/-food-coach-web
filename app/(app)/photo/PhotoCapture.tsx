@@ -4,6 +4,7 @@ import { useRef, useState } from "react";
 import Link from "next/link";
 import { logPhotoMeal } from "./actions";
 import { resizeToJpegBase64 } from "@/lib/imageResize";
+import { SubmitButton } from "@/components/SubmitButton";
 
 type Result = {
   title: string;
@@ -127,7 +128,7 @@ export function PhotoCapture() {
             <input type="hidden" name="protein" value={result.protein} />
             <input type="hidden" name="fat" value={result.fat} />
             <input type="hidden" name="carbs" value={result.carbs} />
-            <button className="btn block" type="submit">Подтвердить</button>
+            <SubmitButton>Подтвердить</SubmitButton>
           </form>
           <button className="btn ghost on-sheet" style={{ flex: 1 }} onClick={reset}>Переснять</button>
         </div>

@@ -5,6 +5,7 @@ import { CookingModeTabs } from "./CookingModeTabs";
 import { MacroDial } from "@/components/MacroDial";
 import { FoodThumb } from "@/components/FoodThumb";
 import { RecipeDisclosure } from "./RecipeDisclosure";
+import { SubmitButton } from "@/components/SubmitButton";
 import { MEAL_TYPE_LABELS } from "@/lib/mealTypes";
 import { MEALS_BY_MODE, type MealDef } from "@/lib/mealMenu";
 import { getDisplayMealType } from "@/lib/getDisplayMealType";
@@ -149,7 +150,7 @@ export default async function TodayPage() {
                 <input type="hidden" name="protein" value={meal.protein} />
                 <input type="hidden" name="fat" value={meal.fat} />
                 <input type="hidden" name="carbs" value={meal.carbs} />
-                <button className="btn block" type="submit">Съел(а)</button>
+                <SubmitButton>Съел(а)</SubmitButton>
               </form>
               <Link href="/more" className="btn ghost" style={{ flex: 1, textAlign: "center" }}>Другое &#8943;</Link>
             </div>

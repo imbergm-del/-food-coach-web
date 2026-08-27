@@ -3,6 +3,7 @@ import { ReminderToggle } from "./ReminderToggle";
 import { PlanTomorrowForm } from "./PlanTomorrowForm";
 import { savePhoneNumber } from "./actions";
 import { MEAL_TYPE_LABELS } from "@/lib/mealTypes";
+import { SubmitButton } from "@/components/SubmitButton";
 
 export default async function RemindersPage() {
   const supabase = createClient();
@@ -66,7 +67,7 @@ export default async function RemindersPage() {
               fontFamily: "var(--mono)", fontSize: 14, background: "var(--card)", color: "var(--ink)"
             }}
           />
-          <button className="btn" type="submit">Сохранить</button>
+          <SubmitButton className="btn" style={{ width: "auto" }} pendingText="Сохраняем…">Сохранить</SubmitButton>
         </form>
       </div>
     </div>

@@ -2,6 +2,7 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabaseServer";
 import { signOut } from "./actions";
 import { isAdminEmail } from "@/lib/isAdmin";
+import { SubmitButton } from "@/components/SubmitButton";
 
 export default async function ProfilePage() {
   const supabase = createClient();
@@ -22,7 +23,7 @@ export default async function ProfilePage() {
         <Link href="/admin" className="btn ghost block" style={{ marginBottom: 14, textAlign: "center" }}>Админ-панель</Link>
       )}
       <form action={signOut}>
-        <button className="btn ghost block" type="submit">Выйти</button>
+        <SubmitButton className="btn ghost block" pendingText="Выходим…">Выйти</SubmitButton>
       </form>
     </div>
   );
