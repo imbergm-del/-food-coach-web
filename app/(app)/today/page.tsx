@@ -13,6 +13,7 @@ import { getDisplayMealType } from "@/lib/getDisplayMealType";
 import { normalizeCookingMode } from "@/lib/cookingMode";
 import { scaleMealToTarget } from "@/lib/scaleMeal";
 import { nowInTz, todayISOInTz } from "@/lib/userTime";
+import { saveName } from "../reminders/actions";
 
 function timeGreeting(tz?: string | null) {
   const hour = nowInTz(tz).getHours();
@@ -97,6 +98,21 @@ export default async function TodayPage() {
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.6}><circle cx="12" cy="12" r="3.2" /><path d="M19.4 13.5a7.6 7.6 0 0 0 0-3l1.9-1.5-2-3.4-2.3.7a7.6 7.6 0 0 0-2.6-1.5L14 2.5h-4l-.4 2.3a7.6 7.6 0 0 0-2.6 1.5l-2.3-.7-2 3.4L4.6 10.5a7.6 7.6 0 0 0 0 3l-1.9 1.5 2 3.4 2.3-.7a7.6 7.6 0 0 0 2.6 1.5l.4 2.3h4l.4-2.3a7.6 7.6 0 0 0 2.6-1.5l2.3.7 2-3.4-1.9-1.5Z" /></svg>
         </LoadingLink>
       </div>
+      {!profile?.name && (
+        <div className="card" style={{ marginBottom: 16, borderLeft: "5px solid var(--protein)" }}>
+          <p style={{ fontSize: 13.5, margin: "0 0 10px" }}>Как к вам обращаться?</p>
+          <form action={saveName} style={{ display: "flex", gap: 8 }}>
+            <input
+              name="name" type="text" placeholder="Ваше имя" autoFocus
+              style={{
+                flex: 1, border: "1px solid var(--line-strong)", borderRadius: 12, padding: "11px 14px",
+                fontFamily: "var(--sans)", fontSize: 14, background: "var(--card)", color: "var(--ink)"
+              }}
+            />
+            <SubmitButton className="btn" style={{ width: "auto" }} pendingText="…">Сохранить</SubmitButton>
+          </form>
+        </div>
+      )}
       <div className="goalgrid">
         <div className="goalcell cal"><b>{p.cal_target}</b><span>ккал</span></div>
         <div className="goalcell protein"><b>{p.protein_target}</b><span>белок</span></div>

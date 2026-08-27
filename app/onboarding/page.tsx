@@ -7,6 +7,7 @@ import { createClient } from "@/lib/supabaseClient";
 export default function OnboardingPage() {
   const supabase = createClient();
   const router = useRouter();
+  const [name, setName] = useState("");
   const [age, setAge] = useState("");
   const [weight, setWeight] = useState("");
   const [height, setHeight] = useState("");
@@ -19,13 +20,14 @@ export default function OnboardingPage() {
     const ageN = parseFloat(age), weightN = parseFloat(weight), heightN = parseFloat(height), workoutsN = parseFloat(workouts);
 
     const valid =
+      name.trim().length > 0 &&
       ageN >= 10 && ageN <= 100 &&
       weightN >= 30 && weightN <= 250 &&
       heightN >= 100 && heightN <= 230 &&
       workoutsN >= 0 && workoutsN <= 14;
 
     if (!valid) {
-      setError("Проверьте значения — заполните все поля реальными числами.");
+      setError("Проверьте значения — заполните все поля, включая имя, реальными данными.");
       return;
     }
     setError("");
@@ -40,7 +42,7 @@ export default function OnboardingPage() {
     const carbTarget = Math.max(0, Math.round((calTarget - (proteinTarget * 4 + fatTarget * 9)) / 4));
 
     await supabase.from("profiles").update({
-      age: ageN, weight_kg: weightN, height_cm: heightN, workouts_per_week: workoutsN,
+      name: name.trim(), age: ageN, weight_kg: weightN, height_cm: heightN, workouts_per_week: workoutsN,
       protein_target: proteinTarget, fat_target: fatTarget, carb_target: carbTarget, cal_target: calTarget
     }).eq("id", user.id);
 
@@ -63,6 +65,7 @@ export default function OnboardingPage() {
           Это нужно, чтобы сразу посчитать вашу норму — без лишних вопросов.
         </p>
         <form onSubmit={handleSubmit}>
+          <div className="field"><label>Как вас зовут</label><input type="text" value={name} onChange={e => setName(e.target.value)} placeholder="Например, Майк" /></div>
           <div className="field"><label>Возраст</label><input type="number" value={age} onChange={e => setAge(e.target.value)} placeholder="Например, 35" /></div>
           <div className="field"><label>Вес, кг</label><input type="number" value={weight} onChange={e => setWeight(e.target.value)} placeholder="Например, 82" /></div>
           <div className="field"><label>Рост, см</label><input type="number" value={height} onChange={e => setHeight(e.target.value)} placeholder="Например, 180" /></div>

@@ -1,7 +1,15 @@
 type Ingredient = { name: string; qty: string };
 
 export function RecipeDisclosure({ ingredients, steps }: { ingredients: Ingredient[]; steps: string[] }) {
-  if (ingredients.length === 0 && steps.length === 0) return null;
+  if (ingredients.length === 0 && steps.length === 0) {
+    return (
+      <div className="card" style={{ background: "var(--paper2)", boxShadow: "none", marginBottom: 16 }}>
+        <p style={{ fontSize: 13, color: "var(--ink-soft)", margin: 0 }}>
+          Состав для этого блюда не сохранён — нажмите «Заменить», чтобы выбрать блюдо с полным рецептом.
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div className="card" style={{ background: "var(--paper2)", boxShadow: "none", marginBottom: 16 }}>
