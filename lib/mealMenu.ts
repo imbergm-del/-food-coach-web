@@ -3,6 +3,9 @@ import type { MealType } from "@/lib/mealTypes";
 export type MealDef = {
   title: string; desc: string; calories: number; protein: number; fat: number; carbs: number;
   cookingMode?: "5" | "15";
+  // Явно завтрачное блюдо — не подходит, если перекус подбирается поздним вечером
+  // (например, догоняем незалогированный приём после того, как ужин уже съеден).
+  notEvening?: boolean;
   photoUrl?: string; ingredients: { name: string; qty: string }[]; steps: string[];
 };
 
@@ -123,7 +126,7 @@ export const MEAL_POOL: Record<MealType, MealDef[]> = {
     {
       title: "Тосты с авокадо и яйцом пашот",
       desc: "Хлеб, авокадо, яйцо",
-      calories: 320, protein: 16, fat: 18, carbs: 26, cookingMode: "15",
+      calories: 320, protein: 16, fat: 18, carbs: 26, cookingMode: "15", notEvening: true,
       ingredients: [{ name: "Хлеб цельнозерн.", qty: "2 куска (60 г)" }, { name: "Авокадо", qty: "1 шт (150 г)" }, { name: "Яйцо", qty: "1 шт (50 г)" }],
       steps: ["Поджарьте 2 куска хлеба (60 г).", "Разомните авокадо (150 г) и намажьте на тосты.", "Сварите яйцо (50 г) пашот 3 минуты и выложите сверху."]
     },

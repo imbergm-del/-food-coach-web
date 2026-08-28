@@ -79,7 +79,7 @@ export default async function TodayPage() {
           badge: plannedBadge
         }
       : {
-          ...scaleMealToTarget(pickMealForDateAndMode(MEAL_POOL[displayType], mealDate, cookingMode), displayType, profile?.cal_target ?? 2200),
+          ...scaleMealToTarget(pickMealForDateAndMode(MEAL_POOL[displayType], mealDate, cookingMode, nowInTz(tz).getHours()), displayType, profile?.cal_target ?? 2200),
           badge: "Рецепт под ваш режим"
         };
 

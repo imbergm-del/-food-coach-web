@@ -6,6 +6,7 @@ import { MEAL_POOL } from "@/lib/mealMenu";
 import { pickMealForDateAndMode } from "@/lib/mealRotation";
 import { scaleMealToTarget } from "@/lib/scaleMeal";
 import { normalizeCookingMode } from "@/lib/cookingMode";
+import { nowInTz } from "@/lib/userTime";
 import { ChangePicker } from "./ChangePicker";
 
 export default async function ChangePage() {
@@ -33,7 +34,7 @@ export default async function ChangePage() {
 
   const startIndex = (() => {
     if (!displayType || !scaledOptions.length) return 0;
-    const currentTitle = plannedTitle ?? pickMealForDateAndMode(MEAL_POOL[displayType], mealDate, cookingMode).title;
+    const currentTitle = plannedTitle ?? pickMealForDateAndMode(MEAL_POOL[displayType], mealDate, cookingMode, nowInTz(profile?.timezone).getHours()).title;
     const currentIndex = scaledOptions.findIndex(m => m.title === currentTitle);
     return currentIndex === -1 ? 0 : (currentIndex + 1) % scaledOptions.length;
   })();
