@@ -71,6 +71,15 @@ create table if not exists fridge_items (
   quantity text
 );
 
+-- Один ряд на день на пользователя — накопленный объём воды, вместо лога каждого стакана.
+create table if not exists water_logs (
+  id bigint generated always as identity primary key,
+  user_id uuid references auth.users(id) on delete cascade,
+  date date not null,
+  amount_ml int not null default 0,
+  unique (user_id, date)
+);
+
 create table if not exists reminder_settings (
   user_id uuid primary key references auth.users(id) on delete cascade,
   enabled boolean default true,
@@ -118,6 +127,7 @@ alter table grocery_items enable row level security;
 alter table fridge_items enable row level security;
 alter table reminder_settings enable row level security;
 alter table meal_reminder_log enable row level security;
+alter table water_logs enable row level security;
 
 create policy "own profile" on profiles for all using (auth.uid() = id) with check (auth.uid() = id);
 create policy "own schedule" on training_schedule for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
@@ -127,6 +137,7 @@ create policy "own groceries" on grocery_items for all using (auth.uid() = user_
 create policy "own fridge" on fridge_items for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
 create policy "own reminders" on reminder_settings for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
 create policy "own meal reminder log" on meal_reminder_log for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
+create policy "own water log" on water_logs for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
 
 -- Auto-create a profile row whenever someone signs up
 create or replace function public.handle_new_user()

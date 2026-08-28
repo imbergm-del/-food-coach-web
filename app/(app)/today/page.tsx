@@ -1,6 +1,6 @@
 import { createClient } from "@/lib/supabaseServer";
 import { LoadingLink } from "@/components/LoadingLink";
-import { addToCart, logMealEaten } from "./actions";
+import { addToCart, logMealEaten, addWater } from "./actions";
 import { CookingModeTabs } from "./CookingModeTabs";
 import { MacroBreakdown } from "@/components/MacroBreakdown";
 import { FoodThumb } from "@/components/FoodThumb";
@@ -40,6 +40,11 @@ export default async function TodayPage() {
   const today = todayISOInTz(tz);
   const { data: meals } = await supabase
     .from("meals").select("*").eq("user_id", user!.id).eq("date", today).order("id");
+
+  const { data: waterRow } = await supabase
+    .from("water_logs").select("amount_ml").eq("user_id", user!.id).eq("date", today).maybeSingle();
+  const waterMl = waterRow?.amount_ml ?? 0;
+  const waterTarget = Math.round((profile?.weight_kg ? profile.weight_kg * 33 : 2000) / 50) * 50;
 
   const cookingMode = normalizeCookingMode(profile?.cooking_mode);
   const mealSchedule = getMealSchedule(profile);
@@ -127,6 +132,45 @@ export default async function TodayPage() {
           calTarget={p.cal_target} proteinTarget={p.protein_target} fatTarget={p.fat_target} carbTarget={p.carb_target}
           caloriesLeft={caloriesLeft}
         />
+      </div>
+
+      <div className="card" style={{ marginBottom: 16, display: "flex", flexDirection: "column", gap: 10 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+          <div style={{
+            width: 40, height: 40, borderRadius: 12, background: "var(--water-bg)",
+            display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0
+          }}>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--water)" strokeWidth={1.7}>
+              <path d="M12 3s7 7.5 7 12.5a7 7 0 0 1-14 0C5 10.5 12 3 12 3Z" />
+            </svg>
+          </div>
+          <div style={{ flex: 1 }}>
+            <div className="eyebrow">Вода</div>
+            <h3 style={{ fontSize: 16, marginTop: 4 }}>{waterMl} / {waterTarget} мл</h3>
+          </div>
+        </div>
+        <div style={{ height: 8, borderRadius: 999, background: "var(--paper2)", overflow: "hidden" }}>
+          <div style={{ width: `${Math.min(100, Math.round((waterMl / waterTarget) * 100))}%`, height: "100%", background: "var(--water)", borderRadius: 999 }} />
+        </div>
+        <div style={{ display: "flex", gap: 8 }}>
+          <form action={addWater}>
+            <input type="hidden" name="amount" value="250" />
+            <input type="hidden" name="date" value={today} />
+            <SubmitButton className="actbtn ghost" pendingText="…">+250 мл</SubmitButton>
+          </form>
+          <form action={addWater}>
+            <input type="hidden" name="amount" value="500" />
+            <input type="hidden" name="date" value={today} />
+            <SubmitButton className="actbtn ghost" pendingText="…">+500 мл</SubmitButton>
+          </form>
+          {waterMl > 0 && (
+            <form action={addWater} style={{ marginLeft: "auto" }}>
+              <input type="hidden" name="amount" value={-waterMl} />
+              <input type="hidden" name="date" value={today} />
+              <SubmitButton className="btn ghost" pendingText="…">Сброс</SubmitButton>
+            </form>
+          )}
+        </div>
       </div>
 
       {plannedRow && plannedRow.source !== "week_plan" && (

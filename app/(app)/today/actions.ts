@@ -43,6 +43,26 @@ export async function setCookingMode(mode: string, mealType?: string, mealDate?:
   revalidatePath("/today");
 }
 
+// Копит воду одним рядом на день (а не логом каждого стакана) — читаем текущий
+// объём и прибавляем/вычитаем, upsert на unique(user_id, date).
+export async function addWater(formData: FormData) {
+  const supabase = createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return;
+
+  const delta = Number(formData.get("amount"));
+  const date = formData.get("date") as string;
+  if (!date || !Number.isFinite(delta)) return;
+
+  const { data: existing } = await supabase
+    .from("water_logs").select("amount_ml").eq("user_id", user.id).eq("date", date).maybeSingle();
+  const amount_ml = Math.max(0, (existing?.amount_ml ?? 0) + delta);
+
+  await supabase.from("water_logs").upsert({ user_id: user.id, date, amount_ml }, { onConflict: "user_id,date" });
+
+  revalidatePath("/today");
+}
+
 export async function logMealEaten(formData: FormData) {
   const supabase = createClient();
   const { data: { user } } = await supabase.auth.getUser();
