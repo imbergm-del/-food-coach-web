@@ -42,6 +42,7 @@ create table if not exists meals (
   calories int, protein int, fat int, carbs int,
   status text default 'planned', -- planned / eaten / changed / skipped / photo_logged
   source text default 'home',
+  icon text,                     -- ключ иконки блюда из lib/mealMenu.ts (см. components/FoodIcons.tsx), null для фото/ручных записей
   created_at timestamptz default now()
 );
 
@@ -111,6 +112,7 @@ alter table grocery_items add column if not exists quantity text;
 alter table grocery_items add column if not exists bought boolean default false;
 alter table reminder_settings add column if not exists meal_reminders_enabled boolean default false;
 alter table meals add column if not exists steps jsonb default '[]';
+alter table meals add column if not exists icon text;
 
 -- Заполняем email для аккаунтов, созданных до того, как колонка появилась
 update public.profiles p

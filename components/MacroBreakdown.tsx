@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { MacroDial } from "./MacroDial";
-import { FoodThumb } from "./FoodThumb";
+import { FoodThumb, type FoodIconKey } from "./FoodThumb";
 import { MEAL_TYPE_LABELS } from "@/lib/mealTypes";
 
 type EatenMeal = {
@@ -13,6 +13,7 @@ type EatenMeal = {
   protein: number | null;
   fat: number | null;
   carbs: number | null;
+  icon?: FoodIconKey | null;
 };
 
 function MacroPill({ label, value, bg, color }: { label: string; value: number; bg: string; color: string }) {
@@ -104,7 +105,7 @@ export function MacroBreakdown({
             {meals.length ? (
               meals.map(m => (
                 <div key={m.id} className="card" style={{ display: "flex", gap: 12, alignItems: "center", padding: 12, marginBottom: 10, boxShadow: "none", border: "1px solid var(--line)" }}>
-                  <FoodThumb color="var(--protein)" bg="var(--protein-bg)" size={44} />
+                  <FoodThumb color="var(--protein)" bg="var(--protein-bg)" size={44} icon={m.icon} />
                   <div style={{ minWidth: 0, flex: 1 }}>
                     <div className="eyebrow" style={{ marginBottom: 2 }}>
                       {MEAL_TYPE_LABELS[m.meal_type as keyof typeof MEAL_TYPE_LABELS] ?? m.meal_type}

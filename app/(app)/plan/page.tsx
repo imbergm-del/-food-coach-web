@@ -73,6 +73,7 @@ export default async function PlanPage() {
                         <FoodThumb
                           color={m.status === "eaten" || m.status === "photo_logged" ? "var(--protein)" : "var(--carbs)"}
                           bg={m.status === "eaten" || m.status === "photo_logged" ? "var(--protein-bg)" : "var(--carbs-bg)"}
+                          icon={m.icon}
                           size={36}
                         />
                         <span>

@@ -25,7 +25,7 @@ function buildRow(userId: string, iso: string, mealType: MealType, calTarget: nu
   return {
     user_id: userId, date: iso, meal_type: mealType,
     title: def.title, ingredients: def.ingredients, steps: def.steps,
-    calories: def.calories, protein: def.protein, fat: def.fat, carbs: def.carbs,
+    calories: def.calories, protein: def.protein, fat: def.fat, carbs: def.carbs, icon: def.icon,
     status: "planned", source: "week_plan"
   };
 }

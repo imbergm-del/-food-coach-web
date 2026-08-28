@@ -17,6 +17,7 @@ export async function chooseAlternative(formData: FormData) {
   const carbs = Number(formData.get("carbs"));
   const ingredients = JSON.parse((formData.get("ingredients") as string) || "[]");
   const steps = JSON.parse((formData.get("steps") as string) || "[]");
+  const icon = (formData.get("icon") as string) || null;
   const date = (formData.get("date") as string) || new Date().toISOString().slice(0, 10);
 
   // Заменяем текущий (ещё не съеденный) вариант этого приёма на выбранную альтернативу
@@ -29,7 +30,7 @@ export async function chooseAlternative(formData: FormData) {
 
   await supabase.from("meals").insert({
     user_id: user.id, date, meal_type: mealType, title,
-    ingredients, steps, calories, protein, fat, carbs, status: "planned", source: "change"
+    ingredients, steps, calories, protein, fat, carbs, icon, status: "planned", source: "change"
   });
 
   revalidatePath("/today");

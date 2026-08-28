@@ -40,6 +40,7 @@ export default async function LogPage() {
                 <FoodThumb
                   color={m.status === "photo_logged" ? "var(--fat)" : "var(--protein)"}
                   bg={m.status === "photo_logged" ? "var(--fat-bg)" : "var(--protein-bg)"}
+                  icon={m.icon}
                   size={36}
                 />
                 <span style={{ marginLeft: 10 }}>

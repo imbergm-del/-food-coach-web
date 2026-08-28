@@ -115,7 +115,7 @@ export async function reshuffleTomorrowPlan() {
     rows.push({
       user_id: user.id, date: tomorrowISO, meal_type: mealType,
       title: def.title, ingredients: def.ingredients, steps: def.steps,
-      calories: def.calories, protein: def.protein, fat: def.fat, carbs: def.carbs,
+      calories: def.calories, protein: def.protein, fat: def.fat, carbs: def.carbs, icon: def.icon,
       status: "planned", source: "week_plan"
     });
   }

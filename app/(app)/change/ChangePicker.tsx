@@ -1,13 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import { FoodThumb } from "@/components/FoodThumb";
+import { FoodThumb, type FoodIconKey } from "@/components/FoodThumb";
 import { SubmitButton } from "@/components/SubmitButton";
 import { chooseAlternative } from "./actions";
 
 type Option = {
   title: string; calories: number; protein: number; fat: number; carbs: number;
-  ingredients: { name: string; qty: string }[]; steps: string[];
+  ingredients: { name: string; qty: string }[]; steps: string[]; icon?: FoodIconKey;
 };
 
 export function ChangePicker({
@@ -19,7 +19,7 @@ export function ChangePicker({
   return (
     <div className="card" style={{ display: "flex", flexDirection: "column", alignItems: "stretch" }}>
       <div style={{ display: "flex", gap: 12, alignItems: "flex-start", marginBottom: 12 }}>
-        <FoodThumb color="var(--protein)" bg="var(--protein-bg)" size={48} />
+        <FoodThumb color="var(--protein)" bg="var(--protein-bg)" size={48} icon={current.icon} />
         <div style={{ flex: 1 }}>
           <h3 style={{ fontSize: 16 }}>{current.title}</h3>
           <p style={{ fontFamily: "var(--mono)", fontSize: 11, color: "var(--ink-soft)", margin: "4px 0 0" }}>
@@ -62,6 +62,7 @@ export function ChangePicker({
           <input type="hidden" name="carbs" value={current.carbs} />
           <input type="hidden" name="ingredients" value={JSON.stringify(current.ingredients)} />
           <input type="hidden" name="steps" value={JSON.stringify(current.steps)} />
+          {current.icon && <input type="hidden" name="icon" value={current.icon} />}
           <SubmitButton>Выбрать это блюдо</SubmitButton>
         </form>
       </div>

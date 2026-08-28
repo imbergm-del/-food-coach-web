@@ -1,4 +1,5 @@
 import type { MealType } from "@/lib/mealTypes";
+import type { FoodIconKey } from "@/components/FoodIcons";
 
 export type MealDef = {
   title: string; desc: string; calories: number; protein: number; fat: number; carbs: number;
@@ -6,6 +7,7 @@ export type MealDef = {
   // Явно завтрачное блюдо — не подходит, если перекус подбирается поздним вечером
   // (например, догоняем незалогированный приём после того, как ужин уже съеден).
   notEvening?: boolean;
+  icon?: FoodIconKey;
   photoUrl?: string; ingredients: { name: string; qty: string }[]; steps: string[];
 };
 
@@ -17,63 +19,63 @@ export const MEAL_POOL: Record<MealType, MealDef[]> = {
     {
       title: "Овсянка на 5 минут",
       desc: "Хлопья быстрого приготовления, молоко, банан",
-      calories: 380, protein: 14, fat: 8, carbs: 62, cookingMode: "5",
+      calories: 380, protein: 14, fat: 8, carbs: 62, cookingMode: "5", icon: "oatmeal",
       ingredients: [{ name: "Овсяные хлопья быстрые", qty: "60 г" }, { name: "Молоко", qty: "200 мл" }, { name: "Банан", qty: "1 шт (120 г)" }],
       steps: ["Залейте 60 г хлопьев 200 мл горячего молока или воды, оставьте на 3 минуты.", "Нарежьте банан (120 г) сверху."]
     },
     {
       title: "Омлет с овощами",
       desc: "Яйца, шпинат, тост",
-      calories: 360, protein: 24, fat: 20, carbs: 20, cookingMode: "15",
+      calories: 360, protein: 24, fat: 20, carbs: 20, cookingMode: "15", icon: "egg",
       ingredients: [{ name: "Яйца", qty: "2 шт (100 г)" }, { name: "Шпинат", qty: "50 г" }, { name: "Тост цельнозерн.", qty: "1 шт (30 г)" }],
       steps: ["Взбейте 2 яйца (100 г), добавьте 50 г шпината.", "Жарьте на среднем огне 4–5 минут, помешивая.", "Подавайте с тостом (30 г)."]
     },
     {
       title: "Греческий йогурт с гранолой",
       desc: "Йогурт, гранола, мёд",
-      calories: 380, protein: 22, fat: 10, carbs: 52, cookingMode: "5",
+      calories: 380, protein: 22, fat: 10, carbs: 52, cookingMode: "5", icon: "yogurt",
       ingredients: [{ name: "Йогурт греческий", qty: "200 г" }, { name: "Гранола", qty: "50 г" }, { name: "Мёд", qty: "1 ч.л. (7 г)" }],
       steps: ["Выложите 200 г йогурта в миску.", "Посыпьте 50 г гранолы, полейте 1 ч.л. (7 г) мёда."]
     },
     {
       title: "Сырники со сметаной",
       desc: "Творог, яйцо, мука, сметана",
-      calories: 400, protein: 26, fat: 16, carbs: 36, cookingMode: "15",
+      calories: 400, protein: 26, fat: 16, carbs: 36, cookingMode: "15", icon: "pancake",
       ingredients: [{ name: "Творог 5%", qty: "200 г" }, { name: "Яйцо", qty: "1 шт (50 г)" }, { name: "Мука", qty: "30 г" }, { name: "Сметана", qty: "2 ст.л. (30 г)" }],
       steps: ["Смешайте 200 г творога, яйцо и 30 г муки.", "Слепите сырники и обжарьте по 2–3 минуты с каждой стороны.", "Подавайте со сметаной (30 г)."]
     },
     {
       title: "Мюсли с ягодами",
       desc: "Мюсли, молоко, ягоды",
-      calories: 360, protein: 16, fat: 8, carbs: 58, cookingMode: "5",
+      calories: 360, protein: 16, fat: 8, carbs: 58, cookingMode: "5", icon: "oatmeal",
       ingredients: [{ name: "Мюсли", qty: "60 г" }, { name: "Молоко", qty: "180 мл" }, { name: "Ягоды замороженные", qty: "80 г" }],
       steps: ["Залейте 60 г мюсли 180 мл молока.", "Добавьте 80 г ягод сверху — готово."]
     },
     {
       title: "Творожная запеканка",
       desc: "Творог, яйцо, манка, изюм",
-      calories: 390, protein: 28, fat: 12, carbs: 42, cookingMode: "15",
+      calories: 390, protein: 28, fat: 12, carbs: 42, cookingMode: "15", icon: "pancake",
       ingredients: [{ name: "Творог 5%", qty: "220 г" }, { name: "Яйцо", qty: "1 шт (50 г)" }, { name: "Манка", qty: "25 г" }, { name: "Изюм", qty: "20 г" }],
       steps: ["Смешайте творог, яйцо, манку и изюм.", "Выложите в форму и запекайте 20 минут при 180°C."]
     },
     {
       title: "Блинчики с творогом",
       desc: "Блины на завтрак, творожная начинка",
-      calories: 420, protein: 24, fat: 14, carbs: 50, cookingMode: "15",
+      calories: 420, protein: 24, fat: 14, carbs: 50, cookingMode: "15", icon: "pancake",
       ingredients: [{ name: "Блины готовые", qty: "3 шт (150 г)" }, { name: "Творог 5%", qty: "150 г" }, { name: "Мёд", qty: "1 ч.л. (7 г)" }],
       steps: ["Смешайте творог с мёдом.", "Заверните начинку в 3 блина.", "При желании разогрейте на сковороде 1–2 минуты."]
     },
     {
       title: "Протеиновый омлет с творогом",
       desc: "Яйца, творог, помидор",
-      calories: 380, protein: 36, fat: 20, carbs: 12, cookingMode: "15",
+      calories: 380, protein: 36, fat: 20, carbs: 12, cookingMode: "15", icon: "egg",
       ingredients: [{ name: "Яйца", qty: "3 шт (150 г)" }, { name: "Творог 5%", qty: "100 г" }, { name: "Помидор", qty: "80 г" }],
       steps: ["Взбейте 3 яйца (150 г) и вылейте на разогретую сковороду.", "Через минуту добавьте 100 г творога и нарезанный помидор (80 г).", "Жарьте на среднем огне 4–5 минут, аккуратно перемешивая."]
     },
     {
       title: "Протеиновый коктейль с бананом",
       desc: "Протеин, молоко, банан",
-      calories: 320, protein: 34, fat: 10, carbs: 22, cookingMode: "5",
+      calories: 320, protein: 34, fat: 10, carbs: 22, cookingMode: "5", icon: "shake",
       ingredients: [{ name: "Протеин сывороточный", qty: "30 г" }, { name: "Молоко", qty: "250 мл" }, { name: "Банан", qty: "1/2 шт (60 г)" }],
       steps: ["Взбейте блендером 30 г протеина, 250 мл молока и половину банана (60 г) 30 секунд — готово."]
     }
@@ -82,49 +84,49 @@ export const MEAL_POOL: Record<MealType, MealDef[]> = {
     {
       title: "Собрать за 5 минут",
       desc: "Тунец, авокадо, лаваш, свежие овощи",
-      calories: 510, protein: 42, fat: 18, carbs: 40, cookingMode: "5",
+      calories: 510, protein: 42, fat: 18, carbs: 40, cookingMode: "5", icon: "wrap",
       ingredients: [{ name: "Тунец консервир.", qty: "1 банка (140 г слитого)" }, { name: "Авокадо", qty: "1 шт (150 г)" }, { name: "Лаваш", qty: "1 шт (60 г)" }, { name: "Овощи свежие", qty: "150 г" }],
       steps: ["Слейте жидкость с банки тунца (140 г) и разомните его вилкой.", "Авокадо (150 г) и овощи (150 г) нарежьте некрупно.", "Выложите тунец, авокадо и овощи на лаваш (60 г) и сверните в рулет."]
     },
     {
       title: "Боул с курицей и рисом",
       desc: "200 г курицы, 150 г риса, 150 г овощей, оливковое масло",
-      calories: 520, protein: 48, fat: 12, carbs: 54, cookingMode: "15",
+      calories: 520, protein: 48, fat: 12, carbs: 54, cookingMode: "15", icon: "bowl",
       ingredients: [{ name: "Куриная грудка", qty: "200 г" }, { name: "Рис", qty: "150 г" }, { name: "Овощи замороженные", qty: "150 г" }, { name: "Оливковое масло", qty: "1 ст.л. (14 г)" }],
       steps: ["Разогрейте 150 г риса (готовый пакет — 2 минуты в микроволновке, или заранее сваренный).", "Обжарьте или разогрейте 200 г курицы на сковороде 3–4 минуты до готовности.", "Разморозьте 150 г овощей — 2 минуты в микроволновке или на той же сковороде.", "Соберите всё в тарелке и сбрызните 1 ст.л. (14 г) оливкового масла."]
     },
     {
       title: "Роллы с курицей и овощами",
       desc: "Курица гриль, лаваш, овощи, соус",
-      calories: 510, protein: 40, fat: 16, carbs: 46, cookingMode: "5",
+      calories: 510, protein: 40, fat: 16, carbs: 46, cookingMode: "5", icon: "wrap",
       ingredients: [{ name: "Курица гриль готовая", qty: "150 г" }, { name: "Лаваш", qty: "1 шт (60 г)" }, { name: "Овощи свежие", qty: "150 г" }, { name: "Соус йогуртовый", qty: "2 ст.л. (30 г)" }],
       steps: ["Нарежьте 150 г курицы и 150 г овощей.", "Выложите на лаваш (60 г), полейте 2 ст.л. (30 г) соуса и сверните в рулет."]
     },
     {
       title: "Паста с курицей и томатами",
       desc: "Паста цельнозерновая, курица, томатный соус",
-      calories: 540, protein: 42, fat: 14, carbs: 62, cookingMode: "15",
+      calories: 540, protein: 42, fat: 14, carbs: 62, cookingMode: "15", icon: "pasta",
       ingredients: [{ name: "Паста цельнозерн.", qty: "80 г сухой" }, { name: "Куриная грудка", qty: "180 г" }, { name: "Томатный соус", qty: "100 г" }, { name: "Пармезан", qty: "15 г" }],
       steps: ["Отварите 80 г пасты 8–10 минут.", "Обжарьте 180 г курицы кубиками 5–6 минут, добавьте 100 г соуса.", "Смешайте с пастой, посыпьте 15 г пармезана."]
     },
     {
       title: "Салат с киноа и авокадо",
       desc: "Киноа, авокадо, огурец, фета",
-      calories: 500, protein: 20, fat: 26, carbs: 48, cookingMode: "5",
+      calories: 500, protein: 20, fat: 26, carbs: 48, cookingMode: "5", icon: "salad",
       ingredients: [{ name: "Киноа отварная", qty: "180 г" }, { name: "Авокадо", qty: "1 шт (150 г)" }, { name: "Огурец", qty: "100 г" }, { name: "Фета", qty: "50 г" }],
       steps: ["Смешайте 180 г готовой киноа с нарезанным авокадо (150 г) и огурцом (100 г).", "Раскрошите 50 г феты сверху."]
     },
     {
       title: "Суп-пюре из тыквы с курицей",
       desc: "Тыква, курица, сливки",
-      calories: 480, protein: 36, fat: 16, carbs: 46, cookingMode: "15",
+      calories: 480, protein: 36, fat: 16, carbs: 46, cookingMode: "15", icon: "soup",
       ingredients: [{ name: "Тыква", qty: "300 г" }, { name: "Куриная грудка", qty: "150 г" }, { name: "Сливки 10%", qty: "50 мл" }, { name: "Хлеб цельнозерн.", qty: "1 кусок (30 г)" }],
       steps: ["Отварите тыкву (300 г) 12–15 минут до мягкости и пробейте блендером со сливками (50 мл).", "Отдельно обжарьте курицу (150 г) 5–6 минут и добавьте в суп.", "Подавайте с хлебом (30 г)."]
     },
     {
       title: "Буррито-боул с говядиной",
       desc: "Говяжий фарш, рис, фасоль, овощи",
-      calories: 560, protein: 44, fat: 18, carbs: 56, cookingMode: "15",
+      calories: 560, protein: 44, fat: 18, carbs: 56, cookingMode: "15", icon: "bowl",
       ingredients: [{ name: "Говяжий фарш", qty: "180 г" }, { name: "Рис", qty: "150 г" }, { name: "Фасоль консервир.", qty: "100 г" }, { name: "Овощи свежие", qty: "100 г" }],
       steps: ["Обжарьте 180 г фарша 6–7 минут.", "Разогрейте 150 г риса и 100 г фасоли.", "Соберите в тарелке, добавьте свежие овощи (100 г)."]
     }
@@ -133,49 +135,49 @@ export const MEAL_POOL: Record<MealType, MealDef[]> = {
     {
       title: "Творог с мёдом",
       desc: "Просто смешать",
-      calories: 230, protein: 24, fat: 6, carbs: 20, cookingMode: "5",
+      calories: 230, protein: 24, fat: 6, carbs: 20, cookingMode: "5", icon: "yogurt",
       ingredients: [{ name: "Творог 5%", qty: "200 г" }, { name: "Мёд", qty: "1 ч.л. (7 г)" }],
       steps: ["Смешайте 200 г творога с 1 ч.л. (7 г) мёда — готово."]
     },
     {
       title: "Тосты с авокадо и яйцом пашот",
       desc: "Хлеб, авокадо, яйцо",
-      calories: 320, protein: 16, fat: 18, carbs: 26, cookingMode: "15", notEvening: true,
+      calories: 320, protein: 16, fat: 18, carbs: 26, cookingMode: "15", notEvening: true, icon: "toast",
       ingredients: [{ name: "Хлеб цельнозерн.", qty: "2 куска (60 г)" }, { name: "Авокадо", qty: "1 шт (150 г)" }, { name: "Яйцо", qty: "1 шт (50 г)" }],
       steps: ["Поджарьте 2 куска хлеба (60 г).", "Разомните авокадо (150 г) и намажьте на тосты.", "Сварите яйцо (50 г) пашот 3 минуты и выложите сверху."]
     },
     {
       title: "Протеиновый батончик и яблоко",
       desc: "Готовый батончик, яблоко",
-      calories: 240, protein: 18, fat: 8, carbs: 26, cookingMode: "5",
+      calories: 240, protein: 18, fat: 8, carbs: 26, cookingMode: "5", icon: "bar",
       ingredients: [{ name: "Протеиновый батончик", qty: "1 шт (50 г)" }, { name: "Яблоко", qty: "1 шт (150 г)" }],
       steps: ["Готово — просто съешьте батончик (50 г) с яблоком (150 г)."]
     },
     {
       title: "Смузи с ягодами и бананом",
       desc: "Кефир, ягоды, банан",
-      calories: 300, protein: 14, fat: 6, carbs: 48, cookingMode: "15",
+      calories: 300, protein: 14, fat: 6, carbs: 48, cookingMode: "15", icon: "shake",
       ingredients: [{ name: "Кефир", qty: "250 мл" }, { name: "Ягоды замороженные", qty: "100 г" }, { name: "Банан", qty: "1 шт (120 г)" }],
       steps: ["Взбейте 250 мл кефира, 100 г ягод и банан (120 г) блендером 1 минуту."]
     },
     {
       title: "Хумус с овощами",
       desc: "Хумус, морковь, огурец",
-      calories: 260, protein: 10, fat: 12, carbs: 30, cookingMode: "5",
+      calories: 260, protein: 10, fat: 12, carbs: 30, cookingMode: "5", icon: "bowl",
       ingredients: [{ name: "Хумус", qty: "100 г" }, { name: "Морковь", qty: "80 г" }, { name: "Огурец", qty: "80 г" }],
       steps: ["Нарежьте морковь (80 г) и огурец (80 г) палочками.", "Обмакивайте в 100 г хумуса."]
     },
     {
       title: "Скир с мёдом и миндалём",
       desc: "Скир или творог 0%, миндаль, мёд",
-      calories: 260, protein: 26, fat: 9, carbs: 20, cookingMode: "5",
+      calories: 260, protein: 26, fat: 9, carbs: 20, cookingMode: "5", icon: "yogurt",
       ingredients: [{ name: "Скир (или творог 0%)", qty: "200 г" }, { name: "Миндаль", qty: "15 г" }, { name: "Мёд", qty: "1 ч.л. (7 г)" }],
       steps: ["Смешайте 200 г скира с 1 ч.л. (7 г) мёда.", "Посыпьте 15 г миндаля сверху."]
     },
     {
       title: "Варёные яйца с сыром",
       desc: "Яйца, твёрдый сыр",
-      calories: 240, protein: 20, fat: 17, carbs: 3, cookingMode: "5",
+      calories: 240, protein: 20, fat: 17, carbs: 3, cookingMode: "5", icon: "egg",
       ingredients: [{ name: "Яйца", qty: "2 шт (100 г)" }, { name: "Сыр твёрдый", qty: "30 г" }],
       steps: ["Отварите 2 яйца (100 г) вкрутую 8–9 минут.", "Нарежьте сыр (30 г) и подавайте вместе."]
     }
@@ -184,49 +186,49 @@ export const MEAL_POOL: Record<MealType, MealDef[]> = {
     {
       title: "Салат с тунцом и фасолью",
       desc: "Тунец, фасоль, листья салата, масло",
-      calories: 420, protein: 38, fat: 14, carbs: 36, cookingMode: "5",
+      calories: 420, protein: 38, fat: 14, carbs: 36, cookingMode: "5", icon: "salad",
       ingredients: [{ name: "Тунец консервир.", qty: "1 банка (140 г слитого)" }, { name: "Фасоль консервир.", qty: "150 г" }, { name: "Листья салата", qty: "100 г" }, { name: "Оливковое масло", qty: "1 ст.л. (14 г)" }],
       steps: ["Слейте жидкость с тунца (140 г) и фасоли (150 г).", "Смешайте всё со 100 г листьев салата и 1 ст.л. (14 г) масла."]
     },
     {
       title: "Стейк с овощами на сковороде",
       desc: "Говяжий стейк, овощи на гриле",
-      calories: 520, protein: 45, fat: 22, carbs: 20, cookingMode: "15",
+      calories: 520, protein: 45, fat: 22, carbs: 20, cookingMode: "15", icon: "steak",
       ingredients: [{ name: "Говяжий стейк", qty: "200 г" }, { name: "Овощи на гриле", qty: "200 г" }, { name: "Оливковое масло", qty: "1 ст.л. (14 г)" }],
       steps: ["Разогрейте сковороду с 1 ст.л. (14 г) масла.", "Обжарьте стейк (200 г) 3–4 минуты с каждой стороны.", "Обжарьте овощи (200 г) рядом 5–7 минут."]
     },
     {
       title: "Креветки с авокадо и лаймом",
       desc: "Креветки готовые, авокадо, лайм",
-      calories: 400, protein: 36, fat: 16, carbs: 22, cookingMode: "5",
+      calories: 400, protein: 36, fat: 16, carbs: 22, cookingMode: "5", icon: "shrimp",
       ingredients: [{ name: "Креветки варёные", qty: "200 г" }, { name: "Авокадо", qty: "1 шт (150 г)" }, { name: "Лайм", qty: "0.5 шт (30 г)" }],
       steps: ["Разомните авокадо (150 г) вилкой, сбрызните соком лайма.", "Смешайте с 200 г креветок — готово."]
     },
     {
       title: "Лосось с овощами на пару",
       desc: "Лосось, брокколи, морковь",
-      calories: 500, protein: 42, fat: 24, carbs: 18, cookingMode: "15",
+      calories: 500, protein: 42, fat: 24, carbs: 18, cookingMode: "15", icon: "fish",
       ingredients: [{ name: "Лосось", qty: "200 г" }, { name: "Брокколи", qty: "150 г" }, { name: "Морковь", qty: "80 г" }, { name: "Оливковое масло", qty: "1 ст.л. (14 г)" }],
       steps: ["Готовьте лосось (200 г) на пару или в духовке 12–15 минут.", "Приготовьте на пару брокколи (150 г) и морковь (80 г) 8–10 минут.", "Сбрызните 1 ст.л. (14 г) масла перед подачей."]
     },
     {
       title: "Треска, запечённая с овощами",
       desc: "Треска, кабачок, помидоры",
-      calories: 400, protein: 40, fat: 12, carbs: 24, cookingMode: "15",
+      calories: 400, protein: 40, fat: 12, carbs: 24, cookingMode: "15", icon: "fish",
       ingredients: [{ name: "Треска", qty: "220 г" }, { name: "Кабачок", qty: "150 г" }, { name: "Помидоры черри", qty: "100 г" }, { name: "Оливковое масло", qty: "1 ст.л. (14 г)" }],
       steps: ["Выложите треску (220 г) и нарезанные овощи на противень.", "Сбрызните маслом, запекайте 18–20 минут при 200°C."]
     },
     {
       title: "Омлет с индейкой и овощами",
       desc: "Яйца, индейка, овощи",
-      calories: 420, protein: 38, fat: 20, carbs: 14, cookingMode: "5",
+      calories: 420, protein: 38, fat: 20, carbs: 14, cookingMode: "5", icon: "egg",
       ingredients: [{ name: "Яйца", qty: "3 шт (150 г)" }, { name: "Индейка отварная", qty: "120 г" }, { name: "Овощи свежие", qty: "100 г" }],
       steps: ["Взбейте 3 яйца, добавьте нарезанную индейку (120 г) и овощи (100 г).", "Жарьте на среднем огне 5–6 минут под крышкой."]
     },
     {
       title: "Чечевичный суп с курицей",
       desc: "Чечевица, курица, овощи",
-      calories: 450, protein: 40, fat: 10, carbs: 46, cookingMode: "15",
+      calories: 450, protein: 40, fat: 10, carbs: 46, cookingMode: "15", icon: "soup",
       ingredients: [{ name: "Чечевица красная", qty: "100 г" }, { name: "Куриная грудка", qty: "150 г" }, { name: "Овощи свежие", qty: "100 г" }],
       steps: ["Отварите 100 г чечевицы 15 минут с овощами (100 г).", "Добавьте нарезанную курицу (150 г), варите ещё 5 минут."]
     }

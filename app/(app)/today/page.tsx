@@ -80,6 +80,7 @@ export default async function TodayPage() {
           carbs: plannedRow.carbs ?? 0,
           ingredients: plannedRow.ingredients ?? [],
           steps: plannedRow.steps ?? [],
+          icon: plannedRow.icon ?? undefined,
           plannedMealId: plannedRow.id,
           badge: plannedBadge
         }
@@ -187,7 +188,7 @@ export default async function TodayPage() {
           </div>
           <div className="card" style={{ marginBottom: 16, borderLeft: "5px solid var(--protein)" }}>
             <div className="mealtop" style={{ marginBottom: 12 }}>
-              <FoodThumb color="var(--protein)" bg="var(--protein-bg)" photoUrl={meal.photoUrl} alt={meal.title} />
+              <FoodThumb color="var(--protein)" bg="var(--protein-bg)" photoUrl={meal.photoUrl} icon={meal.icon} alt={meal.title} />
               <div>
                 <span className="mealbadge">{meal.badge}</span>
                 <h3 style={{ fontSize: 20, marginBottom: 6 }}>{meal.title}</h3>
