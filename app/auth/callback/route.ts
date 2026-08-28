@@ -12,8 +12,12 @@ export async function GET(request: Request) {
 
   const { data: { user } } = await supabase.auth.getUser();
   if (user) {
-    const { data: profile } = await supabase.from("profiles").select("age").eq("id", user.id).single();
-    if (profile?.age != null) return NextResponse.redirect(`${origin}/today`);
+    const { data: profile, error } = await supabase.from("profiles").select("age").eq("id", user.id).single();
+    // Строка в profiles создаётся триггером при регистрации, так что у входящего через
+    // Google аккаунта она уже есть — ошибка чтения (гонка сессии сразу после обмена кода,
+    // сеть) не должна отправлять на онбординг: отправляем туда только когда явно видим
+    // пустой возраст в успешно прочитанной строке.
+    if (profile?.age != null || error) return NextResponse.redirect(`${origin}/today`);
   }
 
   return NextResponse.redirect(`${origin}/onboarding`);

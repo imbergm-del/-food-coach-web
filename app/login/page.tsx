@@ -51,10 +51,19 @@ export default function LoginPage() {
       }
 
       const { data: { user } } = await withTimeout(supabase.auth.getUser(), 15000);
-      const { data: profile } = user
+      const { data: profile, error: profileError } = user
         ? await supabase.from("profiles").select("age").eq("id", user.id).single()
-        : { data: null };
-      router.push(profile?.age == null ? "/onboarding" : "/today");
+        : { data: null, error: null };
+
+      // "login" на существующий аккаунт всегда имеет строку в profiles (её создаёт триггер
+      // при регистрации) — если запрос не удался (гонка сессии сразу после входа, сеть),
+      // это не значит, что анкета не заполнена. Не отправляем на онбординг вслепую, только
+      // когда реально видим пустой возраст в успешно прочитанной строке.
+      if (mode === "login" && profileError) {
+        router.push("/today");
+      } else {
+        router.push(profile?.age == null ? "/onboarding" : "/today");
+      }
       router.refresh();
     } catch (e) {
       setError(friendlyAuthError(e instanceof Error ? e.message : String(e)));
