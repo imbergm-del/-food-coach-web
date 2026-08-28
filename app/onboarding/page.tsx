@@ -36,9 +36,19 @@ export default function OnboardingPage() {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) { router.push("/login"); return; }
 
-    const proteinTarget = Math.round(weightN * 1.3);
+    // Белок и калории растут с частотой тренировок (ISSN: 1.6–2.2 г/кг при регулярных
+    // тренировках вместо базовых 1.2–1.3 г/кг), а калории дополнительно немного снижаются
+    // с возрастом — вместо единой формулы "вес × константа" без учёта образа жизни.
+    const tier =
+      workoutsN >= 6 ? { proteinPerKg: 2.0, calPerKg: 28 } :
+      workoutsN >= 4 ? { proteinPerKg: 1.8, calPerKg: 26 } :
+      workoutsN >= 2 ? { proteinPerKg: 1.6, calPerKg: 24 } :
+      { proteinPerKg: 1.3, calPerKg: 22 };
+    const ageFactor = ageN > 30 ? Math.max(0.85, 1 - (ageN - 30) * 0.005) : 1;
+
+    const proteinTarget = Math.round(weightN * tier.proteinPerKg);
     const fatTarget = Math.round(weightN * 0.75);
-    const calTarget = Math.round(weightN * 23);
+    const calTarget = Math.round(weightN * tier.calPerKg * ageFactor);
     const carbTarget = Math.max(0, Math.round((calTarget - (proteinTarget * 4 + fatTarget * 9)) / 4));
 
     await supabase.from("profiles").update({
