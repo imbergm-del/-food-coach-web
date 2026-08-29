@@ -42,7 +42,7 @@ export default function LoginPage() {
         mode === "login"
           ? supabase.auth.signInWithPassword({ email, password })
           : supabase.auth.signUp({ email, password }),
-        15000
+        30000
       );
 
       if (error) {
@@ -50,7 +50,7 @@ export default function LoginPage() {
         return;
       }
 
-      const { data: { user } } = await withTimeout(supabase.auth.getUser(), 15000);
+      const { data: { user } } = await withTimeout(supabase.auth.getUser(), 30000);
       const { data: profile, error: profileError } = user
         ? await supabase.from("profiles").select("age").eq("id", user.id).single()
         : { data: null, error: null };
