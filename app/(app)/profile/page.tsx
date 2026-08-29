@@ -19,6 +19,7 @@ export default async function ProfilePage() {
         <div className="listrow"><span>Вес</span><span>{profile?.weight_kg ?? "—"} кг</span></div>
         <div className="listrow"><span>Тренировок в неделю</span><span>{profile?.workouts_per_week ?? "—"}</span></div>
       </div>
+      <LoadingLink href="/reports" className="btn ghost block" style={{ marginBottom: 14, textAlign: "center" }}>Статистика</LoadingLink>
       <LoadingLink href="/settings" className="btn ghost block" style={{ marginBottom: 14, textAlign: "center" }}>Настройки</LoadingLink>
       {isAdminEmail(user?.email) && (
         <LoadingLink href="/admin" className="btn ghost block" style={{ marginBottom: 14, textAlign: "center" }}>Админ-панель</LoadingLink>

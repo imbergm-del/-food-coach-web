@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { MacroDial } from "./MacroDial";
 import { FoodThumb, type FoodIconKey } from "./FoodThumb";
+import { LoadingLink } from "./LoadingLink";
 import { MEAL_TYPE_LABELS } from "@/lib/mealTypes";
 
 type EatenMeal = {
@@ -93,6 +94,9 @@ export function MacroBreakdown({
                 Закрыть
               </button>
             </div>
+            <LoadingLink href="/reports" className="eyebrow" style={{ display: "inline-block", color: "var(--protein)", marginBottom: 14 }}>
+              Статистика за неделю ›
+            </LoadingLink>
             <h3 style={{ fontSize: 20, marginBottom: 16 }}>{usedCals} ккал</h3>
 
             <div className="goalgrid">
