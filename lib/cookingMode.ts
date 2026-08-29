@@ -3,6 +3,15 @@ export const COOKING_MODES = [
   { key: "15", label: "10–15 мин", desc: "Есть время немного приготовить — плита или духовка." }
 ] as const;
 
+export const COOKING_MODES_EN = [
+  { key: "5", label: "5 min", desc: "Assemble from ready-made parts — no cooking or frying." },
+  { key: "15", label: "10–15 min", desc: "There's time to cook a bit — stove or oven." }
+] as const;
+
+export function cookingModes(lang: "ru" | "en" = "ru") {
+  return lang === "en" ? COOKING_MODES_EN : COOKING_MODES;
+}
+
 export type CookingMode = (typeof COOKING_MODES)[number]["key"];
 
 // Раньше был ещё режим "0 мин" (только готовое, без сборки) — он дублировал

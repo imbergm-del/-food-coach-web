@@ -2,16 +2,13 @@
 
 import { useState, useRef, useEffect } from "react";
 import { resizeToJpegBase64 } from "@/lib/imageResize";
+import { coach as dict, t, type Lang } from "@/lib/i18n";
 
 type Message = { role: "user" | "assistant"; content: string; imagePreview?: string };
 
-const STARTERS = [
-  "Что съесть прямо сейчас?",
-  "Хочу что-то сладкое, но в рамках нормы",
-  "Собери ужин из того, что обычно есть дома"
-];
-
-export function CoachChat() {
+export function CoachChat({ lang = "ru" }: { lang?: Lang }) {
+  const tr = (key: string) => t(dict, lang, key);
+  const STARTERS = [tr("starter1"), tr("starter2"), tr("starter3")];
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [attachedPhoto, setAttachedPhoto] = useState<{ preview: string; base64: string } | null>(null);
@@ -30,7 +27,7 @@ export function CoachChat() {
       const dataUrl = await resizeToJpegBase64(file);
       setAttachedPhoto({ preview: dataUrl, base64: dataUrl.split(",")[1] });
     } catch {
-      setError("Не получилось обработать фото. Попробуйте ещё раз.");
+      setError(tr("errPhoto"));
     }
   }
 
@@ -39,7 +36,7 @@ export function CoachChat() {
     if ((!trimmed && !attachedPhoto) || loading) return;
 
     const photo = attachedPhoto;
-    const messageText = trimmed || "Вот что у меня есть дома — подбери рецепт из этого.";
+    const messageText = trimmed || tr("photoDefaultMessage");
     const next = [...messages, { role: "user" as const, content: messageText, imagePreview: photo?.preview }];
     setMessages(next);
     setInput("");
@@ -59,12 +56,12 @@ export function CoachChat() {
       });
       const data = await res.json();
       if (!res.ok) {
-        setError(data.error ?? "Что-то пошло не так.");
+        setError(data.error ?? tr("errGeneric"));
       } else {
         setMessages([...next, { role: "assistant", content: data.reply }]);
       }
     } catch {
-      setError("Нет связи с сервером. Проверьте интернет и попробуйте снова.");
+      setError(tr("errNoConnection"));
     } finally {
       setLoading(false);
     }
@@ -75,7 +72,7 @@ export function CoachChat() {
       {messages.length === 0 && !error && (
         <div className="card" style={{ marginBottom: 14 }}>
           <p style={{ fontSize: 13, color: "var(--ink-soft)", margin: "0 0 12px" }}>
-            Спросите что-нибудь, учитывая остаток КБЖУ на сегодня, или сфотографируйте продукты — подберу рецепт из того, что видно на фото:
+            {tr("intro")}
           </p>
           <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
             {STARTERS.map(s => (
@@ -107,7 +104,7 @@ export function CoachChat() {
 
       {loading && (
         <div className="card" style={{ marginBottom: 10, marginRight: 32 }}>
-          <p style={{ fontSize: 13.5, margin: 0, color: "var(--ink-soft)" }}>Коуч думает…</p>
+          <p style={{ fontSize: 13.5, margin: 0, color: "var(--ink-soft)" }}>{tr("thinking")}</p>
         </div>
       )}
 
@@ -122,7 +119,7 @@ export function CoachChat() {
       {attachedPhoto && (
         <div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 12 }}>
           <img src={attachedPhoto.preview} alt="" style={{ width: 48, height: 48, borderRadius: 10, objectFit: "cover" }} />
-          <span style={{ fontSize: 12.5, color: "var(--ink-soft)", flex: 1 }}>Фото прикреплено</span>
+          <span style={{ fontSize: 12.5, color: "var(--ink-soft)", flex: 1 }}>{tr("photoAttached")}</span>
           <button type="button" className="btn ghost" style={{ padding: "4px 10px" }} onClick={() => setAttachedPhoto(null)}>×</button>
         </div>
       )}
@@ -134,7 +131,7 @@ export function CoachChat() {
         <button
           type="button"
           className="btn ghost"
-          aria-label="Прикрепить фото продуктов"
+          aria-label={tr("attachPhoto")}
           onClick={() => photoInputRef.current?.click()}
           disabled={loading}
           style={{ padding: "11px 14px" }}
@@ -151,14 +148,14 @@ export function CoachChat() {
         <input
           value={input}
           onChange={e => setInput(e.target.value)}
-          placeholder={attachedPhoto ? "Например: что приготовить из этого?" : "Спросите коуча…"}
+          placeholder={attachedPhoto ? tr("inputPlaceholderWithPhoto") : tr("inputPlaceholder")}
           disabled={loading}
           style={{
             flex: 1, border: "1px solid var(--line-strong)", borderRadius: 999, padding: "11px 16px",
             fontFamily: "var(--sans)", fontSize: 13.5, background: "var(--card)", color: "var(--ink)"
           }}
         />
-        <button className="btn" type="submit" disabled={loading || (!input.trim() && !attachedPhoto)}>Отправить</button>
+        <button className="btn" type="submit" disabled={loading || (!input.trim() && !attachedPhoto)}>{tr("send")}</button>
       </form>
     </div>
   );

@@ -2,19 +2,21 @@
 
 import { useTransition } from "react";
 import { setCookingMode } from "./actions";
-import { COOKING_MODES, normalizeCookingMode } from "@/lib/cookingMode";
+import { cookingModes, normalizeCookingMode } from "@/lib/cookingMode";
+import type { Lang } from "@/lib/language";
 
 export function CookingModeTabs({
-  current, mealType, mealDate
-}: { current: string; mealType?: string; mealDate?: string }) {
+  current, mealType, mealDate, lang = "ru"
+}: { current: string; mealType?: string; mealDate?: string; lang?: Lang }) {
   const [isPending, startTransition] = useTransition();
   const normalized = normalizeCookingMode(current);
+  const modes = cookingModes(lang);
 
   return (
     <div>
-      <div className="eyebrow" style={{ marginBottom: 8 }}>Сколько времени есть на еду</div>
+      <div className="eyebrow" style={{ marginBottom: 8 }}>{lang === "en" ? "How much time do you have to eat" : "Сколько времени есть на еду"}</div>
       <div className="tabs segmented">
-        {COOKING_MODES.map(m => (
+        {modes.map(m => (
           <button
             key={m.key}
             className={`tab ${normalized === m.key ? "active" : ""}`}
@@ -26,7 +28,7 @@ export function CookingModeTabs({
         ))}
       </div>
       <p style={{ fontSize: 12, color: "var(--ink-soft)", margin: "-10px 0 16px" }}>
-        {COOKING_MODES.find(m => m.key === normalized)?.desc}
+        {modes.find(m => m.key === normalized)?.desc}
       </p>
     </div>
   );

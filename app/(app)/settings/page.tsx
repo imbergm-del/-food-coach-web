@@ -6,8 +6,13 @@ import { savePhoneNumber, saveName } from "../reminders/actions";
 import { getMealSchedule } from "@/lib/mealTypes";
 import { MealScheduleForm } from "./MealScheduleForm";
 import { SavedField } from "./SavedField";
+import { LanguageToggle } from "@/components/LanguageToggle";
+import { getLang } from "@/lib/language";
+import { settings as dict, t } from "@/lib/i18n";
 
 export default async function SettingsPage() {
+  const lang = getLang();
+  const tr = (key: string) => t(dict, lang, key);
   const supabase = createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
@@ -26,6 +31,14 @@ export default async function SettingsPage() {
       <BackButton href="/profile" className="btn ghost" style={{ marginBottom: 16, display: "inline-block" }} />
       <div className="eyebrow" style={{ marginBottom: 6 }}>Настройки</div>
       <h1 style={{ fontSize: 24, marginBottom: 16 }}>Общие настройки</h1>
+
+      <div className="card" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+        <div>
+          <h3 style={{ fontSize: 15 }}>{tr("language")}</h3>
+          <p style={{ fontSize: 12.5, color: "var(--ink-soft)", margin: "4px 0 0" }}>{tr("languageDesc")}</p>
+        </div>
+        <LanguageToggle current={lang} />
+      </div>
 
       <div className="card" style={{ marginBottom: 16 }}>
         <h3 style={{ fontSize: 15, marginBottom: 4 }}>Как к вам обращаться</h3>

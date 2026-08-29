@@ -7,6 +7,14 @@ export const MEAL_TYPE_LABELS: Record<MealType, string> = {
   breakfast: "Завтрак", lunch: "Обед", snack: "Перекус", dinner: "Ужин"
 };
 
+export const MEAL_TYPE_LABELS_EN: Record<MealType, string> = {
+  breakfast: "Breakfast", lunch: "Lunch", snack: "Snack", dinner: "Dinner"
+};
+
+export function mealTypeLabel(type: MealType, lang: "ru" | "en" = "ru"): string {
+  return lang === "en" ? MEAL_TYPE_LABELS_EN[type] : MEAL_TYPE_LABELS[type];
+}
+
 // Доля суточной нормы калорий на каждый приём — используется, чтобы подгонять
 // рецепты под личную норму пользователя, а не показывать фиксированные цифры всем.
 export const MEAL_CALORIE_SHARE: Record<MealType, number> = {

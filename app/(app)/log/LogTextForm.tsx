@@ -3,13 +3,15 @@
 import { useState } from "react";
 import { logMealEaten } from "../today/actions";
 import { SubmitButton } from "@/components/SubmitButton";
+import type { Lang } from "@/lib/language";
 
 type Result = {
   title: string; ingredients: { name: string; qty: string }[];
   calories: number; protein: number; fat: number; carbs: number;
 };
 
-export function LogTextForm({ mealType, mealDate }: { mealType: string; mealDate: string }) {
+export function LogTextForm({ mealType, mealDate, lang = "ru" }: { mealType: string; mealDate: string; lang?: Lang }) {
+  const en = lang === "en";
   const [text, setText] = useState("");
   const [status, setStatus] = useState<"idle" | "analyzing" | "result" | "error">("idle");
   const [result, setResult] = useState<Result | null>(null);
@@ -27,14 +29,14 @@ export function LogTextForm({ mealType, mealDate }: { mealType: string; mealDate
       });
       const data = await res.json();
       if (!res.ok) {
-        setError(data.error ?? "Не получилось разобрать описание.");
+        setError(data.error ?? (en ? "Couldn't parse the description." : "Не получилось разобрать описание."));
         setStatus("error");
         return;
       }
       setResult(data);
       setStatus("result");
     } catch {
-      setError("Не получилось обработать описание. Попробуйте ещё раз.");
+      setError(en ? "Couldn't process the description. Please try again." : "Не получилось обработать описание. Попробуйте ещё раз.");
       setStatus("error");
     }
   }
@@ -56,7 +58,7 @@ export function LogTextForm({ mealType, mealDate }: { mealType: string; mealDate
           </div>
         ))}
         <p style={{ fontFamily: "var(--mono)", fontSize: 12, color: "var(--ink-soft)", margin: "10px 0 14px" }}>
-          {result.calories} ккал · Б {result.protein} · Ж {result.fat} · У {result.carbs}
+          {result.calories} {en ? "kcal" : "ккал"} · {en ? "P" : "Б"} {result.protein} · {en ? "F" : "Ж"} {result.fat} · {en ? "C" : "У"} {result.carbs}
         </p>
         <div style={{ display: "flex", gap: 10 }}>
           <form action={logMealEaten} style={{ flex: 1 }}>
@@ -68,9 +70,9 @@ export function LogTextForm({ mealType, mealDate }: { mealType: string; mealDate
             <input type="hidden" name="protein" value={result.protein} />
             <input type="hidden" name="fat" value={result.fat} />
             <input type="hidden" name="carbs" value={result.carbs} />
-            <SubmitButton>Записать</SubmitButton>
+            <SubmitButton>{en ? "Log it" : "Записать"}</SubmitButton>
           </form>
-          <button className="btn ghost" style={{ flex: 1 }} onClick={reset} type="button">Отмена</button>
+          <button className="btn ghost" style={{ flex: 1 }} onClick={reset} type="button">{en ? "Cancel" : "Отмена"}</button>
         </div>
       </div>
     );
@@ -78,11 +80,11 @@ export function LogTextForm({ mealType, mealDate }: { mealType: string; mealDate
 
   return (
     <div className="card" style={{ marginBottom: 14 }}>
-      <p style={{ fontSize: 13, color: "var(--ink-soft)", margin: "0 0 10px" }}>Опишите словами</p>
+      <p style={{ fontSize: 13, color: "var(--ink-soft)", margin: "0 0 10px" }}>{en ? "Describe it in words" : "Опишите словами"}</p>
       <textarea
         value={text}
         onChange={e => setText(e.target.value)}
-        placeholder="Например: 2 яйца, тост и капучино"
+        placeholder={en ? "e.g. 2 eggs, toast and a cappuccino" : "Например: 2 яйца, тост и капучино"}
         rows={2}
         style={{
           width: "100%", border: "1px solid var(--line-strong)", borderRadius: 10, padding: "10px 12px",
@@ -93,9 +95,9 @@ export function LogTextForm({ mealType, mealDate }: { mealType: string; mealDate
       <button className="btn block" onClick={handleAnalyze} disabled={status === "analyzing" || !text.trim()} type="button">
         {status === "analyzing" ? (
           <span style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
-            <span className="spinner" /> Разбираем…
+            <span className="spinner" /> {en ? "Parsing…" : "Разбираем…"}
           </span>
-        ) : "Разобрать с ИИ"}
+        ) : (en ? "Parse with AI" : "Разобрать с ИИ")}
       </button>
     </div>
   );

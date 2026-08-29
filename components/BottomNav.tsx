@@ -3,16 +3,17 @@
 import { useRouter, usePathname } from "next/navigation";
 import { useState, useTransition } from "react";
 import { NavIcons } from "@/components/NavIcons";
+import { nav as dict, t, type Lang } from "@/lib/i18n";
 
 const NAV = [
-  { href: "/today", key: "today", label: "Сегодня" },
-  { href: "/plan", key: "plan", label: "План" },
-  { href: "/log", key: "log", label: "Записать" },
-  { href: "/cart", key: "cart", label: "Корзина" },
-  { href: "/coach", key: "coach", label: "Коуч" }
+  { href: "/today", key: "today" },
+  { href: "/plan", key: "plan" },
+  { href: "/log", key: "log" },
+  { href: "/cart", key: "cart" },
+  { href: "/coach", key: "coach" }
 ] as const;
 
-export function BottomNav() {
+export function BottomNav({ lang = "ru" }: { lang?: Lang }) {
   const pathname = usePathname();
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
@@ -39,7 +40,7 @@ export function BottomNav() {
             style={{ background: "none", border: "none", font: "inherit", opacity: isPending && !loading ? 0.4 : 1 }}
           >
             <span className="navicon">{loading ? <span className="spinner" /> : NavIcons[item.key]}</span>
-            {item.label}
+            {t(dict, lang, item.key)}
           </button>
         );
       })}

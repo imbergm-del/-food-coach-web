@@ -11,6 +11,7 @@ create table if not exists profiles (
   workouts_per_week int default 0,
   phone text,
   timezone text,                  -- IANA-название часового пояса (America/New_York), определяется браузером
+  language text default 'ru',     -- ru / en — язык интерфейса и ИИ-подборок, переключатель на входе/в настройках
   cooking_mode text default '5',
   theme text default 'field',
   protein_target int default 120,
@@ -115,6 +116,7 @@ alter table reminder_settings add column if not exists meal_reminders_enabled bo
 alter table meals add column if not exists steps jsonb default '[]';
 alter table meals add column if not exists icon text;
 alter table profiles add column if not exists sex text;
+alter table profiles add column if not exists language text default 'ru';
 
 -- Заполняем email для аккаунтов, созданных до того, как колонка появилась
 update public.profiles p

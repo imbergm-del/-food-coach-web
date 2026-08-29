@@ -6,6 +6,7 @@ import { RecipeDisclosure } from "./RecipeDisclosure";
 import { SubmitButton } from "@/components/SubmitButton";
 import { LoadingLink } from "@/components/LoadingLink";
 import { logMealEaten } from "./actions";
+import type { Lang } from "@/lib/language";
 
 type Option = {
   title: string; desc: string; calories: number; protein: number; fat: number; carbs: number;
@@ -13,11 +14,14 @@ type Option = {
 };
 
 export function MealCard({
-  options, startIndex, mealType, mealDate, plannedBadge
-}: { options: Option[]; startIndex: number; mealType: string; mealDate: string; plannedBadge?: string }) {
+  options, startIndex, mealType, mealDate, plannedBadge, lang = "ru"
+}: { options: Option[]; startIndex: number; mealType: string; mealDate: string; plannedBadge?: string; lang?: Lang }) {
   const [index, setIndex] = useState(startIndex);
   const meal = options[index];
-  const badge = index === startIndex && plannedBadge ? plannedBadge : "Рецепт под ваш режим";
+  const defaultBadge = lang === "en" ? "Recipe for your mode" : "Рецепт под ваш режим";
+  const badge = index === startIndex && plannedBadge ? plannedBadge : defaultBadge;
+  const kcal = lang === "en" ? "kcal" : "ккал";
+  const [pLabel, fLabel, cLabel] = lang === "en" ? ["P", "F", "C"] : ["Б", "Ж", "У"];
 
   return (
     <div className="card" style={{ marginBottom: 16, borderLeft: "5px solid var(--protein)" }}>
@@ -31,10 +35,10 @@ export function MealCard({
       </div>
       <div style={{ display: "flex", flexWrap: "wrap", gap: 6, margin: "0 0 16px" }}>
         {[
-          [`${meal.calories} ккал`, "var(--ink-soft)", "var(--paper2)"],
-          [`Б ${meal.protein}`, "var(--protein)", "var(--protein-bg)"],
-          [`Ж ${meal.fat}`, "var(--fat-ink)", "var(--fat-bg)"],
-          [`У ${meal.carbs}`, "var(--carbs)", "var(--carbs-bg)"]
+          [`${meal.calories} ${kcal}`, "var(--ink-soft)", "var(--paper2)"],
+          [`${pLabel} ${meal.protein}`, "var(--protein)", "var(--protein-bg)"],
+          [`${fLabel} ${meal.fat}`, "var(--fat-ink)", "var(--fat-bg)"],
+          [`${cLabel} ${meal.carbs}`, "var(--carbs)", "var(--carbs-bg)"]
         ].map(([text, color, bg]) => (
           <span key={text} style={{ fontFamily: "var(--mono)", fontSize: 11.5, fontWeight: 600, color, background: bg, padding: "5px 10px", borderRadius: 999 }}>
             {text}
@@ -54,14 +58,14 @@ export function MealCard({
           <input type="hidden" name="protein" value={meal.protein} />
           <input type="hidden" name="fat" value={meal.fat} />
           <input type="hidden" name="carbs" value={meal.carbs} />
-          <SubmitButton className="actbtn" pendingText="…">Съел</SubmitButton>
+          <SubmitButton className="actbtn" pendingText="…">{lang === "en" ? "Ate it" : "Съел"}</SubmitButton>
         </form>
         <button
           type="button" className="actbtn ghost"
           onClick={() => setIndex(i => (i + 1) % options.length)}
           disabled={options.length < 2}
         >
-          Заменить
+          {lang === "en" ? "Swap" : "Заменить"}
         </button>
       </div>
       <LoadingLink
@@ -71,7 +75,7 @@ export function MealCard({
         <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style={{ flexShrink: 0 }}>
           <circle cx="5" cy="12" r="1.6" /><circle cx="12" cy="12" r="1.6" /><circle cx="19" cy="12" r="1.6" />
         </svg>
-        Ещё варианты — фото, ресторан, голоден сейчас
+        {lang === "en" ? "More options — photo, restaurant, hungry now" : "Ещё варианты — фото, ресторан, голоден сейчас"}
       </LoadingLink>
     </div>
   );

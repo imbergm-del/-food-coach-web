@@ -5,11 +5,13 @@ import { logPhotoMeal } from "./actions";
 import { resizeToJpegBase64 } from "@/lib/imageResize";
 import { SubmitButton } from "@/components/SubmitButton";
 import { LoadingLink } from "@/components/LoadingLink";
+import type { Lang } from "@/lib/language";
 
 type Ingredient = { name: string; qty: string; calories: number; protein: number; fat: number; carbs: number };
 type Result = { title: string; ingredients: Ingredient[] };
 
-export function PhotoCapture({ mealType, mealDate }: { mealType: string; mealDate: string }) {
+export function PhotoCapture({ mealType, mealDate, lang = "ru" }: { mealType: string; mealDate: string; lang?: Lang }) {
+  const en = lang === "en";
   const [status, setStatus] = useState<"idle" | "analyzing" | "result" | "error">("idle");
   const [preview, setPreview] = useState<string | null>(null);
   const [result, setResult] = useState<Result | null>(null);
@@ -36,14 +38,14 @@ export function PhotoCapture({ mealType, mealDate }: { mealType: string; mealDat
       const data = await res.json();
 
       if (!res.ok) {
-        setError(data.error ?? "Не получилось распознать фото.");
+        setError(data.error ?? (en ? "Couldn't recognize the photo." : "Не получилось распознать фото."));
         setStatus("error");
       } else {
         setResult(data);
         setStatus("result");
       }
     } catch {
-      setError("Не получилось обработать фото. Попробуйте ещё раз.");
+      setError(en ? "Couldn't process the photo. Please try again." : "Не получилось обработать фото. Попробуйте ещё раз.");
       setStatus("error");
     }
   }
@@ -68,10 +70,10 @@ export function PhotoCapture({ mealType, mealDate }: { mealType: string; mealDat
     return (
       <div className="card" style={{ display: "flex", flexDirection: "column", alignItems: "stretch", gap: 12 }}>
         <p style={{ color: "var(--ink-soft)", fontSize: 14, margin: "0 0 4px" }}>
-          Сфотографируйте тарелку — оценим блюдо и посчитаем КБЖУ.
+          {en ? "Photograph your plate — we'll identify the dish and calculate its macros." : "Сфотографируйте тарелку — оценим блюдо и посчитаем КБЖУ."}
         </p>
-        <button className="btn block" onClick={() => cameraInputRef.current?.click()}>Сделать фото</button>
-        <button className="btn ghost block" onClick={() => galleryInputRef.current?.click()}>Выбрать из галереи</button>
+        <button className="btn block" onClick={() => cameraInputRef.current?.click()}>{en ? "Take a photo" : "Сделать фото"}</button>
+        <button className="btn ghost block" onClick={() => galleryInputRef.current?.click()}>{en ? "Choose from gallery" : "Выбрать из галереи"}</button>
         <input
           ref={cameraInputRef} type="file" accept="image/*" capture="environment" style={{ display: "none" }}
           onChange={e => handleFile(e.target.files?.[0])}
@@ -88,7 +90,7 @@ export function PhotoCapture({ mealType, mealDate }: { mealType: string; mealDat
     return (
       <div className="card" style={{ display: "flex", flexDirection: "column", alignItems: "stretch" }}>
         {preview && <img src={preview} alt="" style={{ width: "100%", borderRadius: 12, marginBottom: 14 }} />}
-        <p style={{ color: "var(--ink-soft)", fontSize: 14, margin: 0, textAlign: "center" }}>Распознаём блюдо…</p>
+        <p style={{ color: "var(--ink-soft)", fontSize: 14, margin: 0, textAlign: "center" }}>{en ? "Recognizing the dish…" : "Распознаём блюдо…"}</p>
       </div>
     );
   }
@@ -101,8 +103,8 @@ export function PhotoCapture({ mealType, mealDate }: { mealType: string; mealDat
           <p style={{ color: "var(--protein)", fontSize: 14, margin: 0 }}>{error}</p>
         </div>
         <div style={{ display: "flex", gap: 10, marginTop: 16 }}>
-          <button className="btn block" onClick={reset}>Попробовать снова</button>
-          <LoadingLink href="/today" className="btn ghost" style={{ flex: 1, textAlign: "center" }}>Отмена</LoadingLink>
+          <button className="btn block" onClick={reset}>{en ? "Try again" : "Попробовать снова"}</button>
+          <LoadingLink href="/today" className="btn ghost" style={{ flex: 1, textAlign: "center" }}>{en ? "Cancel" : "Отмена"}</LoadingLink>
         </div>
       </div>
     );
@@ -122,7 +124,7 @@ export function PhotoCapture({ mealType, mealDate }: { mealType: string; mealDat
           {preview && <img src={preview} alt="" style={{ width: "100%", borderRadius: 12, marginBottom: 14 }} />}
           <h3 style={{ fontSize: 17, marginBottom: 6 }}>{result.title}</h3>
           <p style={{ fontSize: 12, color: "var(--ink-soft)", margin: "0 0 10px" }}>
-            Не то на тарелке или не всё съели — уберите лишнее из списка.
+            {en ? "Not what's on the plate, or didn't eat all of it — remove what doesn't belong." : "Не то на тарелке или не всё съели — уберите лишнее из списка."}
           </p>
           {result.ingredients.map((d, i) => {
             const isRemoved = removed.has(i);
@@ -135,14 +137,14 @@ export function PhotoCapture({ mealType, mealDate }: { mealType: string; mealDat
                     type="button" onClick={() => toggleRemoved(i)} className="btn ghost"
                     style={{ padding: "3px 10px", fontSize: 11.5 }}
                   >
-                    {isRemoved ? "Вернуть" : "Убрать"}
+                    {isRemoved ? (en ? "Bring back" : "Вернуть") : (en ? "Remove" : "Убрать")}
                   </button>
                 </span>
               </div>
             );
           })}
           <p style={{ fontFamily: "var(--mono)", fontSize: 12, color: "var(--ink-soft)", margin: "12px 0 0" }}>
-            Оценочно: {totals.calories} ккал · Б {totals.protein} · Ж {totals.fat} · У {totals.carbs}
+            {en ? "Estimate" : "Оценочно"}: {totals.calories} {en ? "kcal" : "ккал"} · {en ? "P" : "Б"} {totals.protein} · {en ? "F" : "Ж"} {totals.fat} · {en ? "C" : "У"} {totals.carbs}
           </p>
         </div>
         <div style={{ display: "flex", gap: 10, marginTop: 16 }}>
@@ -155,9 +157,9 @@ export function PhotoCapture({ mealType, mealDate }: { mealType: string; mealDat
             <input type="hidden" name="protein" value={totals.protein} />
             <input type="hidden" name="fat" value={totals.fat} />
             <input type="hidden" name="carbs" value={totals.carbs} />
-            <SubmitButton disabled={!keptIngredients.length}>Подтвердить</SubmitButton>
+            <SubmitButton disabled={!keptIngredients.length}>{en ? "Confirm" : "Подтвердить"}</SubmitButton>
           </form>
-          <button className="btn ghost" style={{ flex: 1 }} onClick={reset}>Переснять</button>
+          <button className="btn ghost" style={{ flex: 1 }} onClick={reset}>{en ? "Retake" : "Переснять"}</button>
         </div>
       </div>
     );
