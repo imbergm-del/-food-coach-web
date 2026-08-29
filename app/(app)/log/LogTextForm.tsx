@@ -9,7 +9,7 @@ type Result = {
   calories: number; protein: number; fat: number; carbs: number;
 };
 
-export function LogTextForm({ mealType }: { mealType: string }) {
+export function LogTextForm({ mealType, mealDate }: { mealType: string; mealDate: string }) {
   const [text, setText] = useState("");
   const [status, setStatus] = useState<"idle" | "analyzing" | "result" | "error">("idle");
   const [result, setResult] = useState<Result | null>(null);
@@ -62,6 +62,7 @@ export function LogTextForm({ mealType }: { mealType: string }) {
           <form action={logMealEaten} style={{ flex: 1 }}>
             <input type="hidden" name="title" value={result.title} />
             <input type="hidden" name="mealType" value={mealType} />
+            <input type="hidden" name="date" value={mealDate} />
             <input type="hidden" name="ingredients" value={JSON.stringify(result.ingredients)} />
             <input type="hidden" name="calories" value={result.calories} />
             <input type="hidden" name="protein" value={result.protein} />

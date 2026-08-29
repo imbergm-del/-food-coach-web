@@ -25,7 +25,7 @@ export default async function LogPage() {
       <div className="eyebrow" style={{ marginBottom: 6 }}>Записать еду</div>
       <h1 style={{ fontSize: 24, marginBottom: 18 }}>Что вы съели?</h1>
 
-      <LogTextForm mealType={mealType} />
+      <LogTextForm mealType={mealType} mealDate={today} />
 
       <LoadingLink href="/photo" className="btn ghost block" style={{ textAlign: "center", marginBottom: 16 }}>
         Сфотографировать

@@ -14,16 +14,22 @@ export function pickMealForDate(pool: MealDef[], date: string): MealDef {
   return pool[absoluteDayIndex(date) % pool.length];
 }
 
-// То же самое, но только среди блюд с нужным временем готовки — для «Сегодня»,
-// где выбор должен уважать переключатель "Сколько времени есть на еду". Если передан
-// текущий час и он вечерний, дополнительно исключает явно завтрачные блюда (например,
-// перекус, подбираемый поздним вечером, не должен предлагать тосты с авокадо).
-export function pickMealForDateAndMode(pool: MealDef[], date: string, cookingMode: "5" | "15", hour?: number): MealDef {
+// Сужает пул до нужного времени готовки (с фолбэком на весь пул, если подходящих нет) и,
+// если передан текущий час и он вечерний, дополнительно исключает явно завтрачные блюда
+// (например, перекус, подбираемый поздним вечером, не должен предлагать тосты с авокадо).
+// Общая логика для детерминированного выбора и для "Заменить", которое перебирает этот
+// же список руками — оба должны уважать переключатель "Сколько времени есть на еду".
+export function filterPoolForMode(pool: MealDef[], cookingMode: "5" | "15", hour?: number): MealDef[] {
   const filtered = pool.filter(m => m.cookingMode === cookingMode);
   let usable = filtered.length ? filtered : pool;
   if (hour !== undefined && hour >= 18) {
     const eveningOk = usable.filter(m => !m.notEvening);
     if (eveningOk.length) usable = eveningOk;
   }
+  return usable;
+}
+
+export function pickMealForDateAndMode(pool: MealDef[], date: string, cookingMode: "5" | "15", hour?: number): MealDef {
+  const usable = filterPoolForMode(pool, cookingMode, hour);
   return usable[absoluteDayIndex(date) % usable.length];
 }

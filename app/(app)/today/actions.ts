@@ -63,36 +63,43 @@ export async function addWater(formData: FormData) {
   revalidatePath("/today");
 }
 
+// Отмечает съеденным то, что реально показано (после «Заменить» это может быть уже не
+// исходно запланированное блюдо) — удаляет старый план на этот слот, если он был, и
+// вставляет новую съеденную запись, вместо условного апдейта только для исходного плана.
 export async function logMealEaten(formData: FormData) {
   const supabase = createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return;
 
-  const mealId = formData.get("mealId") as string;
-
-  if (mealId) {
-    // Приём был запланирован заранее (см. «Напоминания») — просто отмечаем его съеденным
-    await supabase.from("meals").update({ status: "eaten" }).eq("id", Number(mealId)).eq("user_id", user.id);
-    revalidatePath("/today");
-    revalidatePath("/plan");
-    return;
-  }
-
   const title = formData.get("title") as string;
   const mealType = formData.get("mealType") as MealType;
+  const date = formData.get("date") as string;
   const ingredients = JSON.parse((formData.get("ingredients") as string) || "[]");
+  const steps = JSON.parse((formData.get("steps") as string) || "[]");
+  const icon = (formData.get("icon") as string) || null;
   const calories = Number(formData.get("calories"));
   const protein = Number(formData.get("protein"));
   const fat = Number(formData.get("fat"));
   const carbs = Number(formData.get("carbs"));
-  const date = (formData.get("date") as string) || new Date().toISOString().slice(0, 10);
+  const normalizedType = MEAL_SEQUENCE.includes(mealType) ? mealType : "snack";
+
+  if (date) {
+    await supabase.from("meals")
+      .delete()
+      .eq("user_id", user.id)
+      .eq("date", date)
+      .eq("meal_type", normalizedType)
+      .eq("status", "planned");
+  }
 
   await supabase.from("meals").insert({
     user_id: user.id,
-    date,
-    meal_type: MEAL_SEQUENCE.includes(mealType) ? mealType : "snack",
+    date: date || new Date().toISOString().slice(0, 10),
+    meal_type: normalizedType,
     title,
     ingredients,
+    steps,
+    icon,
     calories,
     protein,
     fat,

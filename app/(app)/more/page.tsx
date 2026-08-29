@@ -13,7 +13,6 @@ export default async function MorePage() {
   const forMeal = mealLabel ? ` · ${mealLabel.toLowerCase()}` : "";
 
   const items = [
-    { title: "Заменить блюдо", desc: `Похожие варианты по КБЖУ${forMeal}`, href: "/change", color: "var(--protein)", bg: "var(--protein-bg)" },
     { title: "Сфотографировать еду", desc: "Распознать по фото", href: "/photo", color: "var(--fat)", bg: "var(--fat-bg)" },
     { title: "Я голоден сейчас", desc: "Срочные варианты прямо сейчас", href: "/hungry", color: "var(--warn)", bg: "var(--protein-bg)" },
     { title: "Ем вне дома", desc: `Подбор блюда в ресторане${forMeal}`, href: "/restaurant", color: "var(--water)", bg: "var(--water-bg)" }

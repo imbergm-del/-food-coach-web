@@ -1,14 +1,13 @@
 import { createClient } from "@/lib/supabaseServer";
 import { LoadingLink } from "@/components/LoadingLink";
-import { addToCart, logMealEaten, addWater } from "./actions";
+import { addWater } from "./actions";
 import { CookingModeTabs } from "./CookingModeTabs";
 import { MacroBreakdown } from "@/components/MacroBreakdown";
-import { FoodThumb } from "@/components/FoodThumb";
-import { RecipeDisclosure } from "./RecipeDisclosure";
+import { MealCard } from "./MealCard";
 import { SubmitButton } from "@/components/SubmitButton";
 import { MEAL_TYPE_LABELS, getMealSchedule } from "@/lib/mealTypes";
-import { MEAL_POOL, type MealDef } from "@/lib/mealMenu";
-import { pickMealForDateAndMode } from "@/lib/mealRotation";
+import { MEAL_POOL } from "@/lib/mealMenu";
+import { filterPoolForMode } from "@/lib/mealRotation";
 import { getDisplayMealType } from "@/lib/getDisplayMealType";
 import { normalizeCookingMode } from "@/lib/cookingMode";
 import { scaleMealToTarget } from "@/lib/scaleMeal";
@@ -62,32 +61,18 @@ export default async function TodayPage() {
     : plannedRow?.source === "week_plan" ? "План на неделю"
     : plannedRow?.source === "change" ? "Ваш выбор"
     : "Из плана";
-  const meal: (MealDef & { plannedMealId?: number; badge: string }) | null = !displayType
-    ? null
-    : plannedRow
-      ? {
-          title: plannedRow.title ?? "Запланированный приём",
-          desc: Array.isArray(plannedRow.ingredients) && plannedRow.ingredients.length
-            ? plannedRow.ingredients.map((i: { name: string }) => i.name).join(", ")
-            : plannedRow.source === "plan"
-              ? "Из вашего плана на вечер"
-              : plannedRow.source === "week_plan"
-                ? "Из плана на неделю"
-                : "Выбрано вами как замена",
-          calories: plannedRow.calories ?? 0,
-          protein: plannedRow.protein ?? 0,
-          fat: plannedRow.fat ?? 0,
-          carbs: plannedRow.carbs ?? 0,
-          ingredients: plannedRow.ingredients ?? [],
-          steps: plannedRow.steps ?? [],
-          icon: plannedRow.icon ?? undefined,
-          plannedMealId: plannedRow.id,
-          badge: plannedBadge
-        }
-      : {
-          ...scaleMealToTarget(pickMealForDateAndMode(MEAL_POOL[displayType], mealDate, cookingMode, nowInTz(tz).getHours()), displayType, profile?.cal_target ?? 2200),
-          badge: "Рецепт под ваш режим"
-        };
+
+  // Один и тот же список вариантов (с учётом переключателя "Сколько времени есть на еду")
+  // и для показа текущего блюда, и для кнопки "Заменить" на этой же странице — без
+  // отдельного перехода на другой экран.
+  const calTarget = profile?.cal_target ?? 2200;
+  const options = displayType
+    ? filterPoolForMode(MEAL_POOL[displayType], cookingMode, nowInTz(tz).getHours()).map(def => ({
+        ...scaleMealToTarget(def, displayType, calTarget)
+      }))
+    : [];
+  const currentTitle = plannedRow?.title;
+  const startIndex = Math.max(0, options.findIndex(o => o.title === currentTitle));
 
   const p = profile ?? { protein_target: 125, fat_target: 72, carb_target: 210, cal_target: 2200, name: "друг" };
   const usedProtein = meals?.reduce((s, m) => s + (m.status === "eaten" || m.status === "photo_logged" ? m.protein ?? 0 : 0), 0) ?? 0;
@@ -181,58 +166,15 @@ export default async function TodayPage() {
       )}
       <CookingModeTabs current={cookingMode} mealType={displayType} mealDate={mealDate} />
 
-      {meal && displayType ? (
+      {options.length && displayType ? (
         <>
           <div className="eyebrow" style={{ marginBottom: 8, color: "var(--protein)", fontWeight: 700 }}>
             Следующий приём · {formatDateLabel(mealDate)} · {MEAL_TYPE_LABELS[displayType]}
           </div>
-          <div className="card" style={{ marginBottom: 16, borderLeft: "5px solid var(--protein)" }}>
-            <div className="mealtop" style={{ marginBottom: 12 }}>
-              <FoodThumb color="var(--protein)" bg="var(--protein-bg)" photoUrl={meal.photoUrl} icon={meal.icon} alt={meal.title} />
-              <div>
-                <span className="mealbadge">{meal.badge}</span>
-                <h3 style={{ fontSize: 20, marginBottom: 6 }}>{meal.title}</h3>
-                <p style={{ fontSize: 14.5, color: "var(--ink-soft)", margin: 0 }}>{meal.desc}</p>
-              </div>
-            </div>
-            <div style={{ display: "flex", flexWrap: "wrap", gap: 6, margin: "0 0 16px" }}>
-              {[
-                [`${meal.calories} ккал`, "var(--ink-soft)", "var(--paper2)"],
-                [`Б ${meal.protein}`, "var(--protein)", "var(--protein-bg)"],
-                [`Ж ${meal.fat}`, "var(--fat-ink)", "var(--fat-bg)"],
-                [`У ${meal.carbs}`, "var(--carbs)", "var(--carbs-bg)"]
-              ].map(([text, color, bg]) => (
-                <span key={text} style={{ fontFamily: "var(--mono)", fontSize: 11.5, fontWeight: 600, color, background: bg, padding: "5px 10px", borderRadius: 999 }}>
-                  {text}
-                </span>
-              ))}
-            </div>
-            <RecipeDisclosure ingredients={meal.ingredients} steps={meal.steps} />
-            <div className="actionrow" style={{ marginBottom: 10 }}>
-              <form action={logMealEaten} style={{ flex: 1 }}>
-                {meal.plannedMealId && <input type="hidden" name="mealId" value={meal.plannedMealId} />}
-                <input type="hidden" name="title" value={meal.title} />
-                <input type="hidden" name="mealType" value={displayType} />
-                <input type="hidden" name="date" value={mealDate} />
-                <input type="hidden" name="ingredients" value={JSON.stringify(meal.ingredients)} />
-                <input type="hidden" name="calories" value={meal.calories} />
-                <input type="hidden" name="protein" value={meal.protein} />
-                <input type="hidden" name="fat" value={meal.fat} />
-                <input type="hidden" name="carbs" value={meal.carbs} />
-                <SubmitButton className="actbtn" pendingText="…">Съел</SubmitButton>
-              </form>
-              <LoadingLink href="/change" className="actbtn ghost">Заменить</LoadingLink>
-            </div>
-            <LoadingLink
-              href="/more" className="btn ghost block"
-              style={{ textAlign: "center", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}
-            >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style={{ flexShrink: 0 }}>
-                <circle cx="5" cy="12" r="1.6" /><circle cx="12" cy="12" r="1.6" /><circle cx="19" cy="12" r="1.6" />
-              </svg>
-              Ещё варианты — фото, ресторан, голоден сейчас
-            </LoadingLink>
-          </div>
+          <MealCard
+            options={options} startIndex={startIndex} mealType={displayType} mealDate={mealDate}
+            plannedBadge={plannedRow ? plannedBadge : undefined}
+          />
         </>
       ) : (
         <div className="card" style={{ marginBottom: 16 }}>
@@ -257,12 +199,6 @@ export default async function TodayPage() {
         </div>
         <LoadingLink href="/reminders" className="btn ghost" style={{ whiteSpace: "nowrap" }}>Смотреть</LoadingLink>
       </div>
-
-      {meal && (
-        <form action={addToCart} style={{ display: "none" }} id="order-form">
-          <input type="hidden" name="ingredients" value={JSON.stringify(meal.ingredients)} />
-        </form>
-      )}
     </div>
   );
 }
