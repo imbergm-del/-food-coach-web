@@ -1,11 +1,16 @@
 import { createClient } from "@/lib/supabaseServer";
 import { BackButton } from "@/components/BackButton";
-import { todayISOInTz, addDaysISO } from "@/lib/userTime";
+import { todayISOInTz, addDaysISO, nowInTz } from "@/lib/userTime";
+import { MEAL_SEQUENCE, MEAL_TYPE_LABELS, getMealSchedule, type MealType } from "@/lib/mealTypes";
 
 const WEEKDAY_LABELS = ["Вс", "Пн", "Вт", "Ср", "Чт", "Пт", "Сб"];
 const DAYS = 7;
+const CUTOVER_GRACE_MINUTES = 30;
 
-type DayStat = { iso: string; label: string; isToday: boolean; calories: number; protein: number; fat: number; carbs: number; logged: boolean };
+type DayStat = {
+  iso: string; label: string; isToday: boolean; calories: number; protein: number; fat: number; carbs: number;
+  logged: boolean; missed: MealType[];
+};
 
 export default async function ReportsPage() {
   const supabase = createClient();
@@ -18,30 +23,43 @@ export default async function ReportsPage() {
 
   const { data: meals } = await supabase
     .from("meals")
-    .select("date, calories, protein, fat, carbs")
+    .select("date, meal_type, calories, protein, fat, carbs")
     .eq("user_id", user!.id)
     .gte("date", startISO)
     .lte("date", today)
     .in("status", ["eaten", "photo_logged"]);
 
-  const byDate = new Map<string, { calories: number; protein: number; fat: number; carbs: number }>();
+  const byDate = new Map<string, { calories: number; protein: number; fat: number; carbs: number; types: Set<string> }>();
   for (const m of meals ?? []) {
-    const cur = byDate.get(m.date) ?? { calories: 0, protein: 0, fat: 0, carbs: 0 };
+    const cur = byDate.get(m.date) ?? { calories: 0, protein: 0, fat: 0, carbs: 0, types: new Set<string>() };
     cur.calories += m.calories ?? 0;
     cur.protein += m.protein ?? 0;
     cur.fat += m.fat ?? 0;
     cur.carbs += m.carbs ?? 0;
+    cur.types.add(m.meal_type);
     byDate.set(m.date, cur);
   }
+
+  // Пропущенным считается только приём, чьё окно (время + 30 минут) уже закрылось —
+  // сегодняшний ужин, который ещё впереди, не в счёт; для прошлых дней закрыты все.
+  const schedule = getMealSchedule(profile);
+  const nowMinutes = nowInTz(tz).getHours() * 60 + nowInTz(tz).getMinutes();
+  const toMinutes = (h: number, m: number) => h * 60 + m;
 
   const days: DayStat[] = Array.from({ length: DAYS }, (_, i) => {
     const iso = addDaysISO(startISO, i);
     const weekday = new Date(`${iso}T00:00:00`).getDay();
+    const isToday = iso === today;
     const totals = byDate.get(iso);
+    const loggedTypes = totals?.types ?? new Set<string>();
+    const elapsedTypes = MEAL_SEQUENCE.filter(t =>
+      !isToday || nowMinutes >= toMinutes(schedule[t].hour, schedule[t].minute) + CUTOVER_GRACE_MINUTES
+    );
+    const missed = iso <= today ? elapsedTypes.filter(t => !loggedTypes.has(t)) : [];
     return {
-      iso, label: WEEKDAY_LABELS[weekday], isToday: iso === today,
+      iso, label: WEEKDAY_LABELS[weekday], isToday,
       calories: totals?.calories ?? 0, protein: totals?.protein ?? 0, fat: totals?.fat ?? 0, carbs: totals?.carbs ?? 0,
-      logged: !!totals
+      logged: !!totals, missed
     };
   });
 
@@ -104,17 +122,24 @@ export default async function ReportsPage() {
       <div className="eyebrow" style={{ marginBottom: 8 }}>По дням</div>
       <div className="card">
         {days.slice().reverse().map((d, i) => (
-          <div key={d.iso} className="listrow" style={{ borderTop: i === 0 ? "none" : undefined }}>
-            <span style={{ fontSize: 13.5 }}>
-              {d.label}{d.isToday ? " · сегодня" : ""}
-              {!d.logged && <span style={{ color: "var(--ink-soft)" }}> — нет записей</span>}
+          <div key={d.iso} className="listrow" style={{ flexDirection: "column", alignItems: "stretch", gap: 4, borderTop: i === 0 ? "none" : undefined, padding: "10px 0" }}>
+            <span style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <span style={{ fontSize: 13.5 }}>
+                {d.label}{d.isToday ? " · сегодня" : ""}
+                {!d.logged && <span style={{ color: "var(--ink-soft)" }}> — нет записей</span>}
+              </span>
+              {d.logged && (
+                <span style={{ display: "flex", gap: 6, alignItems: "center" }}>
+                  <span style={{ fontFamily: "var(--mono)", fontSize: 11.5, color: "var(--ink-soft)" }}>{d.calories} ккал</span>
+                  <span className="macrolabel" style={{ margin: 0, color: "var(--protein)" }}>Б{d.protein}</span>
+                  <span className="macrolabel" style={{ margin: 0, color: "var(--fat-ink)" }}>Ж{d.fat}</span>
+                  <span className="macrolabel" style={{ margin: 0, color: "var(--carbs)" }}>У{d.carbs}</span>
+                </span>
+              )}
             </span>
-            {d.logged && (
-              <span style={{ display: "flex", gap: 6, alignItems: "center" }}>
-                <span style={{ fontFamily: "var(--mono)", fontSize: 11.5, color: "var(--ink-soft)" }}>{d.calories} ккал</span>
-                <span className="macrolabel" style={{ margin: 0, color: "var(--protein)" }}>Б{d.protein}</span>
-                <span className="macrolabel" style={{ margin: 0, color: "var(--fat-ink)" }}>Ж{d.fat}</span>
-                <span className="macrolabel" style={{ margin: 0, color: "var(--carbs)" }}>У{d.carbs}</span>
+            {d.missed.length > 0 && (
+              <span style={{ fontSize: 11.5, color: "var(--warn)" }}>
+                Пропущено: {d.missed.map(t => MEAL_TYPE_LABELS[t]).join(", ")}
               </span>
             )}
           </div>
