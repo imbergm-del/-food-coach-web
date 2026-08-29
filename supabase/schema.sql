@@ -5,6 +5,7 @@ create table if not exists profiles (
   email text,
   name text,
   age int,
+  sex text,                       -- male / female — влияет на формулу нормы (см. app/onboarding/page.tsx)
   weight_kg numeric,
   height_cm numeric,
   workouts_per_week int default 0,
@@ -113,6 +114,7 @@ alter table grocery_items add column if not exists bought boolean default false;
 alter table reminder_settings add column if not exists meal_reminders_enabled boolean default false;
 alter table meals add column if not exists steps jsonb default '[]';
 alter table meals add column if not exists icon text;
+alter table profiles add column if not exists sex text;
 
 -- Заполняем email для аккаунтов, созданных до того, как колонка появилась
 update public.profiles p

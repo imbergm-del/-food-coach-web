@@ -8,6 +8,7 @@ export default function OnboardingPage() {
   const supabase = createClient();
   const router = useRouter();
   const [name, setName] = useState("");
+  const [sex, setSex] = useState<"male" | "female" | "">("");
   const [age, setAge] = useState("");
   const [weight, setWeight] = useState("");
   const [height, setHeight] = useState("");
@@ -21,6 +22,7 @@ export default function OnboardingPage() {
 
     const valid =
       name.trim().length > 0 &&
+      (sex === "male" || sex === "female") &&
       ageN >= 10 && ageN <= 100 &&
       weightN >= 30 && weightN <= 250 &&
       heightN >= 100 && heightN <= 230 &&
@@ -45,14 +47,19 @@ export default function OnboardingPage() {
       workoutsN >= 2 ? { proteinPerKg: 1.6, calPerKg: 24 } :
       { proteinPerKg: 1.3, calPerKg: 22 };
     const ageFactor = ageN > 30 ? Math.max(0.85, 1 - (ageN - 30) * 0.005) : 1;
+    // При том же весе у женщин в среднем ниже безжировая масса, поэтому и калорийность
+    // немного ниже; жир, наоборот, не опускаем — на нём держится выработка гормонов
+    // (месячный цикл в том числе), поэтому для женщин минимум г/кг жира чуть выше.
+    const calSexFactor = sex === "female" ? 0.92 : 1;
+    const fatPerKg = sex === "female" ? 0.85 : 0.75;
 
     const proteinTarget = Math.round(weightN * tier.proteinPerKg);
-    const fatTarget = Math.round(weightN * 0.75);
-    const calTarget = Math.round(weightN * tier.calPerKg * ageFactor);
+    const fatTarget = Math.round(weightN * fatPerKg);
+    const calTarget = Math.round(weightN * tier.calPerKg * ageFactor * calSexFactor);
     const carbTarget = Math.max(0, Math.round((calTarget - (proteinTarget * 4 + fatTarget * 9)) / 4));
 
     await supabase.from("profiles").update({
-      name: name.trim(), age: ageN, weight_kg: weightN, height_cm: heightN, workouts_per_week: workoutsN,
+      name: name.trim(), sex, age: ageN, weight_kg: weightN, height_cm: heightN, workouts_per_week: workoutsN,
       protein_target: proteinTarget, fat_target: fatTarget, carb_target: carbTarget, cal_target: calTarget
     }).eq("id", user.id);
 
@@ -76,6 +83,19 @@ export default function OnboardingPage() {
         </p>
         <form onSubmit={handleSubmit}>
           <div className="field"><label>Как вас зовут</label><input type="text" value={name} onChange={e => setName(e.target.value)} placeholder="Например, Майк" /></div>
+          <div className="field">
+            <label>Пол</label>
+            <div style={{ display: "flex", gap: 8 }}>
+              {([["male", "Мужской"], ["female", "Женский"]] as const).map(([value, label]) => (
+                <button
+                  key={value} type="button" onClick={() => setSex(value)}
+                  className={`tab ${sex === value ? "active" : ""}`} style={{ flex: 1 }}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+          </div>
           <div className="field"><label>Возраст</label><input type="number" value={age} onChange={e => setAge(e.target.value)} placeholder="Например, 35" /></div>
           <div className="field"><label>Вес, кг</label><input type="number" value={weight} onChange={e => setWeight(e.target.value)} placeholder="Например, 82" /></div>
           <div className="field"><label>Рост, см</label><input type="number" value={height} onChange={e => setHeight(e.target.value)} placeholder="Например, 180" /></div>
