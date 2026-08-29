@@ -79,6 +79,7 @@ export default async function AdminClientPage({ params }: { params: { id: string
         <div className="card" style={{ marginBottom: 16 }}>
           <div className="eyebrow" style={{ marginBottom: 10 }}>Профиль</div>
           <div className="listrow"><span>Возраст</span><span>{profile.age ?? "—"}</span></div>
+          <div className="listrow"><span>Пол</span><span>{profile.sex === "female" ? "Женский" : profile.sex === "male" ? "Мужской" : "—"}</span></div>
           <div className="listrow"><span>Рост / вес</span><span>{profile.height_cm ?? "—"} см / {profile.weight_kg ?? "—"} кг</span></div>
           <div className="listrow"><span>Тренировок в неделю</span><span>{profile.workouts_per_week ?? "—"}</span></div>
           <div className="listrow"><span>Режим готовки</span><span>{cookingModeLabel(profile.cooking_mode)}</span></div>
