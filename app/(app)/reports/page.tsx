@@ -1,9 +1,12 @@
 import { createClient } from "@/lib/supabaseServer";
 import { BackButton } from "@/components/BackButton";
 import { todayISOInTz, addDaysISO, nowInTz } from "@/lib/userTime";
-import { MEAL_SEQUENCE, MEAL_TYPE_LABELS, getMealSchedule, type MealType } from "@/lib/mealTypes";
+import { MEAL_SEQUENCE, mealTypeLabel, getMealSchedule, type MealType } from "@/lib/mealTypes";
+import { getLang } from "@/lib/language";
+import { reports as dict, t } from "@/lib/i18n";
 
 const WEEKDAY_LABELS = ["Вс", "Пн", "Вт", "Ср", "Чт", "Пт", "Сб"];
+const WEEKDAY_LABELS_EN = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 const DAYS = 7;
 const CUTOVER_GRACE_MINUTES = 30;
 
@@ -13,6 +16,10 @@ type DayStat = {
 };
 
 export default async function ReportsPage() {
+  const lang = getLang();
+  const en = lang === "en";
+  const tr = (key: string) => t(dict, lang, key);
+  const weekdayLabels = en ? WEEKDAY_LABELS_EN : WEEKDAY_LABELS;
   const supabase = createClient();
   const { data: { user } } = await supabase.auth.getUser();
   const { data: profile } = await supabase.from("profiles").select("*").eq("id", user!.id).single();
@@ -57,7 +64,7 @@ export default async function ReportsPage() {
     );
     const missed = iso <= today ? elapsedTypes.filter(t => !loggedTypes.has(t)) : [];
     return {
-      iso, label: WEEKDAY_LABELS[weekday], isToday,
+      iso, label: weekdayLabels[weekday], isToday,
       calories: totals?.calories ?? 0, protein: totals?.protein ?? 0, fat: totals?.fat ?? 0, carbs: totals?.carbs ?? 0,
       logged: !!totals, missed
     };
@@ -74,18 +81,18 @@ export default async function ReportsPage() {
   return (
     <div>
       <BackButton className="btn ghost" style={{ marginBottom: 16, display: "inline-block" }} />
-      <div className="eyebrow" style={{ marginBottom: 6 }}>Последние {DAYS} дней</div>
-      <h1 style={{ fontSize: 22, marginBottom: 16 }}>Статистика</h1>
+      <div className="eyebrow" style={{ marginBottom: 6 }}>{tr("days")}</div>
+      <h1 style={{ fontSize: 22, marginBottom: 16 }}>{tr("title")}</h1>
 
       <div className="goalgrid" style={{ marginBottom: 20 }}>
-        <div className="goalcell cal"><b>{avg("calories")}</b><span>ккал/день</span></div>
-        <div className="goalcell protein"><b>{avg("protein")}</b><span>белок/день</span></div>
-        <div className="goalcell fat"><b>{avg("fat")}</b><span>жиры/день</span></div>
-        <div className="goalcell carbs"><b>{loggedDays.length}</b><span>из {DAYS} дней</span></div>
+        <div className="goalcell cal"><b>{avg("calories")}</b><span>{tr("kcalPerDay")}</span></div>
+        <div className="goalcell protein"><b>{avg("protein")}</b><span>{tr("proteinPerDay")}</span></div>
+        <div className="goalcell fat"><b>{avg("fat")}</b><span>{tr("fatPerDay")}</span></div>
+        <div className="goalcell carbs"><b>{loggedDays.length}</b><span>{tr("ofDays")}</span></div>
       </div>
 
       <div className="card" style={{ marginBottom: 20 }}>
-        <div className="eyebrow" style={{ marginBottom: 14 }}>Калории по дням · цель {calTarget}</div>
+        <div className="eyebrow" style={{ marginBottom: 14 }}>{tr("caloriesByDay")} {calTarget}</div>
         <div style={{ position: "relative", height: 140, display: "flex", alignItems: "flex-end", gap: 8, marginBottom: 8 }}>
           <div
             style={{
@@ -119,27 +126,27 @@ export default async function ReportsPage() {
         </div>
       </div>
 
-      <div className="eyebrow" style={{ marginBottom: 8 }}>По дням</div>
+      <div className="eyebrow" style={{ marginBottom: 8 }}>{tr("byDay")}</div>
       <div className="card">
         {days.slice().reverse().map((d, i) => (
           <div key={d.iso} className="listrow" style={{ flexDirection: "column", alignItems: "stretch", gap: 4, borderTop: i === 0 ? "none" : undefined, padding: "10px 0" }}>
             <span style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
               <span style={{ fontSize: 13.5 }}>
-                {d.label}{d.isToday ? " · сегодня" : ""}
-                {!d.logged && <span style={{ color: "var(--ink-soft)" }}> — нет записей</span>}
+                {d.label}{d.isToday ? ` · ${tr("today")}` : ""}
+                {!d.logged && <span style={{ color: "var(--ink-soft)" }}> — {tr("noEntries")}</span>}
               </span>
               {d.logged && (
                 <span style={{ display: "flex", gap: 6, alignItems: "center" }}>
-                  <span style={{ fontFamily: "var(--mono)", fontSize: 11.5, color: "var(--ink-soft)" }}>{d.calories} ккал</span>
-                  <span className="macrolabel" style={{ margin: 0, color: "var(--protein)" }}>Б{d.protein}</span>
-                  <span className="macrolabel" style={{ margin: 0, color: "var(--fat-ink)" }}>Ж{d.fat}</span>
-                  <span className="macrolabel" style={{ margin: 0, color: "var(--carbs)" }}>У{d.carbs}</span>
+                  <span style={{ fontFamily: "var(--mono)", fontSize: 11.5, color: "var(--ink-soft)" }}>{d.calories} {en ? "kcal" : "ккал"}</span>
+                  <span className="macrolabel" style={{ margin: 0, color: "var(--protein)" }}>{en ? "P" : "Б"}{d.protein}</span>
+                  <span className="macrolabel" style={{ margin: 0, color: "var(--fat-ink)" }}>{en ? "F" : "Ж"}{d.fat}</span>
+                  <span className="macrolabel" style={{ margin: 0, color: "var(--carbs)" }}>{en ? "C" : "У"}{d.carbs}</span>
                 </span>
               )}
             </span>
             {d.missed.length > 0 && (
               <span style={{ fontSize: 11.5, color: "var(--warn)" }}>
-                Пропущено: {d.missed.map(t => MEAL_TYPE_LABELS[t]).join(", ")}
+                {tr("missed")}: {d.missed.map(t => mealTypeLabel(t, lang)).join(", ")}
               </span>
             )}
           </div>

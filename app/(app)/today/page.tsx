@@ -6,7 +6,7 @@ import { MacroBreakdown } from "@/components/MacroBreakdown";
 import { MealCard } from "./MealCard";
 import { SubmitButton } from "@/components/SubmitButton";
 import { mealTypeLabel, getMealSchedule } from "@/lib/mealTypes";
-import { MEAL_POOL } from "@/lib/mealMenu";
+import { MEAL_POOL, localizeMeal } from "@/lib/mealMenu";
 import { filterPoolForMode } from "@/lib/mealRotation";
 import { getDisplayMealType } from "@/lib/getDisplayMealType";
 import { normalizeCookingMode } from "@/lib/cookingMode";
@@ -72,7 +72,7 @@ export default async function TodayPage() {
   const calTarget = profile?.cal_target ?? 2200;
   const options = displayType
     ? filterPoolForMode(MEAL_POOL[displayType], cookingMode, nowInTz(tz).getHours()).map(def => ({
-        ...scaleMealToTarget(def, displayType, calTarget)
+        ...scaleMealToTarget(localizeMeal(def, lang), displayType, calTarget)
       }))
     : [];
   const currentTitle = plannedRow?.title;

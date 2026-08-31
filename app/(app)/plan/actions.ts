@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabaseServer";
 import { regeneratePlan, PLAN_HORIZON_DAYS } from "@/lib/planGeneration";
 import { todayISOInTz } from "@/lib/userTime";
+import { getLang } from "@/lib/language";
 
 // Составляет завтрак/обед/ужин на ближайшие 5 дней реальными рецептами с
 // граммовкой. Съеденное и выбранное пользователем вручную не трогает, а ещё не
@@ -18,7 +19,7 @@ export async function generateWeekPlan() {
   const { data: profile } = await supabase.from("profiles").select("cal_target, timezone").eq("id", user.id).single();
   const todayISO = todayISOInTz(profile?.timezone);
 
-  await regeneratePlan(supabase, user.id, profile?.cal_target ?? 2200, todayISO, PLAN_HORIZON_DAYS);
+  await regeneratePlan(supabase, user.id, profile?.cal_target ?? 2200, todayISO, PLAN_HORIZON_DAYS, getLang());
 
   revalidatePath("/plan");
   revalidatePath("/today");

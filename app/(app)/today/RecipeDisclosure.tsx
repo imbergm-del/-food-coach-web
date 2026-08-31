@@ -1,11 +1,15 @@
+import { recipe as dict, t, type Lang } from "@/lib/i18n";
+
 type Ingredient = { name: string; qty: string };
 
-export function RecipeDisclosure({ ingredients, steps }: { ingredients: Ingredient[]; steps: string[] }) {
+export function RecipeDisclosure({ ingredients, steps, lang = "ru" }: { ingredients: Ingredient[]; steps: string[]; lang?: Lang }) {
+  const tr = (key: string) => t(dict, lang, key);
+
   if (ingredients.length === 0 && steps.length === 0) {
     return (
       <div className="card" style={{ background: "var(--paper2)", boxShadow: "none", marginBottom: 16 }}>
         <p style={{ fontSize: 13, color: "var(--ink-soft)", margin: 0 }}>
-          Состав для этого блюда не сохранён — нажмите «Заменить», чтобы выбрать блюдо с полным рецептом.
+          {tr("empty")}
         </p>
       </div>
     );
@@ -13,7 +17,7 @@ export function RecipeDisclosure({ ingredients, steps }: { ingredients: Ingredie
 
   return (
     <div className="card" style={{ background: "var(--paper2)", boxShadow: "none", marginBottom: 16 }}>
-      <div className="eyebrow" style={{ marginBottom: 10 }}>Рецепт</div>
+      <div className="eyebrow" style={{ marginBottom: 10 }}>{tr("title")}</div>
 
       {ingredients.length > 0 && (
         <div style={{ marginBottom: steps.length > 0 ? 14 : 0 }}>

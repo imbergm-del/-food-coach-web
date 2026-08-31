@@ -45,7 +45,7 @@ export function MealCard({
           </span>
         ))}
       </div>
-      <RecipeDisclosure ingredients={meal.ingredients} steps={meal.steps} />
+      <RecipeDisclosure ingredients={meal.ingredients} steps={meal.steps} lang={lang} />
       <div className="actionrow" style={{ marginBottom: 10 }}>
         <form action={logMealEaten} style={{ flex: 1 }}>
           <input type="hidden" name="title" value={meal.title} />

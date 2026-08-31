@@ -200,6 +200,115 @@ export const coach = section(
 );
 
 export const settings = section(
-  { language: "Язык", languageDesc: "Меняет язык интерфейса и ИИ-подборок (коуч, рецепты и т.д.)." },
-  { language: "Language", languageDesc: "Changes the language of the interface and AI suggestions (coach, recipes, etc.)." }
+  {
+    language: "Язык", languageDesc: "Меняет язык интерфейса и ИИ-подборок (коуч, рецепты и т.д.).",
+    eyebrow: "Настройки", title: "Общие настройки",
+    nameTitle: "Как к вам обращаться", nameDesc: "Приложение поздоровается по имени на экране «Сегодня».",
+    namePlaceholder: "Например, Майк",
+    scheduleTitle: "Расписание приёмов пищи",
+    scheduleDesc: "На этом времени завязано, какой приём показывается на «Сегодня», и когда приходит SMS за 30 минут до еды.",
+    save: "Сохранить", saving: "Сохраняем…", saved: "Сохранено ✓", saveError: "Не удалось сохранить. Попробуйте ещё раз.",
+    reminderTitle: "Присылать напоминание", reminderDesc: "Питание на завтра, накануне вечером в",
+    smsTitle: "SMS за 30 минут до еды", smsDesc: "Короткое напоминание перед завтраком, обедом, перекусом и ужином",
+    smsInsteadTitle: "Присылать SMS вместо письма",
+    smsInsteadDesc: "Укажите номер — оба напоминания выше придут текстовым сообщением на телефон, а не на почту."
+  },
+  {
+    language: "Language", languageDesc: "Changes the language of the interface and AI suggestions (coach, recipes, etc.).",
+    eyebrow: "Settings", title: "General settings",
+    nameTitle: "What should we call you", nameDesc: "The app will greet you by name on the Today screen.",
+    namePlaceholder: "e.g. Mike",
+    scheduleTitle: "Meal schedule",
+    scheduleDesc: "This time decides which meal shows up on Today, and when the SMS reminder arrives 30 minutes before eating.",
+    save: "Save", saving: "Saving…", saved: "Saved ✓", saveError: "Couldn't save. Please try again.",
+    reminderTitle: "Send a reminder", reminderDesc: "Tomorrow's meals, the evening before at",
+    smsTitle: "SMS 30 minutes before eating", smsDesc: "A short reminder before breakfast, lunch, snack and dinner",
+    smsInsteadTitle: "Send SMS instead of email",
+    smsInsteadDesc: "Add a number — both reminders above will arrive as a text message to your phone instead of email."
+  }
+);
+
+export const plan = section(
+  {
+    eyebrow: "План на 5 дней", title: "Питание на ближайшие дни",
+    generate: "Составить план", generating: "Составляем…",
+    toCart: "Продукты в корзину", addingToCart: "Добавляем…",
+    today: "сегодня", empty: "Пока пусто — записывайте приёмы пищи на «Сегодня» или через «Записать еду».",
+    untitled: "без названия", kcal: "ккал"
+  },
+  {
+    eyebrow: "5-day plan", title: "Meals for the coming days",
+    generate: "Generate plan", generating: "Generating…",
+    toCart: "Add groceries to cart", addingToCart: "Adding…",
+    today: "today", empty: "Nothing yet — log meals on Today or through Log food.",
+    untitled: "untitled", kcal: "kcal"
+  }
+);
+
+export const cart = section(
+  { eyebrow: "Корзина и покупки", title: "Список покупок", empty: "Пока пусто. Нажмите «Продукты в корзину» на экране «План»." },
+  { eyebrow: "Cart & groceries", title: "Shopping list", empty: "Nothing here yet. Tap “Add groceries to cart” on the Plan screen." }
+);
+
+export const reports = section(
+  {
+    days: "Последние 7 дней", title: "Статистика",
+    kcalPerDay: "ккал/день", proteinPerDay: "белок/день", fatPerDay: "жиры/день", ofDays: "из 7 дней",
+    caloriesByDay: "Калории по дням · цель", byDay: "По дням", noEntries: "нет записей", missed: "Пропущено", today: "сегодня"
+  },
+  {
+    days: "Last 7 days", title: "Statistics",
+    kcalPerDay: "kcal/day", proteinPerDay: "protein/day", fatPerDay: "fat/day", ofDays: "of 7 days",
+    caloriesByDay: "Calories by day · target", byDay: "By day", noEntries: "no entries", missed: "Missed", today: "today"
+  }
+);
+
+export const reminders = section(
+  {
+    arrivesToday: "Придёт сегодня в", title: "Ваше питание на завтра",
+    empty: "На завтра пока ничего не запланировано.",
+    untitled: "без названия", kcal: "ккал",
+    reshuffle: "Изменить план на завтра", reshuffling: "Подбираем…"
+  },
+  {
+    arrivesToday: "Arrives today at", title: "Your meals for tomorrow",
+    empty: "Nothing planned for tomorrow yet.",
+    untitled: "untitled", kcal: "kcal",
+    reshuffle: "Change tomorrow's plan", reshuffling: "Picking…"
+  }
+);
+
+export const recipe = section(
+  { title: "Рецепт", empty: "Состав для этого блюда не сохранён — нажмите «Заменить», чтобы выбрать блюдо с полным рецептом." },
+  { title: "Recipe", empty: "No ingredients saved for this meal — tap Swap to pick a meal with a full recipe." }
+);
+
+export const profile = section(
+  {
+    eyebrow: "Профиль", age: "Возраст", height: "Рост", weight: "Вес", workouts: "Тренировок в неделю",
+    cm: "см", kg: "кг", reports: "Статистика", settings: "Настройки", admin: "Админ-панель",
+    signOut: "Выйти", signingOut: "Выходим…"
+  },
+  {
+    eyebrow: "Profile", age: "Age", height: "Height", weight: "Weight", workouts: "Workouts per week",
+    cm: "cm", kg: "kg", reports: "Statistics", settings: "Settings", admin: "Admin panel",
+    signOut: "Sign out", signingOut: "Signing out…"
+  }
+);
+
+export const privacy = section(
+  {
+    title: "Политика конфиденциальности",
+    p1: "Мы собираем только те данные, которые нужны, чтобы вести ваш план питания: email, имя, телефон (если вы включили SMS-напоминания), возраст, вес, рост, часовой пояс и историю приёмов пищи, которые вы записываете в приложении.",
+    p2: "Эти данные хранятся в базе данных проекта (Supabase) и используются только для работы приложения: расчёта нормы КБЖУ, подбора блюд и отправки напоминаний, которые вы сами включили в настройках. Мы не продаём и не передаём ваши данные третьим лицам.",
+    p3: "Вход через Google используется только для авторизации — мы получаем от Google ваш email и имя, ничего больше.",
+    p4a: "Вы можете в любой момент попросить удалить свой аккаунт и все данные, написав на"
+  },
+  {
+    title: "Privacy Policy",
+    p1: "We only collect what's needed to run your meal plan: email, name, phone number (if you enable SMS reminders), age, weight, height, timezone, and the meal history you log in the app.",
+    p2: "This data is stored in the project's database (Supabase) and used only to run the app: calculating your calorie/macro targets, suggesting meals, and sending the reminders you turned on in Settings. We don't sell or share your data with third parties.",
+    p3: "Signing in with Google is used only for authorization — we receive your email and name from Google, nothing else.",
+    p4a: "You can ask to delete your account and all data at any time by writing to"
+  }
 );

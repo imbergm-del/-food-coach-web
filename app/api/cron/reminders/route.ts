@@ -1,10 +1,11 @@
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabaseAdmin";
-import { MEAL_TYPE_LABELS, MEAL_SEQUENCE, getMealSchedule, type MealType } from "@/lib/mealTypes";
-import { MEAL_POOL } from "@/lib/mealMenu";
+import { mealTypeLabel, MEAL_SEQUENCE, getMealSchedule, type MealType } from "@/lib/mealTypes";
+import { MEAL_POOL, localizeMeal } from "@/lib/mealMenu";
 import { pickMealForDate } from "@/lib/mealRotation";
 import { scaleMealToTarget } from "@/lib/scaleMeal";
 import { nowInTz, todayISOInTz, addDaysISO } from "@/lib/userTime";
+import type { Lang } from "@/lib/language";
 
 // Triggered every 15 minutes by Vercel Cron (see vercel.json), which sends the secret
 // as a Bearer header. A "?secret=" query param is also accepted so this can be
@@ -79,10 +80,12 @@ export async function GET(req: Request) {
   for (const s of settings) {
     const { data: profile } = await supabase
       .from("profiles")
-      .select("phone, email, timezone, cooking_mode, cal_target, breakfast_time, lunch_time, snack_time, dinner_time")
+      .select("phone, email, timezone, cooking_mode, cal_target, breakfast_time, lunch_time, snack_time, dinner_time, language")
       .eq("id", s.user_id).single();
     if (!profile) continue;
 
+    const lang: Lang = profile.language === "en" ? "en" : "ru";
+    const en = lang === "en";
     const schedule = getMealSchedule(profile);
 
     const now = nowInTz(profile.timezone);
@@ -96,13 +99,15 @@ export async function GET(req: Request) {
       const { data: plannedMeals } = await supabase
         .from("meals").select("meal_type, title").eq("user_id", s.user_id).eq("date", tomorrow);
       const planLines = (plannedMeals ?? []).map(
-        m => `${MEAL_TYPE_LABELS[m.meal_type as keyof typeof MEAL_TYPE_LABELS] ?? m.meal_type}: ${m.title}`
+        m => `${mealTypeLabel(m.meal_type as MealType, lang)}: ${m.title}`
       );
-      const planSummary = planLines.length ? planLines.join("; ") : "план на завтра ещё не составлен — откройте приложение";
+      const planSummary = planLines.length ? planLines.join("; ") : (en ? "tomorrow's plan isn't ready yet — open the app" : "план на завтра ещё не составлен — откройте приложение");
 
       if (smsConfigured && profile.phone) {
         try {
-          await sendSms(profile.phone, `AI Food Coach: ваше питание на завтра — ${planSummary}. Подробнее: ${appUrl}/reminders`);
+          await sendSms(profile.phone, en
+            ? `AI Food Coach: your meals for tomorrow — ${planSummary}. Details: ${appUrl}/reminders`
+            : `AI Food Coach: ваше питание на завтра — ${planSummary}. Подробнее: ${appUrl}/reminders`);
           await markSent(s.user_id, today, "evening_plan");
           sentSms++;
         } catch (err) {
@@ -111,7 +116,13 @@ export async function GET(req: Request) {
         }
       } else if (emailConfigured && profile.email) {
         try {
-          await sendEmail(profile.email, "Ваше питание на завтра готово", `<p>${planSummary}</p><p><a href="${appUrl}/reminders">Открыть напоминание</a></p>`);
+          await sendEmail(
+            profile.email,
+            en ? "Your meals for tomorrow are ready" : "Ваше питание на завтра готово",
+            en
+              ? `<p>${planSummary}</p><p><a href="${appUrl}/reminders">Open the reminder</a></p>`
+              : `<p>${planSummary}</p><p><a href="${appUrl}/reminders">Открыть напоминание</a></p>`
+          );
           await markSent(s.user_id, today, "evening_plan");
           sentEmail++;
         } catch (err) {
@@ -136,11 +147,15 @@ export async function GET(req: Request) {
           .from("meals").select("title, status").eq("user_id", s.user_id).eq("date", today).eq("meal_type", mealType);
         let title = mealsToday?.find(m => m.status === "planned")?.title ?? mealsToday?.[0]?.title;
         if (!title) {
-          title = scaleMealToTarget(pickMealForDate(MEAL_POOL[mealType as MealType], today), mealType as MealType, profile.cal_target ?? 2200).title;
+          title = scaleMealToTarget(
+            localizeMeal(pickMealForDate(MEAL_POOL[mealType as MealType], today), lang), mealType as MealType, profile.cal_target ?? 2200
+          ).title;
         }
 
         try {
-          await sendSms(profile.phone, `AI Food Coach: через 30 минут — ${MEAL_TYPE_LABELS[mealType]}: ${title}. Подробнее: ${appUrl}/today`);
+          await sendSms(profile.phone, en
+            ? `AI Food Coach: in 30 minutes — ${mealTypeLabel(mealType, lang)}: ${title}. Details: ${appUrl}/today`
+            : `AI Food Coach: через 30 минут — ${mealTypeLabel(mealType, lang)}: ${title}. Подробнее: ${appUrl}/today`);
           await markSent(s.user_id, today, mealType);
           sentSms++;
         } catch (err) {

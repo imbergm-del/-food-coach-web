@@ -1,9 +1,9 @@
 import type { MealDef } from "@/lib/mealMenu";
 import { MEAL_CALORIE_SHARE, type MealType } from "@/lib/mealTypes";
 
-// Только простые граммовки вида "60 г" / "200 мл" — без затрагивания
-// штучных ингредиентов вроде "1 шт (120 г)", которые дробить бессмысленно.
-const SIMPLE_QTY = /^(\d+(?:[.,]\d+)?)\s*(г|мл)$/;
+// Только простые граммовки вида "60 г" / "200 мл" (или "60 g" / "200 ml" на английском) —
+// без затрагивания штучных ингредиентов вроде "1 шт (120 г)", которые дробить бессмысленно.
+const SIMPLE_QTY = /^(\d+(?:[.,]\d+)?)\s*(г|мл|g|ml)$/;
 
 function scaleQty(qty: string, factor: number): string {
   const match = qty.match(SIMPLE_QTY);

@@ -1,8 +1,9 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { MEAL_POOL } from "@/lib/mealMenu";
+import { MEAL_POOL, localizeMeal } from "@/lib/mealMenu";
 import { pickMealForDate } from "@/lib/mealRotation";
 import { scaleMealToTarget } from "@/lib/scaleMeal";
 import type { MealType } from "@/lib/mealTypes";
+import type { Lang } from "@/lib/language";
 
 export const PLAN_MEAL_TYPES = ["breakfast", "lunch", "dinner"] as const;
 export const PLAN_HORIZON_DAYS = 5;
@@ -20,8 +21,8 @@ function isStaleAutoPlan(m: ExistingMeal) {
   return m.status === "planned" && m.source === "week_plan";
 }
 
-function buildRow(userId: string, iso: string, mealType: MealType, calTarget: number) {
-  const def = scaleMealToTarget(pickMealForDate(MEAL_POOL[mealType], iso), mealType, calTarget);
+function buildRow(userId: string, iso: string, mealType: MealType, calTarget: number, lang: Lang) {
+  const def = scaleMealToTarget(localizeMeal(pickMealForDate(MEAL_POOL[mealType], iso), lang), mealType, calTarget);
   return {
     user_id: userId, date: iso, meal_type: mealType,
     title: def.title, ingredients: def.ingredients, steps: def.steps,
@@ -34,7 +35,7 @@ function buildRow(userId: string, iso: string, mealType: MealType, calTarget: nu
 // существующего не трогает. Вызывается тихо при открытии «Напоминаний», чтобы план
 // на завтра точно был, даже если пользователь ни разу не нажимал «Составить план».
 export async function fillMissingPlan(
-  supabase: SupabaseClient, userId: string, calTarget: number, startISO: string, days: number = PLAN_HORIZON_DAYS
+  supabase: SupabaseClient, userId: string, calTarget: number, startISO: string, days: number = PLAN_HORIZON_DAYS, lang: Lang = "ru"
 ) {
   const endISO = addDaysISO(startISO, days - 1);
   const { data: existing } = await supabase
@@ -47,7 +48,7 @@ export async function fillMissingPlan(
     const iso = addDaysISO(startISO, i);
     for (const mealType of PLAN_MEAL_TYPES) {
       if (existingKeys.has(`${iso}|${mealType}`)) continue;
-      rows.push(buildRow(userId, iso, mealType, calTarget));
+      rows.push(buildRow(userId, iso, mealType, calTarget, lang));
     }
   }
   if (rows.length) {
@@ -60,7 +61,7 @@ export async function fillMissingPlan(
 // явной кнопкой «Составить план», чтобы устаревшие повторы подхватили актуальную
 // подборку рецептов. Съеденное и выбранное пользователем вручную не трогает.
 export async function regeneratePlan(
-  supabase: SupabaseClient, userId: string, calTarget: number, startISO: string, days: number = PLAN_HORIZON_DAYS
+  supabase: SupabaseClient, userId: string, calTarget: number, startISO: string, days: number = PLAN_HORIZON_DAYS, lang: Lang = "ru"
 ) {
   const endISO = addDaysISO(startISO, days - 1);
   const { data: existing } = await supabase
@@ -76,7 +77,7 @@ export async function regeneratePlan(
     const iso = addDaysISO(startISO, i);
     for (const mealType of PLAN_MEAL_TYPES) {
       if (settledKeys.has(`${iso}|${mealType}`)) continue;
-      rows.push(buildRow(userId, iso, mealType, calTarget));
+      rows.push(buildRow(userId, iso, mealType, calTarget, lang));
     }
   }
   if (rows.length) {

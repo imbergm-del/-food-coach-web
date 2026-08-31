@@ -2,8 +2,12 @@ import { createClient } from "@/lib/supabaseServer";
 import { removeGroceryItem } from "./actions";
 import { GroceryCheckbox } from "./GroceryCheckbox";
 import { SubmitButton } from "@/components/SubmitButton";
+import { getLang } from "@/lib/language";
+import { cart as dict, t } from "@/lib/i18n";
 
 export default async function CartPage() {
+  const lang = getLang();
+  const tr = (key: string) => t(dict, lang, key);
   const supabase = createClient();
   const { data: { user } } = await supabase.auth.getUser();
   const { data: items } = await supabase
@@ -12,8 +16,8 @@ export default async function CartPage() {
 
   return (
     <div>
-      <div className="eyebrow" style={{ marginBottom: 6 }}>Корзина и покупки</div>
-      <h1 style={{ fontSize: 24, marginBottom: 16 }}>Список покупок</h1>
+      <div className="eyebrow" style={{ marginBottom: 6 }}>{tr("eyebrow")}</div>
+      <h1 style={{ fontSize: 24, marginBottom: 16 }}>{tr("title")}</h1>
 
       <div className="card">
         {items?.length ? items.map(i => (
@@ -37,7 +41,7 @@ export default async function CartPage() {
           </div>
         )) : (
           <p style={{ fontSize: 13, color: "var(--ink-soft)", margin: 0 }}>
-            Пока пусто. Нажмите «Заказать продукты» на экране Сегодня.
+            {tr("empty")}
           </p>
         )}
       </div>

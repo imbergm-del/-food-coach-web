@@ -3,10 +3,11 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabaseServer";
 import { PLAN_MEAL_TYPES } from "@/lib/planGeneration";
-import { MEAL_POOL } from "@/lib/mealMenu";
+import { MEAL_POOL, localizeMeal } from "@/lib/mealMenu";
 import { pickMealForDate } from "@/lib/mealRotation";
 import { scaleMealToTarget } from "@/lib/scaleMeal";
 import { todayISOInTz, addDaysISO } from "@/lib/userTime";
+import { getLang } from "@/lib/language";
 
 export async function setReminderEnabled(formData: FormData) {
   const supabase = createClient();
@@ -29,41 +30,46 @@ export async function setMealRemindersEnabled(formData: FormData) {
 }
 
 type SaveResult = { ok: boolean; error?: string };
-const SESSION_EXPIRED: SaveResult = { ok: false, error: "Сессия истекла — обновите страницу и попробуйте снова." };
-
-const NOT_UPDATED: SaveResult = { ok: false, error: "Не удалось сохранить: строка профиля не найдена или обновление отклонено." };
+function sessionExpired(): SaveResult {
+  const en = getLang() === "en";
+  return { ok: false, error: en ? "Session expired — refresh the page and try again." : "Сессия истекла — обновите страницу и попробуйте снова." };
+}
+function notUpdated(): SaveResult {
+  const en = getLang() === "en";
+  return { ok: false, error: en ? "Couldn't save: profile row not found or update rejected." : "Не удалось сохранить: строка профиля не найдена или обновление отклонено." };
+}
 
 export async function savePhoneNumber(formData: FormData): Promise<SaveResult> {
   const supabase = createClient();
   const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return SESSION_EXPIRED;
+  if (!user) return sessionExpired();
 
   const phone = (formData.get("phone") as string || "").trim();
   const { data, error } = await supabase.from("profiles").update({ phone: phone || null }).eq("id", user.id).select("id");
   revalidatePath("/settings");
   if (error) return { ok: false, error: error.message };
-  if (!data?.length) return NOT_UPDATED;
+  if (!data?.length) return notUpdated();
   return { ok: true };
 }
 
 export async function saveName(formData: FormData): Promise<SaveResult> {
   const supabase = createClient();
   const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return SESSION_EXPIRED;
+  if (!user) return sessionExpired();
 
   const name = (formData.get("name") as string || "").trim();
   const { data, error } = await supabase.from("profiles").update({ name: name || null }).eq("id", user.id).select("id");
   revalidatePath("/settings");
   revalidatePath("/today");
   if (error) return { ok: false, error: error.message };
-  if (!data?.length) return NOT_UPDATED;
+  if (!data?.length) return notUpdated();
   return { ok: true };
 }
 
 export async function saveMealSchedule(formData: FormData): Promise<SaveResult> {
   const supabase = createClient();
   const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return SESSION_EXPIRED;
+  if (!user) return sessionExpired();
 
   const { data, error } = await supabase.from("profiles").update({
     breakfast_time: (formData.get("breakfast_time") as string) || null,
@@ -75,7 +81,7 @@ export async function saveMealSchedule(formData: FormData): Promise<SaveResult> 
   revalidatePath("/settings");
   revalidatePath("/today");
   if (error) return { ok: false, error: error.message };
-  if (!data?.length) return NOT_UPDATED;
+  if (!data?.length) return notUpdated();
   return { ok: true };
 }
 
@@ -90,6 +96,7 @@ export async function reshuffleTomorrowPlan() {
   const { data: profile } = await supabase.from("profiles").select("cal_target, timezone").eq("id", user.id).single();
   const calTarget = profile?.cal_target ?? 2200;
   const tomorrowISO = addDaysISO(todayISOInTz(profile?.timezone), 1);
+  const lang = getLang();
 
   const { data: existing } = await supabase
     .from("meals")
@@ -105,8 +112,8 @@ export async function reshuffleTomorrowPlan() {
     const current = existing?.find(m => m.meal_type === mealType);
     if (current?.status && current.status !== "planned") continue; // уже отмечено — не трогаем
 
-    const pool = MEAL_POOL[mealType];
-    const currentTitle = current?.title ?? pickMealForDate(pool, tomorrowISO).title;
+    const pool = MEAL_POOL[mealType].map(m => localizeMeal(m, lang));
+    const currentTitle = current?.title ?? localizeMeal(pickMealForDate(MEAL_POOL[mealType], tomorrowISO), lang).title;
     const index = pool.findIndex(m => m.title === currentTitle);
     const next = pool[index === -1 ? 0 : (index + 1) % pool.length];
     const def = scaleMealToTarget(next, mealType, calTarget);

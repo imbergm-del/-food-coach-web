@@ -1,13 +1,15 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { settings as dict, t, type Lang } from "@/lib/i18n";
 
 export function SavedField({
-  action, fieldName, initialValue, placeholder, type = "text"
+  action, fieldName, initialValue, placeholder, type = "text", lang = "ru"
 }: {
   action: (formData: FormData) => Promise<{ ok: boolean; error?: string }>;
-  fieldName: string; initialValue: string; placeholder?: string; type?: string;
+  fieldName: string; initialValue: string; placeholder?: string; type?: string; lang?: Lang;
 }) {
+  const tr = (key: string) => t(dict, lang, key);
   const [pending, startTransition] = useTransition();
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState("");
@@ -20,7 +22,7 @@ export function SavedField({
     startTransition(async () => {
       const result = await action(formData);
       if (result.ok) setSaved(true);
-      else setError(result.error || "Не удалось сохранить. Попробуйте ещё раз.");
+      else setError(result.error || tr("saveError"));
     });
   }
 
@@ -38,9 +40,9 @@ export function SavedField({
         <button className="btn" type="submit" disabled={pending} style={{ width: "auto" }}>
           {pending ? (
             <span style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
-              <span className="spinner" /> Сохраняем…
+              <span className="spinner" /> {tr("saving")}
             </span>
-          ) : "Сохранить"}
+          ) : tr("save")}
         </button>
       </div>
       {error && (
@@ -50,7 +52,7 @@ export function SavedField({
       )}
       {saved && !pending && !error && (
         <span style={{ display: "block", marginTop: 8, fontSize: 13, fontWeight: 600, color: "var(--carbs)" }}>
-          Сохранено ✓
+          {tr("saved")}
         </span>
       )}
     </form>

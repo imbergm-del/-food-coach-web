@@ -1,14 +1,21 @@
 import { createClient } from "@/lib/supabaseServer";
 import { FoodThumb } from "@/components/FoodThumb";
-import { MEAL_TYPE_LABELS } from "@/lib/mealTypes";
+import { mealTypeLabel } from "@/lib/mealTypes";
 import { generateWeekPlan, addWeekIngredientsToCart } from "./actions";
 import { SubmitButton } from "@/components/SubmitButton";
 import { todayISOInTz, addDaysISO } from "@/lib/userTime";
 import { PLAN_HORIZON_DAYS } from "@/lib/planGeneration";
+import { getLang } from "@/lib/language";
+import { plan as dict, t } from "@/lib/i18n";
 
 const WEEKDAY_LABELS = ["Вс", "Пн", "Вт", "Ср", "Чт", "Пт", "Сб"];
+const WEEKDAY_LABELS_EN = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
 export default async function PlanPage() {
+  const lang = getLang();
+  const en = lang === "en";
+  const tr = (key: string) => t(dict, lang, key);
+  const weekdayLabels = en ? WEEKDAY_LABELS_EN : WEEKDAY_LABELS;
   const supabase = createClient();
   const { data: { user } } = await supabase.auth.getUser();
   const { data: profile } = await supabase.from("profiles").select("timezone").eq("id", user!.id).single();
@@ -30,7 +37,7 @@ export default async function PlanPage() {
     const weekday = new Date(`${iso}T00:00:00`).getDay();
     return {
       iso,
-      label: WEEKDAY_LABELS[weekday],
+      label: weekdayLabels[weekday],
       dayOfMonth: Number(iso.slice(8, 10)),
       isToday: i === 0,
       meals: meals?.filter(m => m.date === iso) ?? []
@@ -39,15 +46,15 @@ export default async function PlanPage() {
 
   return (
     <div>
-      <div className="eyebrow" style={{ marginBottom: 6 }}>План на 5 дней</div>
-      <h1 style={{ fontSize: 24, marginBottom: 12 }}>Питание на ближайшие дни</h1>
+      <div className="eyebrow" style={{ marginBottom: 6 }}>{tr("eyebrow")}</div>
+      <h1 style={{ fontSize: 24, marginBottom: 12 }}>{tr("title")}</h1>
 
       <div style={{ display: "flex", gap: 10, marginBottom: 20 }}>
         <form action={generateWeekPlan} style={{ flex: 1 }}>
-          <SubmitButton pendingText="Составляем…">Составить план</SubmitButton>
+          <SubmitButton pendingText={tr("generating")}>{tr("generate")}</SubmitButton>
         </form>
         <form action={addWeekIngredientsToCart} style={{ flex: 1 }}>
-          <SubmitButton className="btn ghost block" pendingText="Добавляем…">Продукты в корзину</SubmitButton>
+          <SubmitButton className="btn ghost block" pendingText={tr("addingToCart")}>{tr("toCart")}</SubmitButton>
         </form>
       </div>
 
@@ -55,13 +62,13 @@ export default async function PlanPage() {
         <div key={day.iso} style={{ marginBottom: 16 }}>
           <div style={{ display: "flex", alignItems: "baseline", gap: 8, marginBottom: 8 }}>
             <span className="eyebrow" style={{ color: day.isToday ? "var(--ink)" : "var(--ink-soft)" }}>
-              {day.label} · {day.dayOfMonth}{day.isToday ? " · сегодня" : ""}
+              {day.label} · {day.dayOfMonth}{day.isToday ? ` · ${tr("today")}` : ""}
             </span>
           </div>
           <div className="card">
             {day.meals.length === 0 ? (
               <p style={{ fontSize: 13, color: "var(--ink-soft)", margin: 0 }}>
-                Пока пусто — записывайте приёмы пищи на «Сегодня» или через «Записать еду».
+                {tr("empty")}
               </p>
             ) : (
               day.meals.map(m => {
@@ -77,10 +84,10 @@ export default async function PlanPage() {
                           size={36}
                         />
                         <span>
-                          {MEAL_TYPE_LABELS[m.meal_type as keyof typeof MEAL_TYPE_LABELS] ?? m.meal_type} — {m.title ?? "без названия"}
+                          {mealTypeLabel(m.meal_type as Parameters<typeof mealTypeLabel>[0], lang)} — {m.title ?? tr("untitled")}
                         </span>
                       </span>
-                      <span className="macrolabel">{m.calories ?? 0} ккал</span>
+                      <span className="macrolabel">{m.calories ?? 0} {tr("kcal")}</span>
                     </span>
                     {!!ingredients.length && (
                       <span style={{ fontFamily: "var(--mono)", fontSize: 11, color: "var(--ink-soft)", paddingLeft: 46 }}>
